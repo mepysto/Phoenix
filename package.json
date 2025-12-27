@@ -1,0 +1,47 @@
+{
+  "name": "phoenix",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Digital twin platform where everyone can heal the wounds of the earth together",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/phoenix"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "dev:web": "turbo dev --filter=web",
+    "dev:api": "turbo dev --filter=api",
+    "start": "./scripts/start.sh",
+    "start:dev": "./scripts/start.sh dev",
+    "start:docker": "./scripts/start.sh docker",
+    "start:db": "./scripts/start.sh db-only",
+    "stop": "./scripts/stop.sh",
+    "stop:clean": "./scripts/stop.sh clean",
+    "status": "./scripts/status.sh",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "clean": "turbo clean && rm -rf node_modules",
+    "db:migrate": "cd apps/api && alembic upgrade head",
+    "db:seed": "./scripts/seed-data.sh",
+    "docker:up": "docker compose -f infrastructure/docker/docker-compose.yml up -d",
+    "docker:down": "docker compose -f infrastructure/docker/docker-compose.yml down",
+    "docker:logs": "docker compose -f infrastructure/docker/docker-compose.yml logs -f",
+    "generate:types": "cd apps/web && pnpm generate:api-client"
+  },
+  "devDependencies": {
+    "@phoenix/eslint-config": "workspace:*",
+    "@phoenix/typescript-config": "workspace:*",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "turbo": "^2.3.3"
+  },
+  "packageManager": "pnpm@9.15.1",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
