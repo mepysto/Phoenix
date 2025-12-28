@@ -16,7 +16,11 @@ import {
   Clock,
   ChevronRight,
 } from "lucide-react";
-import type { EventType, SeverityLevel, DisasterEvent } from "@phoenix/shared/types";
+import type {
+  EventType,
+  SeverityLevel,
+  DisasterEvent,
+} from "@phoenix/shared/types";
 import {
   EVENT_TYPE_LABELS,
   EVENT_TYPE_COLORS,
@@ -24,6 +28,7 @@ import {
 } from "@phoenix/shared/constants";
 import { useEventStore } from "@/store/eventStore";
 import { Header } from "@/components/layout/Header";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const EVENT_ICONS: Record<EventType, React.ReactNode> = {
   earthquake: <Mountain className="h-5 w-5" />,
@@ -40,7 +45,8 @@ const EVENT_ICONS: Record<EventType, React.ReactNode> = {
 
 function EventCard({ event }: { event: DisasterEvent }) {
   const typeColor = EVENT_TYPE_COLORS[event.type as EventType] || "#808080";
-  const severityColor = SEVERITY_COLORS[event.severity as SeverityLevel] || "#808080";
+  const severityColor =
+    SEVERITY_COLORS[event.severity as SeverityLevel] || "#808080";
 
   return (
     <Link
@@ -68,7 +74,10 @@ function EventCard({ event }: { event: DisasterEvent }) {
       <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-400">
         <div className="flex items-center gap-1">
           <MapPin className="h-4 w-4" />
-          <span>{event.location.country || `${event.location.lat.toFixed(2)}, ${event.location.lng.toFixed(2)}`}</span>
+          <span>
+            {event.location.country ||
+              `${event.location.lat.toFixed(2)}, ${event.location.lng.toFixed(2)}`}
+          </span>
         </div>
         {event.affectedPopulation && (
           <div className="flex items-center gap-1">
@@ -106,7 +115,17 @@ function EventCard({ event }: { event: DisasterEvent }) {
 }
 
 export default function EventsPage() {
-  const { events, isLoading, error, fetchEvents, filter, toggleEventType, toggleSeverity, clearFilters } = useEventStore();
+  const { t } = useTranslation();
+  const {
+    events,
+    isLoading,
+    error,
+    fetchEvents,
+    filter,
+    toggleEventType,
+    toggleSeverity,
+    clearFilters,
+  } = useEventStore();
 
   useEffect(() => {
     fetchEvents();
@@ -125,16 +144,18 @@ export default function EventsPage() {
         <div className="mx-auto max-w-6xl">
           <div className="mb-6 flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">Disaster Events</h1>
+              <h1 className="text-2xl font-bold text-white">
+                {t.events.title}
+              </h1>
               <p className="mt-1 text-sm text-gray-400">
-                {events.length} events found
+                {events.length} {t.events.eventsFound}
               </p>
             </div>
             <Link
               href="/"
               className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
             >
-              View on Map
+              {t.common.viewOnMap}
             </Link>
           </div>
 
@@ -150,7 +171,13 @@ export default function EventsPage() {
                       : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                   }`}
                 >
-                  <span style={{ color: selectedTypes.has(type) ? "white" : EVENT_TYPE_COLORS[type] }}>
+                  <span
+                    style={{
+                      color: selectedTypes.has(type)
+                        ? "white"
+                        : EVENT_TYPE_COLORS[type],
+                    }}
+                  >
                     {EVENT_ICONS[type]}
                   </span>
                   {EVENT_TYPE_LABELS[type]}
@@ -168,7 +195,11 @@ export default function EventsPage() {
                       ? "text-white"
                       : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                   }`}
-                  style={selectedSeverities.has(severity) ? { backgroundColor: SEVERITY_COLORS[severity] } : {}}
+                  style={
+                    selectedSeverities.has(severity)
+                      ? { backgroundColor: SEVERITY_COLORS[severity] }
+                      : {}
+                  }
                 >
                   {severity.charAt(0).toUpperCase() + severity.slice(1)}
                 </button>
@@ -179,7 +210,7 @@ export default function EventsPage() {
                 onClick={clearFilters}
                 className="rounded-full bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-300 hover:bg-gray-700 transition-colors"
               >
-                Clear Filters
+                {t.events.clearFilters}
               </button>
             )}
           </div>
@@ -194,15 +225,17 @@ export default function EventsPage() {
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary-500 border-t-transparent mx-auto" />
-                <p className="text-gray-400">Loading events...</p>
+                <p className="text-gray-400">{t.common.loading}</p>
               </div>
             </div>
           ) : events.length === 0 ? (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <AlertTriangle className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400">No events found</p>
-                <p className="text-sm text-gray-500 mt-1">Try adjusting your filters</p>
+                <p className="text-gray-400">{t.events.noEvents}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {t.events.adjustFilters}
+                </p>
               </div>
             </div>
           ) : (

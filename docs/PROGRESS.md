@@ -120,8 +120,16 @@
 - [x] `/` - 메인 페이지 (3D 지구본)
 - [x] `/events` - 이벤트 목록 페이지
 - [x] `/events/[id]` - 이벤트 상세 페이지
+- [x] `/about` - About 페이지
+- [x] `/settings` - 설정 페이지 (언어, 테마, 맵 설정)
 - [x] `loading.tsx` 스켈레톤 UI
 - [x] `error.tsx` 에러 페이지
+
+### 3.5 Interactive Features
+
+- [x] 모바일 햄버거 메뉴
+- [x] 이벤트 검색 기능
+- [x] Settings Store (Zustand + persist)
 
 ---
 

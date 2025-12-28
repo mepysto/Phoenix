@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Globe,
@@ -12,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const FEATURES = [
   {
@@ -87,6 +90,8 @@ const TECH_STACK = [
 ];
 
 export default function AboutPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex min-h-screen flex-col bg-gray-950">
       <Header />
@@ -98,7 +103,7 @@ export default function AboutPage() {
             className="mb-6 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Map
+            {t.common.backToMap}
           </Link>
 
           <section className="mb-12 text-center">
@@ -108,20 +113,16 @@ export default function AboutPage() {
               </div>
             </div>
             <h1 className="mb-4 text-4xl font-bold text-white">Phoenix</h1>
-            <p className="text-xl text-primary-400">
-              Digital twin platform where everyone can heal the wounds of the
-              earth together
-            </p>
+            <p className="text-xl text-primary-400">{t.about.tagline}</p>
             <p className="mx-auto mt-4 max-w-2xl text-gray-400">
-              Phoenix is a global open humanitarian platform that visualizes
-              worldwide disasters, wars, and environmental pollution in
-              real-time 3D digital twin, allowing anyone to participate in
-              recovery planning.
+              {t.about.description}
             </p>
           </section>
 
           <section className="mb-12">
-            <h2 className="mb-6 text-2xl font-bold text-white">Key Features</h2>
+            <h2 className="mb-6 text-2xl font-bold text-white">
+              {t.about.keyFeatures}
+            </h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {FEATURES.map((feature) => (
                 <div
@@ -141,7 +142,9 @@ export default function AboutPage() {
           </section>
 
           <section className="mb-12">
-            <h2 className="mb-6 text-2xl font-bold text-white">Data Sources</h2>
+            <h2 className="mb-6 text-2xl font-bold text-white">
+              {t.about.dataSources}
+            </h2>
             <div className="grid gap-4 md:grid-cols-2">
               {DATA_SOURCES.map((source) => (
                 <a
@@ -169,7 +172,9 @@ export default function AboutPage() {
           </section>
 
           <section className="mb-12">
-            <h2 className="mb-6 text-2xl font-bold text-white">Tech Stack</h2>
+            <h2 className="mb-6 text-2xl font-bold text-white">
+              {t.about.techStack}
+            </h2>
             <div className="overflow-hidden rounded-lg border border-gray-800">
               {TECH_STACK.map((stack, index) => (
                 <div
@@ -201,11 +206,10 @@ export default function AboutPage() {
           <section className="mb-12">
             <div className="rounded-lg border border-gray-800 bg-gray-900 p-6 text-center">
               <Code2 className="mx-auto mb-4 h-8 w-8 text-white" />
-              <h2 className="mb-2 text-xl font-bold text-white">Open Source</h2>
-              <p className="mb-4 text-gray-400">
-                Phoenix is open source and available under the MIT License.
-                Contributions are welcome!
-              </p>
+              <h2 className="mb-2 text-xl font-bold text-white">
+                {t.about.openSource}
+              </h2>
+              <p className="mb-4 text-gray-400">{t.about.openSourceDesc}</p>
               <a
                 href="https://github.com/your-org/phoenix"
                 target="_blank"
@@ -213,15 +217,13 @@ export default function AboutPage() {
                 className="inline-flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 transition-colors"
               >
                 <Code2 className="h-4 w-4" />
-                View on GitHub
+                {t.about.viewOnGithub}
               </a>
             </div>
           </section>
 
           <footer className="border-t border-gray-800 pt-6 text-center text-sm text-gray-500">
-            <p>
-              Built with care for humanitarian response and disaster recovery.
-            </p>
+            <p>{t.about.footer}</p>
             <p className="mt-1">
               MIT License &copy; {new Date().getFullYear()} Phoenix Project
             </p>

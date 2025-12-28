@@ -14,6 +14,8 @@ import type {
 } from "@phoenix/shared/types";
 import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
 import { useMapStore } from "@/store/mapStore";
+import { useSettingsStore } from "@/store/settingsStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface GlobeViewerProps {
   events?: DisasterEvent[];
@@ -156,9 +158,15 @@ export default function GlobeViewer({
   const [selectedEvent, setSelectedEvent] = useState<DisasterEvent | null>(
     null,
   );
-  const [is3D, setIs3D] = useState(true);
+  const { defaultProjection, defaultBasemap } = useSettingsStore();
+  const { t } = useTranslation();
+  const [is3D, setIs3D] = useState(defaultProjection === "globe");
   const [mapReady, setMapReady] = useState(false);
-  const { basemap, toggleBasemap } = useMapStore();
+  const { basemap, toggleBasemap, setBasemap } = useMapStore();
+
+  useEffect(() => {
+    setBasemap(defaultBasemap);
+  }, [defaultBasemap, setBasemap]);
 
   const eventsRef = useRef<DisasterEvent[]>(events);
   useEffect(() => {
@@ -476,7 +484,7 @@ export default function GlobeViewer({
         <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
           <div className="text-center">
             <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary-500 border-t-transparent mx-auto" />
-            <p className="text-gray-400">Initializing Globe...</p>
+            <p className="text-gray-400">{t.map.initializingGlobe}</p>
           </div>
         </div>
       )}
@@ -488,19 +496,19 @@ export default function GlobeViewer({
           onClick={toggleProjection}
           className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 transition-colors"
         >
-          {is3D ? "2D View" : "3D Globe"}
+          {is3D ? t.map.view2d : t.map.globe3d}
         </button>
         <button
           onClick={toggleBasemap}
           className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 transition-colors"
         >
-          {basemap === "dark" ? "Satellite" : "Dark"}
+          {basemap === "dark" ? t.map.satellite : t.map.dark}
         </button>
       </div>
 
       <div className="absolute bottom-4 left-4 rounded-lg bg-gray-900/90 p-3 text-xs text-gray-300 shadow-lg backdrop-blur">
         <div className="mb-2 font-medium text-white">
-          Active Events: {events.length}
+          {t.map.activeEvents}: {events.length}
         </div>
         <div className="flex flex-wrap gap-2">
           {(["critical", "high", "medium", "low"] as SeverityLevel[]).map(
@@ -533,14 +541,14 @@ export default function GlobeViewer({
           </p>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">Location</span>
+              <span className="text-gray-500">{t.events.location}</span>
               <span className="text-gray-300">
                 {selectedEvent.location.country ||
                   `${selectedEvent.location.lat.toFixed(2)}, ${selectedEvent.location.lng.toFixed(2)}`}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Severity</span>
+              <span className="text-gray-500">{t.events.severity}</span>
               <span
                 className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
                 style={{
@@ -553,9 +561,9 @@ export default function GlobeViewer({
             </div>
             {selectedEvent.affectedPopulation && (
               <div className="flex justify-between">
-                <span className="text-gray-500">Affected</span>
+                <span className="text-gray-500">{t.events.affected}</span>
                 <span className="text-gray-300">
-                  {selectedEvent.affectedPopulation.toLocaleString()} people
+                  {selectedEvent.affectedPopulation.toLocaleString()}
                 </span>
               </div>
             )}
