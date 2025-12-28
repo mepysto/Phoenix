@@ -55,5 +55,5 @@ async def health_check() -> dict[str, str]:
 
 
 @app.get("/scheduler/status")
-async def scheduler_status() -> dict[str, str | int | None]:
+async def scheduler_status() -> dict:
     return scheduler_service.get_status()

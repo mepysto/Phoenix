@@ -1,6 +1,6 @@
 # Phoenix - Phase 1 MVP Development Progress
 
-> **Last Updated**: 2025-12-27  
+> **Last Updated**: 2025-12-28  
 > **Target Completion**: Phase 1 MVP
 
 ---
@@ -15,14 +15,14 @@
 | Category                 | Progress | Status      |
 | ------------------------ | -------- | ----------- |
 | **Infrastructure Setup** | 9/9      | Completed   |
-| **Backend API**          | 12/12    | Completed   |
+| **Backend API**          | 14/14    | Completed   |
 | **Frontend Web**         | 15/15    | Completed   |
 | **3D Globe Viewer**      | 14/14    | Completed   |
-| **Data Integration**     | 4/8      | In Progress |
+| **Data Integration**     | 9/10     | In Progress |
 | **Testing & QA**         | 6/6      | Completed   |
 | **Documentation**        | 5/5      | Completed   |
 
-**Overall Progress**: 66/68 tasks (97%)
+**Overall Progress**: 78/80 tasks (97%)
 
 ---
 
@@ -80,12 +80,13 @@
 - [x] `GET /api/v1/events/{id}/layers` - 이벤트 레이어 조회
 - [x] `GET /api/v1/geodata/tiles/{z}/{x}/{y}` - 벡터 타일
 - [x] `POST /api/v1/sync/gdacs` - GDACS 동기화 트리거
+- [x] `POST /api/v1/sync/copernicus` - Copernicus 동기화 트리거
 - [x] OpenAPI 스펙 자동 생성 확인
 
 ### 2.4 External Data Services
 
 - [x] GDACS 데이터 수집 서비스 (RSS 파싱 구현)
-- [ ] Copernicus EMS 데이터 수집 서비스
+- [x] Copernicus EMS 데이터 수집 서비스
 - [x] 데이터 동기화 스케줄러 (APScheduler - 5분 간격)
 - [x] 에러 처리 및 재시도 로직 (지수 백오프, 최대 3회)
 
@@ -187,15 +188,15 @@
 
 ### 5.2 Copernicus EMS Integration
 
-- [ ] API 연동 방식 조사
-- [ ] 활성화 맵 데이터 수집
+- [x] API 연동 방식 조사
+- [x] 활성화 맵 데이터 수집
 - [ ] 피해 평가 데이터 수집
 
 ### 5.3 Data Processing
 
-- [ ] GeoJSON 변환 유틸리티
-- [ ] 좌표계 변환 (EPSG:4326)
-- [ ] 데이터 유효성 검증
+- [x] GeoJSON 변환 유틸리티
+- [x] 좌표계 변환 (EPSG:4326)
+- [x] 데이터 유효성 검증
 
 ---
 
@@ -203,7 +204,7 @@
 
 ### 6.1 Backend Tests
 
-- [x] API 엔드포인트 테스트 (pytest) - 56개 테스트, 70% 커버리지
+- [x] API 엔드포인트 테스트 (pytest) - 113개 테스트, 85% 커버리지
 - [ ] 데이터베이스 테스트 (PostGIS 쿼리)
 - [x] 외부 API 모킹 테스트 (GDACS RSS/API 모킹)
 
@@ -251,6 +252,7 @@
 
 | Date       | Version | Changes                                                                |
 | ---------- | ------- | ---------------------------------------------------------------------- |
+| 2025-12-28 | 0.12.0  | Copernicus EMS 연동, GeoJSON 유틸리티, 테스트 113개                    |
 | 2025-12-27 | 0.11.0  | ARCHITECTURE.md 문서 완료                                              |
 | 2025-12-27 | 0.10.0  | E2E 테스트 추가 (Playwright 9개 테스트)                                |
 | 2025-12-27 | 0.9.0   | 이벤트 클러스터링, 위성 영상 베이스맵 추가                             |

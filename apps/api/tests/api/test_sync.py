@@ -54,13 +54,20 @@ class TestSyncCopernicus:
     def test_sync_copernicus_with_valid_api_key(
         self, client: TestClient, api_sync_key: str
     ) -> None:
-        """Test Copernicus sync returns not_implemented status."""
-        response = client.post(
-            "/api/v1/sync/copernicus", headers={"X-API-Key": api_sync_key}
-        )
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "not_implemented"
+        """Test Copernicus sync with valid API key succeeds."""
+        with patch(
+            "src.api.v1.sync.CopernicusEMSService"
+        ) as mock_service_class:
+            mock_service = mock_service_class.return_value
+            mock_service.sync_events = AsyncMock(return_value=10)
+
+            response = client.post(
+                "/api/v1/sync/copernicus", headers={"X-API-Key": api_sync_key}
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert data["status"] == "completed"
+            assert data["synced"] == 10
 
 
 class TestSyncApiKeyValidation:

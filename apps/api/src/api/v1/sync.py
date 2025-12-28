@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException
 
 from src.core.config import settings
+from src.services.copernicus_service import CopernicusEMSService
 from src.services.gdacs_service import GDACSService
 
 router = APIRouter()
@@ -22,4 +23,6 @@ async def sync_gdacs() -> dict:
 
 @router.post("/copernicus", dependencies=[Depends(verify_sync_key)])
 async def sync_copernicus() -> dict:
-    return {"status": "not_implemented"}
+    service = CopernicusEMSService()
+    result = await service.sync_events()
+    return {"status": "completed", "synced": result}
