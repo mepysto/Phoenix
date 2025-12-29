@@ -8,14 +8,16 @@ import type {
   GeoJSONSource,
 } from "maplibre-gl";
 import type {
-  DisasterEvent,
-  SeverityLevel,
+  ApiDisasterEvent,
   EventType,
-} from "@phoenix/shared/types";
+  SeverityLevel,
+} from "@/lib/api/client";
 import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
 import { useMapStore } from "@/store/mapStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+
+type DisasterEvent = ApiDisasterEvent;
 
 interface GlobeViewerProps {
   events?: DisasterEvent[];
@@ -162,7 +164,7 @@ export default function GlobeViewer({
   const { t } = useTranslation();
   const [is3D, setIs3D] = useState(defaultProjection === "globe");
   const [mapReady, setMapReady] = useState(false);
-  const { basemap, toggleBasemap, setBasemap } = useMapStore();
+  const { basemap, toggleBasemap, setBasemap, layers } = useMapStore();
 
   useEffect(() => {
     setBasemap(defaultBasemap);
@@ -462,6 +464,77 @@ export default function GlobeViewer({
       basemap === "satellite" ? "visible" : "none",
     );
   }, [basemap, mapReady]);
+
+  useEffect(() => {
+    if (!map.current || !mapReady) return;
+
+    const eventsLayer = layers.find((l) => l.id === "events");
+    if (eventsLayer) {
+      const eventsVisible = eventsLayer.visible;
+      const eventsOpacity = eventsLayer.opacity;
+
+      if (map.current.getLayer("events-layer")) {
+        map.current.setLayoutProperty(
+          "events-layer",
+          "visibility",
+          eventsVisible ? "visible" : "none",
+        );
+        map.current.setPaintProperty(
+          "events-layer",
+          "circle-opacity",
+          eventsOpacity * 0.9,
+        );
+      }
+
+      if (map.current.getLayer("events-pulse")) {
+        map.current.setLayoutProperty(
+          "events-pulse",
+          "visibility",
+          eventsVisible ? "visible" : "none",
+        );
+        map.current.setPaintProperty(
+          "events-pulse",
+          "circle-opacity",
+          eventsOpacity * 0.3,
+        );
+      }
+
+      if (map.current.getLayer("clusters")) {
+        map.current.setLayoutProperty(
+          "clusters",
+          "visibility",
+          eventsVisible ? "visible" : "none",
+        );
+        map.current.setPaintProperty(
+          "clusters",
+          "circle-opacity",
+          eventsOpacity,
+        );
+      }
+
+      if (map.current.getLayer("cluster-count")) {
+        map.current.setLayoutProperty(
+          "cluster-count",
+          "visibility",
+          eventsVisible ? "visible" : "none",
+        );
+        map.current.setPaintProperty(
+          "cluster-count",
+          "text-opacity",
+          eventsOpacity,
+        );
+      }
+    }
+
+    const satelliteLayer = layers.find((l) => l.id === "satellite");
+    if (satelliteLayer && map.current.getLayer("satellite-basemap")) {
+      map.current.setPaintProperty(
+        "satellite-basemap",
+        "raster-opacity",
+        satelliteLayer.opacity,
+      );
+    }
+  }, [layers, mapReady]);
 
   const toggleProjection = useCallback(() => {
     if (!map.current) return;

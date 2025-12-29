@@ -30,7 +30,8 @@
     "docker:up": "docker compose -f infrastructure/docker/docker-compose.yml up -d",
     "docker:down": "docker compose -f infrastructure/docker/docker-compose.yml down",
     "docker:logs": "docker compose -f infrastructure/docker/docker-compose.yml logs -f",
-    "generate:types": "cd apps/web && pnpm generate:api-client"
+    "generate:types": "cd apps/web && pnpm generate:types",
+    "generate:types:local": "cd apps/web && pnpm generate:types:local"
   },
   "devDependencies": {
     "@phoenix/eslint-config": "workspace:*",

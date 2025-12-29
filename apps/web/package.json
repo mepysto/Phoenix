@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "generate:api-client": "openapi-typescript http://localhost:28000/openapi.json -o src/lib/api/schema.d.ts"
+    "generate:types": "openapi-typescript http://localhost:28000/openapi.json -o src/lib/api/schema.d.ts",
+    "generate:types:local": "openapi-typescript openapi.json -o src/lib/api/schema.d.ts"
   },
   "dependencies": {
     "@phoenix/shared": "workspace:*",
@@ -22,6 +23,7 @@
     "lucide-react": "^0.468.0",
     "maplibre-gl": "^5.0.0",
     "next": "^15.1.2",
+    "openapi-fetch": "^0.15.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "resium": "^1.19.2",

@@ -16,17 +16,17 @@ import {
   Clock,
   ChevronRight,
 } from "lucide-react";
-import type {
-  EventType,
-  SeverityLevel,
-  DisasterEvent,
-} from "@phoenix/shared/types";
 import {
   EVENT_TYPE_LABELS,
   EVENT_TYPE_COLORS,
   SEVERITY_COLORS,
 } from "@phoenix/shared/constants";
-import { useEventStore } from "@/store/eventStore";
+import {
+  useEventStore,
+  type DisasterEvent,
+  type EventType,
+  type SeverityLevel,
+} from "@/store/eventStore";
 import { Header } from "@/components/layout/Header";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 

@@ -14,15 +14,14 @@ import {
   Skull,
   Factory,
   Sun,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import type { EventType, SeverityLevel } from "@phoenix/shared/types";
-import {
-  EVENT_TYPE_LABELS,
-  EVENT_TYPE_COLORS,
-  SEVERITY_LABELS,
-  SEVERITY_COLORS,
-} from "@phoenix/shared/constants";
+import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
 import { useEventStore } from "@/store/eventStore";
+import { useMapStore } from "@/store/mapStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const EVENT_ICONS: Record<EventType, React.ReactNode> = {
   earthquake: <Mountain className="h-4 w-4" />,
@@ -73,29 +72,134 @@ function FilterSection({
   );
 }
 
+const EVENT_TYPES: EventType[] = [
+  "earthquake",
+  "flood",
+  "wildfire",
+  "hurricane",
+  "tsunami",
+  "volcano",
+  "war",
+  "pollution",
+  "drought",
+  "other",
+];
+
+const SEVERITY_LEVELS: SeverityLevel[] = ["low", "medium", "high", "critical"];
+
+const LAYER_ID_TO_TRANSLATION_KEY: Record<string, string> = {
+  events: "disasterEvents",
+  satellite: "satelliteImagery",
+  buildings: "buildings3d",
+  population: "populationDensity",
+};
+
+interface LayerItemProps {
+  layer: {
+    id: string;
+    name: string;
+    visible: boolean;
+    opacity: number;
+  };
+  translationKey: string;
+  onToggle: () => void;
+  onOpacityChange: (opacity: number) => void;
+  t: Record<string, string>;
+}
+
+function LayerItem({
+  layer,
+  translationKey,
+  onToggle,
+  onOpacityChange,
+  t,
+}: LayerItemProps) {
+  const opacityPercent = Math.round(layer.opacity * 100);
+
+  return (
+    <div className="rounded px-2 py-1.5 hover:bg-gray-800/50">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onToggle}
+          className="flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+          aria-label={layer.visible ? "Hide layer" : "Show layer"}
+        >
+          {layer.visible ? (
+            <Eye className="h-4 w-4 text-primary-500" />
+          ) : (
+            <EyeOff className="h-4 w-4" />
+          )}
+        </button>
+        <span
+          className={`flex-1 text-sm ${layer.visible ? "text-gray-300" : "text-gray-500"}`}
+        >
+          {t[translationKey] || layer.name}
+        </span>
+        {layer.visible && (
+          <span className="text-xs text-gray-500 min-w-[36px] text-right">
+            {opacityPercent}%
+          </span>
+        )}
+      </div>
+
+      {layer.visible && (
+        <div className="mt-2 ml-7 pr-1">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={opacityPercent}
+            onChange={(e) => onOpacityChange(Number(e.target.value) / 100)}
+            className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer
+              [&::-webkit-slider-thumb]:appearance-none
+              [&::-webkit-slider-thumb]:w-3
+              [&::-webkit-slider-thumb]:h-3
+              [&::-webkit-slider-thumb]:bg-primary-500
+              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:cursor-pointer
+              [&::-webkit-slider-thumb]:transition-transform
+              [&::-webkit-slider-thumb]:hover:scale-125
+              [&::-moz-range-thumb]:w-3
+              [&::-moz-range-thumb]:h-3
+              [&::-moz-range-thumb]:bg-primary-500
+              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:border-0
+              [&::-moz-range-thumb]:cursor-pointer
+              [&::-moz-range-track]:bg-gray-700
+              [&::-moz-range-track]:rounded-lg"
+            aria-label={`${t[translationKey] || layer.name} ${t.opacity || "opacity"}`}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Sidebar() {
-  const { filter, toggleEventType, toggleSeverity, events, isLoading } = useEventStore();
-  
+  const { filter, toggleEventType, toggleSeverity, events, isLoading } =
+    useEventStore();
+  const { layers, toggleLayer, setLayerOpacity } = useMapStore();
+  const { t } = useTranslation();
+
   const selectedTypes = new Set(filter.types || []);
   const selectedSeverities = new Set(filter.severities || []);
-
-  const eventTypes = Object.keys(EVENT_TYPE_LABELS) as EventType[];
-  const severityLevels = Object.keys(SEVERITY_LABELS) as SeverityLevel[];
 
   return (
     <aside className="hidden lg:flex w-72 flex-col border-r border-gray-800 bg-gray-900">
       <div className="flex items-center gap-2 border-b border-gray-800 px-4 py-3">
         <Layers className="h-5 w-5 text-primary-500" />
-        <span className="font-semibold text-white">Layers & Filters</span>
+        <span className="font-semibold text-white">
+          {t.sidebar.layersAndFilters}
+        </span>
       </div>
 
       <div className="flex-1 overflow-y-auto">
         <FilterSection
-          title="Event Types"
+          title={t.sidebar.eventTypes}
           icon={<Filter className="h-4 w-4" />}
         >
           <div className="space-y-1">
-            {eventTypes.map((type) => (
+            {EVENT_TYPES.map((type) => (
               <label
                 key={type}
                 className="flex cursor-pointer items-center gap-3 rounded px-2 py-1.5 hover:bg-gray-800/50"
@@ -109,20 +213,18 @@ export function Sidebar() {
                 <span style={{ color: EVENT_TYPE_COLORS[type] }}>
                   {EVENT_ICONS[type]}
                 </span>
-                <span className="text-sm text-gray-300">
-                  {EVENT_TYPE_LABELS[type]}
-                </span>
+                <span className="text-sm text-gray-300">{t.sidebar[type]}</span>
               </label>
             ))}
           </div>
         </FilterSection>
 
         <FilterSection
-          title="Severity"
+          title={t.sidebar.severity}
           icon={<AlertTriangle className="h-4 w-4" />}
         >
           <div className="space-y-1">
-            {severityLevels.map((severity) => (
+            {SEVERITY_LEVELS.map((severity) => (
               <label
                 key={severity}
                 className="flex cursor-pointer items-center gap-3 rounded px-2 py-1.5 hover:bg-gray-800/50"
@@ -138,39 +240,43 @@ export function Sidebar() {
                   style={{ backgroundColor: SEVERITY_COLORS[severity] }}
                 />
                 <span className="text-sm text-gray-300">
-                  {SEVERITY_LABELS[severity]}
+                  {t.sidebar[severity]}
                 </span>
               </label>
             ))}
           </div>
         </FilterSection>
 
-        <FilterSection title="Layers" icon={<Layers className="h-4 w-4" />}>
+        <FilterSection
+          title={t.sidebar.layers}
+          icon={<Layers className="h-4 w-4" />}
+        >
           <div className="space-y-1">
-            {["Satellite Imagery", "3D Buildings", "Population Density"].map(
-              (layer) => (
-                <label
-                  key={layer}
-                  className="flex cursor-pointer items-center gap-3 rounded px-2 py-1.5 hover:bg-gray-800/50"
-                >
-                  <input
-                    type="checkbox"
-                    defaultChecked={layer === "Satellite Imagery"}
-                    className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500"
-                  />
-                  <span className="text-sm text-gray-300">{layer}</span>
-                </label>
-              )
-            )}
+            {layers.map((layer) => (
+              <LayerItem
+                key={layer.id}
+                layer={layer}
+                translationKey={
+                  LAYER_ID_TO_TRANSLATION_KEY[layer.id] || layer.id
+                }
+                onToggle={() => toggleLayer(layer.id)}
+                onOpacityChange={(opacity) =>
+                  setLayerOpacity(layer.id, opacity)
+                }
+                t={t.sidebar}
+              />
+            ))}
           </div>
         </FilterSection>
       </div>
 
       <div className="border-t border-gray-800 px-4 py-3">
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>Data: GDACS, Copernicus EMS</span>
+          <span>{t.sidebar.dataSource}</span>
           <span className="text-gray-400">
-            {isLoading ? "Loading..." : `${events.length} events`}
+            {isLoading
+              ? t.common.loading
+              : `${events.length} ${t.sidebar.eventsCount}`}
           </span>
         </div>
       </div>

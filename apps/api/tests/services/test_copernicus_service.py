@@ -11,10 +11,12 @@ from src.core.exceptions import DataSyncError, ExternalAPIError
 from src.services.copernicus_service import (
     CopernicusEMSService,
     CopernicusEvent,
+    DamageAssessment,
     COPERNICUS_EVENT_TYPE_MAP,
     COPERNICUS_SEVERITY_THRESHOLDS,
     DEFAULT_TIMEOUT,
     MAX_RETRIES,
+    RATE_LIMIT_DELAY,
     parse_wkt_point,
     calculate_severity,
 )
@@ -55,6 +57,60 @@ MOCK_RAPID_MAPPING_RESPONSE = [
         "name": "Flood in Valencia, Spain",
         "status": "active",
         "aois": [{"id": 1, "name": "AOI1"}, {"id": 2, "name": "AOI2"}],
+    }
+]
+
+MOCK_DAMAGE_ASSESSMENT_RESPONSE = [
+    {
+        "code": "EMSR847",
+        "name": "Flood in Valencia, Spain",
+        "status": "active",
+        "aois": [
+            {
+                "id": 1,
+                "name": "Valencia City Center",
+                "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]},
+                "damage_grade": "destroyed",
+                "affected_area_km2": 15.5,
+                "timestamp": "2024-10-30T12:00:00Z",
+                "download_url": "https://example.com/download/aoi1",
+                "product_types": ["delineation", "grading"],
+            },
+            {
+                "id": 2,
+                "name": "Valencia Suburbs",
+                "geometry": {"type": "Polygon", "coordinates": [[[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]]]},
+                "damage_grade": "damaged",
+                "affected_area_km2": 8.2,
+                "timestamp": "2024-10-30T14:00:00Z",
+                "download_url": "https://example.com/download/aoi2",
+                "product_types": ["first-estimate"],
+            },
+        ],
+        "products": [
+            {
+                "id": 101,
+                "name": "Grading Map",
+                "type": "grading",
+                "aoi_id": 1,
+                "aoi_name": "Valencia City Center",
+                "geometry": {"type": "Point", "coordinates": [0.5, 0.5]},
+                "damage_grade": "severe",
+                "affected_area_km2": 12.0,
+                "timestamp": "2024-10-31T08:00:00Z",
+                "download_url": "https://example.com/download/product101",
+            },
+        ],
+    }
+]
+
+MOCK_EMPTY_DAMAGE_RESPONSE = [
+    {
+        "code": "EMSR999",
+        "name": "Minor Event",
+        "status": "active",
+        "aois": [],
+        "products": [],
     }
 ]
 
@@ -833,10 +889,8 @@ class TestCopernicusEMSServiceFetchByCategory:
 
 
 class TestCopernicusMappings:
-    """Tests for Copernicus type mappings."""
 
     def test_event_type_mapping(self) -> None:
-        """Test all expected event types are mapped."""
         expected_mappings = {
             "flood": "flood",
             "storm": "hurricane",
@@ -853,13 +907,328 @@ class TestCopernicusMappings:
             assert COPERNICUS_EVENT_TYPE_MAP.get(slug) == event_type
 
     def test_severity_thresholds(self) -> None:
-        """Test severity thresholds are defined correctly."""
         assert COPERNICUS_SEVERITY_THRESHOLDS["critical"] == 10
         assert COPERNICUS_SEVERITY_THRESHOLDS["high"] == 5
 
     def test_unknown_category_defaults(self) -> None:
-        """Test unknown category returns None from map."""
         assert COPERNICUS_EVENT_TYPE_MAP.get("unknown-category") is None
+
+
+class TestFetchDamageAssessments:
+
+    @pytest.fixture
+    def copernicus_service(self) -> CopernicusEMSService:
+        return CopernicusEMSService()
+
+    @pytest.mark.asyncio
+    async def test_fetch_damage_assessments_success(
+        self, copernicus_service: CopernicusEMSService
+    ) -> None:
+        mock_response = MagicMock()
+        mock_response.json.return_value = MOCK_DAMAGE_ASSESSMENT_RESPONSE
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            assessments = await copernicus_service.fetch_damage_assessments("EMSR847")
+
+            assert len(assessments) > 0
+            assert all(isinstance(a, DamageAssessment) for a in assessments)
+            assert all(a.activation_code == "EMSR847" for a in assessments)
+
+    @pytest.mark.asyncio
+    async def test_fetch_damage_assessments_parses_aoi_data(
+        self, copernicus_service: CopernicusEMSService
+    ) -> None:
+        mock_response = MagicMock()
+        mock_response.json.return_value = MOCK_DAMAGE_ASSESSMENT_RESPONSE
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            assessments = await copernicus_service.fetch_damage_assessments("EMSR847")
+
+            aoi_assessments = [a for a in assessments if a.aoi_id == "1"]
+            assert len(aoi_assessments) >= 1
+
+            first_aoi = aoi_assessments[0]
+            assert first_aoi.aoi_name == "Valencia City Center"
+            assert first_aoi.damage_grade == "destroyed"
+            assert first_aoi.affected_area_km2 == pytest.approx(15.5, rel=0.01)
+            assert first_aoi.download_url == "https://example.com/download/aoi1"
+            assert first_aoi.geometry.get("type") == "Polygon"
+
+    @pytest.mark.asyncio
+    async def test_fetch_damage_assessments_parses_product_types(
+        self, copernicus_service: CopernicusEMSService
+    ) -> None:
+        mock_response = MagicMock()
+        mock_response.json.return_value = MOCK_DAMAGE_ASSESSMENT_RESPONSE
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            assessments = await copernicus_service.fetch_damage_assessments("EMSR847")
+
+            product_types = {a.product_type for a in assessments}
+            assert "delineation" in product_types or "grading" in product_types or "first-estimate" in product_types
+
+    @pytest.mark.asyncio
+    async def test_fetch_damage_assessments_empty_response(
+        self, copernicus_service: CopernicusEMSService
+    ) -> None:
+        mock_response = MagicMock()
+        mock_response.json.return_value = MOCK_EMPTY_DAMAGE_RESPONSE
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            assessments = await copernicus_service.fetch_damage_assessments("EMSR999")
+
+            assert assessments == []
+
+    @pytest.mark.asyncio
+    async def test_fetch_damage_assessments_not_found_returns_empty(
+        self, copernicus_service: CopernicusEMSService
+    ) -> None:
+        with patch.object(
+            copernicus_service, "fetch_activation_details"
+        ) as mock_fetch:
+            mock_fetch.return_value = None
+
+            assessments = await copernicus_service.fetch_damage_assessments("EMSR000")
+
+            assert assessments == []
+
+    @pytest.mark.asyncio
+    async def test_fetch_damage_assessments_handles_api_error(
+        self, copernicus_service: CopernicusEMSService
+    ) -> None:
+        with patch.object(
+            copernicus_service, "fetch_activation_details"
+        ) as mock_fetch:
+            mock_fetch.side_effect = ExternalAPIError(
+                message="Server error",
+                service_name="Copernicus",
+                status_code=500,
+            )
+
+            assessments = await copernicus_service.fetch_damage_assessments("EMSR847")
+
+            assert assessments == []
+
+
+class TestSyncWithDamageData:
+
+    @pytest.fixture
+    def copernicus_service(self) -> CopernicusEMSService:
+        return CopernicusEMSService()
+
+    @pytest.mark.asyncio
+    async def test_sync_with_damage_data_success(
+        self, copernicus_service: CopernicusEMSService
+    ) -> None:
+        mock_activation_response = MagicMock()
+        mock_activation_response.json.return_value = MOCK_ACTIVATION_RESPONSE
+        mock_activation_response.status_code = 200
+        mock_activation_response.raise_for_status = MagicMock()
+
+        mock_damage_response = MagicMock()
+        mock_damage_response.json.return_value = MOCK_DAMAGE_ASSESSMENT_RESPONSE
+        mock_damage_response.status_code = 200
+        mock_damage_response.raise_for_status = MagicMock()
+
+        call_count = 0
+
+        async def mock_get(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            url = args[0] if args else kwargs.get("url", "")
+            if "activations/api" in str(url):
+                return mock_activation_response
+            return mock_damage_response
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = mock_get
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                result = await copernicus_service.sync_with_damage_data(limit=2)
+
+            assert "events" in result
+            assert "damage_assessments" in result
+            assert result["events"] == 2
+
+    @pytest.mark.asyncio
+    async def test_sync_with_damage_data_applies_rate_limiting(
+        self, copernicus_service: CopernicusEMSService
+    ) -> None:
+        sleep_calls = []
+
+        async def mock_sleep(delay):
+            sleep_calls.append(delay)
+
+        mock_activation_response = MagicMock()
+        mock_activation_response.json.return_value = MOCK_ACTIVATION_RESPONSE
+        mock_activation_response.status_code = 200
+        mock_activation_response.raise_for_status = MagicMock()
+
+        mock_damage_response = MagicMock()
+        mock_damage_response.json.return_value = MOCK_EMPTY_DAMAGE_RESPONSE
+        mock_damage_response.status_code = 200
+        mock_damage_response.raise_for_status = MagicMock()
+
+        async def mock_get(*args, **kwargs):
+            url = args[0] if args else kwargs.get("url", "")
+            if "activations/api" in str(url):
+                return mock_activation_response
+            return mock_damage_response
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = mock_get
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            with patch("asyncio.sleep", side_effect=mock_sleep):
+                await copernicus_service.sync_with_damage_data(limit=2)
+
+            assert len(sleep_calls) == 2
+            assert all(delay == RATE_LIMIT_DELAY for delay in sleep_calls)
+
+    @pytest.mark.asyncio
+    async def test_sync_with_damage_data_continues_on_single_failure(
+        self, copernicus_service: CopernicusEMSService
+    ) -> None:
+        mock_activation_response = MagicMock()
+        mock_activation_response.json.return_value = MOCK_ACTIVATION_RESPONSE
+        mock_activation_response.status_code = 200
+        mock_activation_response.raise_for_status = MagicMock()
+
+        call_count = 0
+
+        async def mock_fetch_damage(code: str):
+            nonlocal call_count
+            call_count += 1
+            if code == "EMSR847":
+                raise Exception("Simulated failure")
+            return []
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_activation_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            with patch.object(
+                copernicus_service, "fetch_damage_assessments", side_effect=mock_fetch_damage
+            ):
+                with patch("asyncio.sleep", new_callable=AsyncMock):
+                    result = await copernicus_service.sync_with_damage_data(limit=2)
+
+            assert call_count == 2
+            assert result["events"] == 1
+
+    @pytest.mark.asyncio
+    async def test_sync_with_damage_data_raises_on_activation_failure(
+        self, copernicus_service: CopernicusEMSService
+    ) -> None:
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(side_effect=httpx.TimeoutException("Timeout"))
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                with pytest.raises(DataSyncError) as exc_info:
+                    await copernicus_service.sync_with_damage_data(limit=2)
+
+            assert exc_info.value.source == "Copernicus"
+
+
+class TestDamageAssessmentDataclass:
+
+    def test_damage_assessment_creation(self) -> None:
+        assessment = DamageAssessment(
+            activation_code="EMSR847",
+            aoi_id="1",
+            aoi_name="Test AOI",
+            product_type="grading",
+            geometry={"type": "Point", "coordinates": [0, 0]},
+            damage_grade="destroyed",
+            affected_area_km2=10.5,
+            timestamp=datetime(2024, 10, 30, tzinfo=timezone.utc),
+            download_url="https://example.com/download",
+        )
+
+        assert assessment.activation_code == "EMSR847"
+        assert assessment.aoi_id == "1"
+        assert assessment.aoi_name == "Test AOI"
+        assert assessment.product_type == "grading"
+        assert assessment.damage_grade == "destroyed"
+        assert assessment.affected_area_km2 == pytest.approx(10.5, rel=0.01)
+
+    def test_damage_assessment_optional_fields(self) -> None:
+        assessment = DamageAssessment(
+            activation_code="EMSR847",
+            aoi_id="1",
+            aoi_name="Test AOI",
+            product_type="delineation",
+            geometry={},
+            damage_grade=None,
+            affected_area_km2=None,
+            timestamp=datetime.now(timezone.utc),
+            download_url=None,
+        )
+
+        assert assessment.damage_grade is None
+        assert assessment.affected_area_km2 is None
+        assert assessment.download_url is None
+
+    def test_damage_assessment_raw_data_default(self) -> None:
+        assessment = DamageAssessment(
+            activation_code="EMSR847",
+            aoi_id="1",
+            aoi_name="Test AOI",
+            product_type="grading",
+            geometry={},
+            damage_grade=None,
+            affected_area_km2=None,
+            timestamp=datetime.now(timezone.utc),
+            download_url=None,
+        )
+
+        assert assessment.raw_data == {}
 
 
 class TestCopernicusEMSServiceConfiguration:

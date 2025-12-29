@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
@@ -11,6 +11,9 @@ from src.core.config import settings
 from src.core.exceptions import DataSyncError, ExternalAPIError
 
 logger = logging.getLogger(__name__)
+
+# Rate limiting configuration for Rapid Mapping API
+RATE_LIMIT_DELAY = 0.5  # seconds between requests
 
 COPERNICUS_EVENT_TYPE_MAP = {
     "flood": "flood",
@@ -53,6 +56,20 @@ class CopernicusEvent:
     start_date: datetime
     url: str
     raw_data: dict[str, Any]
+
+
+@dataclass
+class DamageAssessment:
+    activation_code: str
+    aoi_id: str
+    aoi_name: str
+    product_type: str
+    geometry: dict[str, Any]
+    damage_grade: str | None
+    affected_area_km2: float | None
+    timestamp: datetime
+    download_url: str | None
+    raw_data: dict[str, Any] = field(default_factory=dict)
 
 
 def parse_wkt_point(wkt: str) -> tuple[float, float] | None:
@@ -338,6 +355,208 @@ class CopernicusEMSService:
         except ExternalAPIError as e:
             raise DataSyncError(
                 message=f"Failed to sync events: {e.message}",
+                source="Copernicus",
+                retry_count=self.max_retries,
+                details=e.details,
+            ) from e
+
+    async def fetch_damage_assessments(
+        self, activation_code: str
+    ) -> list[DamageAssessment]:
+        try:
+            details = await self.fetch_activation_details(activation_code)
+            if not details:
+                logger.info(f"No details found for activation {activation_code}")
+                return []
+
+            assessments: list[DamageAssessment] = []
+            aois = details.get("aois", [])
+
+            for aoi in aois:
+                aoi_assessments = self._parse_aoi_damage_assessments(
+                    activation_code, aoi
+                )
+                assessments.extend(aoi_assessments)
+
+            products = details.get("products", [])
+            for product in products:
+                product_assessments = self._parse_product_damage_assessments(
+                    activation_code, product
+                )
+                assessments.extend(product_assessments)
+
+            logger.info(
+                f"Fetched {len(assessments)} damage assessments for {activation_code}"
+            )
+            return assessments
+
+        except ExternalAPIError as e:
+            logger.warning(
+                f"Failed to fetch damage assessments for {activation_code}: {e.message}"
+            )
+            return []
+
+    def _parse_aoi_damage_assessments(
+        self, activation_code: str, aoi: dict[str, Any]
+    ) -> list[DamageAssessment]:
+        assessments: list[DamageAssessment] = []
+
+        aoi_id = str(aoi.get("id", ""))
+        aoi_name = aoi.get("name", "") or aoi.get("aoi_name", "") or f"AOI-{aoi_id}"
+
+        geometry = aoi.get("geometry", {}) or aoi.get("geojson", {})
+        if isinstance(geometry, str):
+            import json
+            try:
+                geometry = json.loads(geometry)
+            except json.JSONDecodeError:
+                geometry = {}
+
+        timestamp_str = aoi.get("timestamp") or aoi.get("created_at") or aoi.get("updated_at")
+        timestamp = self._parse_timestamp(timestamp_str)
+
+        damage_data = aoi.get("damage", {}) or {}
+        damage_grade = damage_data.get("grade") or aoi.get("damage_grade")
+
+        affected_area = None
+        area_value = aoi.get("affected_area_km2") or aoi.get("area_km2") or damage_data.get("area_km2")
+        if area_value is not None:
+            try:
+                affected_area = float(area_value)
+            except (ValueError, TypeError):
+                pass
+
+        download_url = aoi.get("download_url") or aoi.get("url")
+
+        product_types = aoi.get("product_types", [])
+        if not product_types:
+            product_type = aoi.get("product_type", "unknown")
+            product_types = [product_type]
+
+        for product_type in product_types:
+            assessment = DamageAssessment(
+                activation_code=activation_code,
+                aoi_id=aoi_id,
+                aoi_name=aoi_name,
+                product_type=str(product_type),
+                geometry=geometry,
+                damage_grade=damage_grade,
+                affected_area_km2=affected_area,
+                timestamp=timestamp,
+                download_url=download_url,
+                raw_data=aoi,
+            )
+            assessments.append(assessment)
+
+        if not assessments and aoi_id:
+            assessment = DamageAssessment(
+                activation_code=activation_code,
+                aoi_id=aoi_id,
+                aoi_name=aoi_name,
+                product_type="unknown",
+                geometry=geometry,
+                damage_grade=damage_grade,
+                affected_area_km2=affected_area,
+                timestamp=timestamp,
+                download_url=download_url,
+                raw_data=aoi,
+            )
+            assessments.append(assessment)
+
+        return assessments
+
+    def _parse_product_damage_assessments(
+        self, activation_code: str, product: dict[str, Any]
+    ) -> list[DamageAssessment]:
+        product_id = str(product.get("id", ""))
+        product_name = product.get("name", "") or f"Product-{product_id}"
+        product_type = product.get("type", "") or product.get("product_type", "unknown")
+
+        geometry = product.get("geometry", {}) or product.get("geojson", {})
+        if isinstance(geometry, str):
+            import json
+            try:
+                geometry = json.loads(geometry)
+            except json.JSONDecodeError:
+                geometry = {}
+
+        timestamp_str = product.get("timestamp") or product.get("created_at")
+        timestamp = self._parse_timestamp(timestamp_str)
+
+        damage_grade = product.get("damage_grade") or product.get("grade")
+        affected_area = None
+        area_value = product.get("affected_area_km2") or product.get("area_km2")
+        if area_value is not None:
+            try:
+                affected_area = float(area_value)
+            except (ValueError, TypeError):
+                pass
+
+        download_url = product.get("download_url") or product.get("url")
+
+        aoi_id = str(product.get("aoi_id", "")) or product_id
+        aoi_name = product.get("aoi_name", "") or product_name
+
+        return [
+            DamageAssessment(
+                activation_code=activation_code,
+                aoi_id=aoi_id,
+                aoi_name=aoi_name,
+                product_type=str(product_type),
+                geometry=geometry,
+                damage_grade=damage_grade,
+                affected_area_km2=affected_area,
+                timestamp=timestamp,
+                download_url=download_url,
+                raw_data=product,
+            )
+        ]
+
+    def _parse_timestamp(self, timestamp_str: str | None) -> datetime:
+        if not timestamp_str:
+            return datetime.now(timezone.utc)
+
+        try:
+            return datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            return datetime.now(timezone.utc)
+
+    async def sync_with_damage_data(self, limit: int = 20) -> dict[str, int]:
+        try:
+            events = await self.fetch_activations(limit=limit)
+            total_assessments = 0
+            processed_events = 0
+
+            for event in events:
+                try:
+                    await asyncio.sleep(RATE_LIMIT_DELAY)
+
+                    assessments = await self.fetch_damage_assessments(event.external_id)
+                    total_assessments += len(assessments)
+                    processed_events += 1
+
+                    logger.debug(
+                        f"Processed {event.external_id}: {len(assessments)} assessments"
+                    )
+
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to fetch damage data for {event.external_id}: {e}"
+                    )
+                    continue
+
+            logger.info(
+                f"Sync complete: {processed_events} events, {total_assessments} damage assessments"
+            )
+
+            return {
+                "events": processed_events,
+                "damage_assessments": total_assessments,
+            }
+
+        except ExternalAPIError as e:
+            raise DataSyncError(
+                message=f"Failed to sync with damage data: {e.message}",
                 source="Copernicus",
                 retry_count=self.max_retries,
                 details=e.details,

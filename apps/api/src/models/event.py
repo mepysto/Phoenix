@@ -43,11 +43,15 @@ class Event(Base):
     __tablename__ = "events"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    type: Mapped[EventType] = mapped_column(Enum(EventType), nullable=False)
+    type: Mapped[EventType] = mapped_column(
+        Enum(EventType, name="event_type", create_type=False), nullable=False
+    )
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     severity: Mapped[SeverityLevel] = mapped_column(
-        Enum(SeverityLevel), nullable=False, default=SeverityLevel.medium
+        Enum(SeverityLevel, name="severity_level", create_type=False),
+        nullable=False,
+        default=SeverityLevel.medium,
     )
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
     longitude: Mapped[float] = mapped_column(Float, nullable=False)

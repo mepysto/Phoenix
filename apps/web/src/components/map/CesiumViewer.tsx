@@ -13,15 +13,17 @@ import {
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import type {
-  DisasterEvent,
-  SeverityLevel,
+  ApiDisasterEvent,
   EventType,
-} from "@phoenix/shared/types";
+  SeverityLevel,
+} from "@/lib/api/client";
 import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
 
 if (typeof window !== "undefined") {
   Ion.defaultAccessToken = process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN || "";
 }
+
+type DisasterEvent = ApiDisasterEvent;
 
 interface CesiumViewerProps {
   events?: DisasterEvent[];

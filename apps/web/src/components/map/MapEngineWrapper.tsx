@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useMapStore } from "@/store/mapStore";
-import type { DisasterEvent } from "@phoenix/shared/types";
+import type { ApiDisasterEvent } from "@/lib/api/client";
 
 const GlobeViewer = dynamic(() => import("./GlobeViewer"), {
   ssr: false,
@@ -29,8 +29,8 @@ const CesiumViewer = dynamic(() => import("./CesiumViewer"), {
 });
 
 interface MapEngineWrapperProps {
-  events?: DisasterEvent[];
-  onEventClick?: (event: DisasterEvent) => void;
+  events?: ApiDisasterEvent[];
+  onEventClick?: (event: ApiDisasterEvent) => void;
 }
 
 export default function MapEngineWrapper({

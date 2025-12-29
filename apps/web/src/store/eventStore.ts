@@ -1,16 +1,16 @@
 import { create, StateCreator } from "zustand";
 import { devtools, DevtoolsOptions } from "zustand/middleware";
-import type {
-  DisasterEvent,
-  EventFilter,
-  EventType,
-  SeverityLevel,
-} from "@phoenix/shared/types";
-import { eventsAPI } from "@/lib/api/client";
+import {
+  eventsAPI,
+  type ApiDisasterEvent,
+  type EventFilter,
+  type EventType,
+  type SeverityLevel,
+} from "@/lib/api/client";
 
 interface EventState {
-  events: DisasterEvent[];
-  selectedEvent: DisasterEvent | null;
+  events: ApiDisasterEvent[];
+  selectedEvent: ApiDisasterEvent | null;
   isLoading: boolean;
   error: string | null;
   filter: EventFilter;
@@ -24,7 +24,7 @@ interface EventState {
 
 interface EventActions {
   fetchEvents: () => Promise<void>;
-  selectEvent: (event: DisasterEvent | null) => void;
+  selectEvent: (event: ApiDisasterEvent | null) => void;
   setFilter: (filter: Partial<EventFilter>) => void;
   toggleEventType: (type: EventType) => void;
   toggleSeverity: (severity: SeverityLevel) => void;
@@ -165,3 +165,10 @@ const withDevtools = <T>(
 export const useEventStore = create<EventStore>()(
   withDevtools(storeImpl, { name: "event-store" }),
 );
+
+export type {
+  ApiDisasterEvent as DisasterEvent,
+  EventFilter,
+  EventType,
+  SeverityLevel,
+};

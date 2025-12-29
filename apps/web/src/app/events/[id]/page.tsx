@@ -21,19 +21,23 @@ import {
   Calendar,
   Globe,
 } from "lucide-react";
-import type { EventType, SeverityLevel, DisasterEvent } from "@phoenix/shared/types";
 import {
   EVENT_TYPE_LABELS,
   EVENT_TYPE_COLORS,
   SEVERITY_COLORS,
 } from "@phoenix/shared/constants";
-import { eventsAPI } from "@/lib/api/client";
+import {
+  eventsAPI,
+  type ApiDisasterEventDetail,
+  type EventType,
+  type SeverityLevel,
+} from "@/lib/api/client";
 import { Header } from "@/components/layout/Header";
 
-const MiniMap = dynamic(
-  () => import("@/components/map/MiniMap"),
-  { ssr: false, loading: () => <div className="h-full w-full bg-gray-800 animate-pulse" /> }
-);
+const MiniMap = dynamic(() => import("@/components/map/MiniMap"), {
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-gray-800 animate-pulse" />,
+});
 
 const EVENT_ICONS: Record<EventType, React.ReactNode> = {
   earthquake: <Mountain className="h-6 w-6" />,
@@ -48,12 +52,22 @@ const EVENT_ICONS: Record<EventType, React.ReactNode> = {
   other: <AlertTriangle className="h-6 w-6" />,
 };
 
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | React.ReactNode }) {
+function InfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | React.ReactNode;
+}) {
   return (
     <div className="flex items-start gap-3 py-3 border-b border-gray-800 last:border-0">
       <div className="text-gray-500">{icon}</div>
       <div className="flex-1">
-        <div className="text-xs text-gray-500 uppercase tracking-wide">{label}</div>
+        <div className="text-xs text-gray-500 uppercase tracking-wide">
+          {label}
+        </div>
         <div className="mt-0.5 text-sm text-gray-200">{value}</div>
       </div>
     </div>
@@ -64,7 +78,7 @@ export default function EventDetailPage() {
   const params = useParams();
   const eventId = params.id as string;
 
-  const [event, setEvent] = useState<DisasterEvent | null>(null);
+  const [event, setEvent] = useState<ApiDisasterEventDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -108,8 +122,12 @@ export default function EventDetailPage() {
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-2">Event Not Found</h2>
-            <p className="text-gray-400 mb-4">{error || "The requested event could not be found."}</p>
+            <h2 className="text-xl font-semibold text-white mb-2">
+              Event Not Found
+            </h2>
+            <p className="text-gray-400 mb-4">
+              {error || "The requested event could not be found."}
+            </p>
             <Link
               href="/events"
               className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
@@ -124,7 +142,8 @@ export default function EventDetailPage() {
   }
 
   const typeColor = EVENT_TYPE_COLORS[event.type as EventType] || "#808080";
-  const severityColor = SEVERITY_COLORS[event.severity as SeverityLevel] || "#808080";
+  const severityColor =
+    SEVERITY_COLORS[event.severity as SeverityLevel] || "#808080";
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-950">
@@ -146,7 +165,10 @@ export default function EventDetailPage() {
                 <div className="flex items-start gap-4">
                   <div
                     className="flex h-14 w-14 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: `${typeColor}20`, color: typeColor }}
+                    style={{
+                      backgroundColor: `${typeColor}20`,
+                      color: typeColor,
+                    }}
                   >
                     {EVENT_ICONS[event.type as EventType]}
                   </div>
@@ -154,7 +176,10 @@ export default function EventDetailPage() {
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       <span
                         className="rounded-full px-2.5 py-0.5 text-xs font-medium"
-                        style={{ backgroundColor: `${typeColor}20`, color: typeColor }}
+                        style={{
+                          backgroundColor: `${typeColor}20`,
+                          color: typeColor,
+                        }}
                       >
                         {EVENT_TYPE_LABELS[event.type as EventType]}
                       </span>
@@ -170,12 +195,16 @@ export default function EventDetailPage() {
                         </span>
                       )}
                     </div>
-                    <h1 className="text-2xl font-bold text-white">{event.title}</h1>
+                    <h1 className="text-2xl font-bold text-white">
+                      {event.title}
+                    </h1>
                   </div>
                 </div>
 
                 {event.description && (
-                  <p className="mt-4 text-gray-300 leading-relaxed">{event.description}</p>
+                  <p className="mt-4 text-gray-300 leading-relaxed">
+                    {event.description}
+                  </p>
                 )}
               </div>
 
@@ -187,7 +216,9 @@ export default function EventDetailPage() {
 
               {event.sources && event.sources.length > 0 && (
                 <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-                  <h2 className="text-lg font-semibold text-white mb-4">Data Sources</h2>
+                  <h2 className="text-lg font-semibold text-white mb-4">
+                    Data Sources
+                  </h2>
                   <div className="space-y-3">
                     {event.sources.map((source) => (
                       <div
@@ -197,8 +228,12 @@ export default function EventDetailPage() {
                         <div className="flex items-center gap-3">
                           <Globe className="h-5 w-5 text-gray-400" />
                           <div>
-                            <div className="font-medium text-white">{source.name}</div>
-                            <div className="text-xs text-gray-500 capitalize">{source.type.replace("_", " ")}</div>
+                            <div className="font-medium text-white">
+                              {source.name}
+                            </div>
+                            <div className="text-xs text-gray-500 capitalize">
+                              {source.type.replace("_", " ")}
+                            </div>
                           </div>
                         </div>
                         {source.url && (
@@ -220,7 +255,9 @@ export default function EventDetailPage() {
 
             <div className="space-y-6">
               <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-                <h2 className="text-lg font-semibold text-white mb-4">Event Details</h2>
+                <h2 className="text-lg font-semibold text-white mb-4">
+                  Event Details
+                </h2>
                 <div>
                   <InfoRow
                     icon={<MapPin className="h-4 w-4" />}
@@ -231,7 +268,8 @@ export default function EventDetailPage() {
                           <div>{event.location.country}</div>
                         )}
                         <div className="text-xs text-gray-500">
-                          {event.location.lat.toFixed(4)}, {event.location.lng.toFixed(4)}
+                          {event.location.lat.toFixed(4)},{" "}
+                          {event.location.lng.toFixed(4)}
                         </div>
                       </>
                     }
@@ -246,21 +284,27 @@ export default function EventDetailPage() {
                   <InfoRow
                     icon={<Calendar className="h-4 w-4" />}
                     label="Start Date"
-                    value={new Date(event.startDate).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                    value={new Date(event.startDate).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      },
+                    )}
                   />
                   {event.endDate && (
                     <InfoRow
                       icon={<Calendar className="h-4 w-4" />}
                       label="End Date"
-                      value={new Date(event.endDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                      value={new Date(event.endDate).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        },
+                      )}
                     />
                   )}
                   <InfoRow
@@ -272,7 +316,9 @@ export default function EventDetailPage() {
               </div>
 
               <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-                <h2 className="text-lg font-semibold text-white mb-4">Actions</h2>
+                <h2 className="text-lg font-semibold text-white mb-4">
+                  Actions
+                </h2>
                 <div className="space-y-3">
                   <Link
                     href={`/?event=${event.id}`}

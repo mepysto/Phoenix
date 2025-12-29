@@ -12,17 +12,17 @@
 
 ### Progress Summary
 
-| Category                 | Progress | Status      |
-| ------------------------ | -------- | ----------- |
-| **Infrastructure Setup** | 9/9      | Completed   |
-| **Backend API**          | 14/14    | Completed   |
-| **Frontend Web**         | 15/15    | Completed   |
-| **3D Globe Viewer**      | 14/14    | Completed   |
-| **Data Integration**     | 9/10     | In Progress |
-| **Testing & QA**         | 6/6      | Completed   |
-| **Documentation**        | 5/5      | Completed   |
+| Category                 | Progress | Status    |
+| ------------------------ | -------- | --------- |
+| **Infrastructure Setup** | 10/10    | Completed |
+| **Backend API**          | 14/14    | Completed |
+| **Frontend Web**         | 16/16    | Completed |
+| **3D Globe Viewer**      | 15/15    | Completed |
+| **Data Integration**     | 10/10    | Completed |
+| **Testing & QA**         | 6/6      | Completed |
+| **Documentation**        | 5/5      | Completed |
 
-**Overall Progress**: 78/80 tasks (97%)
+**Overall Progress**: 82/82 tasks (100%)
 
 ---
 
@@ -51,7 +51,7 @@
 - [x] PostGIS 확장 활성화 (init-db.sql)
 - [x] TimescaleDB 확장 활성화 (init-db.sql)
 - [x] 초기 스키마 마이그레이션 (init-db.sql)
-- [ ] Seed 데이터 스크립트
+- [x] Seed 데이터 스크립트 (scripts/seed_data.py - 12개 이벤트, 17개 레이어, 6개 데이터셋)
 
 ---
 
@@ -105,8 +105,8 @@
 ### 3.2 Shared Types & API Client
 
 - [x] `@phoenix/shared` 패키지 생성
-- [ ] OpenAPI → TypeScript 타입 생성 설정
-- [x] API 클라이언트 설정 (fetch)
+- [x] OpenAPI → TypeScript 타입 생성 설정 (openapi-typescript + openapi-fetch)
+- [x] API 클라이언트 설정 (type-safe openapi-fetch)
 
 ### 3.3 Layout & Navigation
 
@@ -167,7 +167,7 @@
 
 - [x] 레이어 패널 UI
 - [x] 레이어 On/Off 토글
-- [ ] 레이어 투명도 조절
+- [x] 레이어 투명도 조절 (0~100% 슬라이더, i18n 지원)
 - [x] 범례 컴포넌트
 - [ ] 타임라인 슬라이더 (선택적)
 
@@ -190,7 +190,7 @@
 
 - [x] API 연동 방식 조사
 - [x] 활성화 맵 데이터 수집
-- [ ] 피해 평가 데이터 수집
+- [x] 피해 평가 데이터 수집 (DamageAssessment, AOIs, Products)
 
 ### 5.3 Data Processing
 
@@ -252,6 +252,10 @@
 
 | Date       | Version | Changes                                                                |
 | ---------- | ------- | ---------------------------------------------------------------------- |
+| 2025-12-29 | 0.16.0  | Copernicus EMS 피해 평가 데이터 수집 기능 추가 (DamageAssessment)      |
+| 2025-12-29 | 0.15.0  | 레이어 투명도 조절 슬라이더 추가 (7개 언어 i18n 지원)                  |
+| 2025-12-29 | 0.14.0  | OpenAPI TypeScript 타입 생성 및 type-safe API 클라이언트 설정          |
+| 2025-12-29 | 0.13.0  | Seed 데이터 스크립트 추가 (12개 재난 이벤트)                           |
 | 2025-12-28 | 0.12.0  | Copernicus EMS 연동, GeoJSON 유틸리티, 테스트 113개                    |
 | 2025-12-27 | 0.11.0  | ARCHITECTURE.md 문서 완료                                              |
 | 2025-12-27 | 0.10.0  | E2E 테스트 추가 (Playwright 9개 테스트)                                |

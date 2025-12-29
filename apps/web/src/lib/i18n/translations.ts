@@ -14,6 +14,37 @@ export interface Translations {
     retry: string;
     viewOnMap: string;
   };
+  sidebar: {
+    layersAndFilters: string;
+    eventTypes: string;
+    severity: string;
+    layers: string;
+    // Event type labels
+    earthquake: string;
+    flood: string;
+    wildfire: string;
+    hurricane: string;
+    tsunami: string;
+    volcano: string;
+    war: string;
+    pollution: string;
+    drought: string;
+    other: string;
+    // Severity labels
+    low: string;
+    medium: string;
+    high: string;
+    critical: string;
+    // Layer names
+    disasterEvents: string;
+    satelliteImagery: string;
+    buildings3d: string;
+    populationDensity: string;
+    opacity: string;
+    // Footer
+    dataSource: string;
+    eventsCount: string;
+  };
   settings: {
     title: string;
     subtitle: string;
@@ -86,6 +117,33 @@ const en: Translations = {
     retry: "Retry",
     viewOnMap: "View on Map",
   },
+  sidebar: {
+    layersAndFilters: "Layers & Filters",
+    eventTypes: "Event Types",
+    severity: "Severity",
+    layers: "Layers",
+    earthquake: "Earthquake",
+    flood: "Flood",
+    wildfire: "Wildfire",
+    hurricane: "Hurricane/Typhoon",
+    tsunami: "Tsunami",
+    volcano: "Volcanic Eruption",
+    war: "Armed Conflict",
+    pollution: "Environmental Pollution",
+    drought: "Drought",
+    other: "Other",
+    low: "Low",
+    medium: "Medium",
+    high: "High",
+    critical: "Critical",
+    disasterEvents: "Disaster Events",
+    satelliteImagery: "Satellite Imagery",
+    buildings3d: "3D Buildings",
+    populationDensity: "Population Density",
+    opacity: "Opacity",
+    dataSource: "Data: GDACS, Copernicus EMS",
+    eventsCount: "events",
+  },
   settings: {
     title: "Settings",
     subtitle: "Customize your Phoenix experience",
@@ -113,13 +171,16 @@ const en: Translations = {
     autoSaved: "Settings are automatically saved to your browser.",
   },
   about: {
-    tagline: "Digital twin platform where everyone can heal the wounds of the earth together",
-    description: "Phoenix is a global open humanitarian platform that visualizes worldwide disasters, wars, and environmental pollution in real-time 3D digital twin, allowing anyone to participate in recovery planning.",
+    tagline:
+      "Digital twin platform where everyone can heal the wounds of the earth together",
+    description:
+      "Phoenix is a global open humanitarian platform that visualizes worldwide disasters, wars, and environmental pollution in real-time 3D digital twin, allowing anyone to participate in recovery planning.",
     keyFeatures: "Key Features",
     dataSources: "Data Sources",
     techStack: "Tech Stack",
     openSource: "Open Source",
-    openSourceDesc: "Phoenix is open source and available under the MIT License. Contributions are welcome!",
+    openSourceDesc:
+      "Phoenix is open source and available under the MIT License. Contributions are welcome!",
     viewOnGithub: "View on GitHub",
     footer: "Built with care for humanitarian response and disaster recovery.",
   },
@@ -158,6 +219,33 @@ const ko: Translations = {
     retry: "다시 시도",
     viewOnMap: "지도에서 보기",
   },
+  sidebar: {
+    layersAndFilters: "레이어 및 필터",
+    eventTypes: "이벤트 유형",
+    severity: "심각도",
+    layers: "레이어",
+    earthquake: "지진",
+    flood: "홍수",
+    wildfire: "산불",
+    hurricane: "허리케인/태풍",
+    tsunami: "쓰나미",
+    volcano: "화산 폭발",
+    war: "무력 충돌",
+    pollution: "환경 오염",
+    drought: "가뭄",
+    other: "기타",
+    low: "낮음",
+    medium: "보통",
+    high: "높음",
+    critical: "심각",
+    disasterEvents: "재난 이벤트",
+    satelliteImagery: "위성 이미지",
+    buildings3d: "3D 건물",
+    populationDensity: "인구 밀도",
+    opacity: "투명도",
+    dataSource: "데이터: GDACS, Copernicus EMS",
+    eventsCount: "개 이벤트",
+  },
   settings: {
     title: "설정",
     subtitle: "Phoenix 사용 환경을 맞춤 설정하세요",
@@ -186,12 +274,14 @@ const ko: Translations = {
   },
   about: {
     tagline: "모두가 함께 지구의 상처를 치유하는 디지털 트윈 플랫폼",
-    description: "Phoenix는 전 세계의 재난, 전쟁, 환경오염 현황을 실시간 3D 디지털트윈으로 시각화하고, 누구나 복구 설계에 참여할 수 있는 글로벌 오픈 휴머니타리안 플랫폼입니다.",
+    description:
+      "Phoenix는 전 세계의 재난, 전쟁, 환경오염 현황을 실시간 3D 디지털트윈으로 시각화하고, 누구나 복구 설계에 참여할 수 있는 글로벌 오픈 휴머니타리안 플랫폼입니다.",
     keyFeatures: "주요 기능",
     dataSources: "데이터 소스",
     techStack: "기술 스택",
     openSource: "오픈 소스",
-    openSourceDesc: "Phoenix는 MIT 라이선스 하에 오픈 소스로 제공됩니다. 기여를 환영합니다!",
+    openSourceDesc:
+      "Phoenix는 MIT 라이선스 하에 오픈 소스로 제공됩니다. 기여를 환영합니다!",
     viewOnGithub: "GitHub에서 보기",
     footer: "인도주의적 대응과 재난 복구를 위해 정성껏 만들었습니다.",
   },
@@ -230,6 +320,33 @@ const es: Translations = {
     retry: "Reintentar",
     viewOnMap: "Ver en el mapa",
   },
+  sidebar: {
+    layersAndFilters: "Capas y Filtros",
+    eventTypes: "Tipos de Eventos",
+    severity: "Gravedad",
+    layers: "Capas",
+    earthquake: "Terremoto",
+    flood: "Inundación",
+    wildfire: "Incendio Forestal",
+    hurricane: "Huracán/Tifón",
+    tsunami: "Tsunami",
+    volcano: "Erupción Volcánica",
+    war: "Conflicto Armado",
+    pollution: "Contaminación Ambiental",
+    drought: "Sequía",
+    other: "Otro",
+    low: "Bajo",
+    medium: "Medio",
+    high: "Alto",
+    critical: "Crítico",
+    disasterEvents: "Eventos de Desastres",
+    satelliteImagery: "Imágenes Satelitales",
+    buildings3d: "Edificios 3D",
+    populationDensity: "Densidad de Población",
+    opacity: "Opacidad",
+    dataSource: "Datos: GDACS, Copernicus EMS",
+    eventsCount: "eventos",
+  },
   settings: {
     title: "Configuración",
     subtitle: "Personaliza tu experiencia en Phoenix",
@@ -257,15 +374,19 @@ const es: Translations = {
     autoSaved: "La configuración se guarda automáticamente en tu navegador.",
   },
   about: {
-    tagline: "Plataforma de gemelo digital donde todos pueden sanar las heridas de la tierra juntos",
-    description: "Phoenix es una plataforma humanitaria global abierta que visualiza desastres mundiales, guerras y contaminación ambiental en tiempo real mediante un gemelo digital 3D.",
+    tagline:
+      "Plataforma de gemelo digital donde todos pueden sanar las heridas de la tierra juntos",
+    description:
+      "Phoenix es una plataforma humanitaria global abierta que visualiza desastres mundiales, guerras y contaminación ambiental en tiempo real mediante un gemelo digital 3D.",
     keyFeatures: "Características principales",
     dataSources: "Fuentes de datos",
     techStack: "Stack tecnológico",
     openSource: "Código abierto",
-    openSourceDesc: "Phoenix es de código abierto bajo la licencia MIT. ¡Las contribuciones son bienvenidas!",
+    openSourceDesc:
+      "Phoenix es de código abierto bajo la licencia MIT. ¡Las contribuciones son bienvenidas!",
     viewOnGithub: "Ver en GitHub",
-    footer: "Construido con cuidado para la respuesta humanitaria y la recuperación ante desastres.",
+    footer:
+      "Construido con cuidado para la respuesta humanitaria y la recuperación ante desastres.",
   },
   events: {
     title: "Eventos de desastres",
@@ -302,6 +423,33 @@ const fr: Translations = {
     retry: "Réessayer",
     viewOnMap: "Voir sur la carte",
   },
+  sidebar: {
+    layersAndFilters: "Calques et Filtres",
+    eventTypes: "Types d'Événements",
+    severity: "Gravité",
+    layers: "Calques",
+    earthquake: "Tremblement de terre",
+    flood: "Inondation",
+    wildfire: "Incendie de forêt",
+    hurricane: "Ouragan/Typhon",
+    tsunami: "Tsunami",
+    volcano: "Éruption volcanique",
+    war: "Conflit armé",
+    pollution: "Pollution environnementale",
+    drought: "Sécheresse",
+    other: "Autre",
+    low: "Faible",
+    medium: "Moyen",
+    high: "Élevé",
+    critical: "Critique",
+    disasterEvents: "Événements de catastrophe",
+    satelliteImagery: "Imagerie satellite",
+    buildings3d: "Bâtiments 3D",
+    populationDensity: "Densité de population",
+    opacity: "Opacité",
+    dataSource: "Données: GDACS, Copernicus EMS",
+    eventsCount: "événements",
+  },
   settings: {
     title: "Paramètres",
     subtitle: "Personnalisez votre expérience Phoenix",
@@ -320,24 +468,30 @@ const fr: Translations = {
     showClusterMarkers: "Afficher les marqueurs groupés",
     clusterMarkersDesc: "Regrouper les événements proches en clusters",
     dataSync: "Données et synchronisation",
-    dataSyncDesc: "Contrôlez comment les données sont récupérées et mises à jour",
+    dataSyncDesc:
+      "Contrôlez comment les données sont récupérées et mises à jour",
     autoRefresh: "Actualisation automatique",
     autoRefreshDesc: "Récupérer automatiquement les nouveaux événements",
     refreshInterval: "Intervalle d'actualisation",
     resetToDefaults: "Réinitialiser par défaut",
     changesApplied: "Les modifications sont appliquées immédiatement.",
-    autoSaved: "Les paramètres sont automatiquement enregistrés dans votre navigateur.",
+    autoSaved:
+      "Les paramètres sont automatiquement enregistrés dans votre navigateur.",
   },
   about: {
-    tagline: "Plateforme de jumeau numérique où chacun peut guérir les blessures de la terre ensemble",
-    description: "Phoenix est une plateforme humanitaire mondiale ouverte qui visualise les catastrophes, guerres et pollutions environnementales en temps réel via un jumeau numérique 3D.",
+    tagline:
+      "Plateforme de jumeau numérique où chacun peut guérir les blessures de la terre ensemble",
+    description:
+      "Phoenix est une plateforme humanitaire mondiale ouverte qui visualise les catastrophes, guerres et pollutions environnementales en temps réel via un jumeau numérique 3D.",
     keyFeatures: "Fonctionnalités clés",
     dataSources: "Sources de données",
     techStack: "Stack technique",
     openSource: "Open Source",
-    openSourceDesc: "Phoenix est open source sous licence MIT. Les contributions sont les bienvenues !",
+    openSourceDesc:
+      "Phoenix est open source sous licence MIT. Les contributions sont les bienvenues !",
     viewOnGithub: "Voir sur GitHub",
-    footer: "Construit avec soin pour la réponse humanitaire et la récupération après sinistre.",
+    footer:
+      "Construit avec soin pour la réponse humanitaire et la récupération après sinistre.",
   },
   events: {
     title: "Événements de catastrophe",
@@ -374,6 +528,33 @@ const zh: Translations = {
     retry: "重试",
     viewOnMap: "在地图上查看",
   },
+  sidebar: {
+    layersAndFilters: "图层与筛选",
+    eventTypes: "事件类型",
+    severity: "严重程度",
+    layers: "图层",
+    earthquake: "地震",
+    flood: "洪水",
+    wildfire: "野火",
+    hurricane: "飓风/台风",
+    tsunami: "海啸",
+    volcano: "火山喷发",
+    war: "武装冲突",
+    pollution: "环境污染",
+    drought: "干旱",
+    other: "其他",
+    low: "低",
+    medium: "中",
+    high: "高",
+    critical: "严重",
+    disasterEvents: "灾害事件",
+    satelliteImagery: "卫星图像",
+    buildings3d: "3D建筑",
+    populationDensity: "人口密度",
+    opacity: "透明度",
+    dataSource: "数据来源: GDACS, Copernicus EMS",
+    eventsCount: "个事件",
+  },
   settings: {
     title: "设置",
     subtitle: "自定义您的 Phoenix 体验",
@@ -402,7 +583,8 @@ const zh: Translations = {
   },
   about: {
     tagline: "让每个人都能一起治愈地球伤痕的数字孪生平台",
-    description: "Phoenix 是一个全球开放的人道主义平台，通过实时 3D 数字孪生可视化全球灾害、战争和环境污染，让任何人都能参与恢复规划。",
+    description:
+      "Phoenix 是一个全球开放的人道主义平台，通过实时 3D 数字孪生可视化全球灾害、战争和环境污染，让任何人都能参与恢复规划。",
     keyFeatures: "主要功能",
     dataSources: "数据来源",
     techStack: "技术栈",
@@ -446,6 +628,33 @@ const ar: Translations = {
     retry: "إعادة المحاولة",
     viewOnMap: "عرض على الخريطة",
   },
+  sidebar: {
+    layersAndFilters: "الطبقات والفلاتر",
+    eventTypes: "أنواع الأحداث",
+    severity: "الخطورة",
+    layers: "الطبقات",
+    earthquake: "زلزال",
+    flood: "فيضان",
+    wildfire: "حريق غابات",
+    hurricane: "إعصار",
+    tsunami: "تسونامي",
+    volcano: "ثوران بركاني",
+    war: "نزاع مسلح",
+    pollution: "تلوث بيئي",
+    drought: "جفاف",
+    other: "أخرى",
+    low: "منخفض",
+    medium: "متوسط",
+    high: "مرتفع",
+    critical: "حرج",
+    disasterEvents: "أحداث الكوارث",
+    satelliteImagery: "صور الأقمار الصناعية",
+    buildings3d: "مباني ثلاثية الأبعاد",
+    populationDensity: "الكثافة السكانية",
+    opacity: "الشفافية",
+    dataSource: "البيانات: GDACS, Copernicus EMS",
+    eventsCount: "أحداث",
+  },
   settings: {
     title: "الإعدادات",
     subtitle: "تخصيص تجربة Phoenix الخاصة بك",
@@ -474,7 +683,8 @@ const ar: Translations = {
   },
   about: {
     tagline: "منصة التوأم الرقمي حيث يمكن للجميع معالجة جراح الأرض معًا",
-    description: "Phoenix هي منصة إنسانية عالمية مفتوحة تعرض الكوارث والحروب والتلوث البيئي في جميع أنحاء العالم في الوقت الفعلي عبر التوأم الرقمي ثلاثي الأبعاد.",
+    description:
+      "Phoenix هي منصة إنسانية عالمية مفتوحة تعرض الكوارث والحروب والتلوث البيئي في جميع أنحاء العالم في الوقت الفعلي عبر التوأم الرقمي ثلاثي الأبعاد.",
     keyFeatures: "الميزات الرئيسية",
     dataSources: "مصادر البيانات",
     techStack: "المكدس التقني",
@@ -518,6 +728,33 @@ const ru: Translations = {
     retry: "Повторить",
     viewOnMap: "Посмотреть на карте",
   },
+  sidebar: {
+    layersAndFilters: "Слои и Фильтры",
+    eventTypes: "Типы событий",
+    severity: "Серьезность",
+    layers: "Слои",
+    earthquake: "Землетрясение",
+    flood: "Наводнение",
+    wildfire: "Лесной пожар",
+    hurricane: "Ураган/Тайфун",
+    tsunami: "Цунами",
+    volcano: "Извержение вулкана",
+    war: "Вооружённый конфликт",
+    pollution: "Загрязнение окружающей среды",
+    drought: "Засуха",
+    other: "Другое",
+    low: "Низкий",
+    medium: "Средний",
+    high: "Высокий",
+    critical: "Критический",
+    disasterEvents: "События катастроф",
+    satelliteImagery: "Спутниковые снимки",
+    buildings3d: "3D Здания",
+    populationDensity: "Плотность населения",
+    opacity: "Прозрачность",
+    dataSource: "Данные: GDACS, Copernicus EMS",
+    eventsCount: "событий",
+  },
   settings: {
     title: "Настройки",
     subtitle: "Настройте Phoenix под себя",
@@ -545,15 +782,19 @@ const ru: Translations = {
     autoSaved: "Настройки автоматически сохраняются в браузере.",
   },
   about: {
-    tagline: "Платформа цифрового двойника, где каждый может помочь исцелить раны Земли",
-    description: "Phoenix — это глобальная открытая гуманитарная платформа, которая визуализирует катастрофы, войны и загрязнение окружающей среды в реальном времени через 3D цифровой двойник.",
+    tagline:
+      "Платформа цифрового двойника, где каждый может помочь исцелить раны Земли",
+    description:
+      "Phoenix — это глобальная открытая гуманитарная платформа, которая визуализирует катастрофы, войны и загрязнение окружающей среды в реальном времени через 3D цифровой двойник.",
     keyFeatures: "Ключевые функции",
     dataSources: "Источники данных",
     techStack: "Технологический стек",
     openSource: "Открытый исходный код",
-    openSourceDesc: "Phoenix — проект с открытым исходным кодом под лицензией MIT. Мы рады вкладу!",
+    openSourceDesc:
+      "Phoenix — проект с открытым исходным кодом под лицензией MIT. Мы рады вкладу!",
     viewOnGithub: "Смотреть на GitHub",
-    footer: "Создано с заботой о гуманитарном реагировании и восстановлении после катастроф.",
+    footer:
+      "Создано с заботой о гуманитарном реагировании и восстановлении после катастроф.",
   },
   events: {
     title: "События катастроф",
