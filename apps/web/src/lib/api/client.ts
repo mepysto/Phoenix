@@ -77,6 +77,19 @@ const camelCaseMiddleware: Middleware = {
 
 const client = createClient<paths>({
   baseUrl: API_URL,
+  querySerializer: (params) => {
+    const searchParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value === undefined || value === null) continue;
+      if (Array.isArray(value)) {
+        // FastAPI expects repeated keys for arrays: types=earthquake&types=flood
+        value.forEach((v) => searchParams.append(key, String(v)));
+      } else {
+        searchParams.append(key, String(value));
+      }
+    }
+    return searchParams.toString();
+  },
 });
 
 client.use(camelCaseMiddleware);

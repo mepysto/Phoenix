@@ -176,13 +176,16 @@ function LayerItem({
 }
 
 export function Sidebar() {
-  const { filter, toggleEventType, toggleSeverity, events, isLoading } =
-    useEventStore();
+  const {
+    visibleTypes,
+    visibleSeverities,
+    toggleEventType,
+    toggleSeverity,
+    events,
+    isLoading,
+  } = useEventStore();
   const { layers, toggleLayer, setLayerOpacity } = useMapStore();
   const { t } = useTranslation();
-
-  const selectedTypes = new Set(filter.types || []);
-  const selectedSeverities = new Set(filter.severities || []);
 
   return (
     <aside className="hidden lg:flex w-72 flex-col border-r border-gray-800 bg-gray-900">
@@ -206,7 +209,7 @@ export function Sidebar() {
               >
                 <input
                   type="checkbox"
-                  checked={selectedTypes.has(type)}
+                  checked={visibleTypes.has(type)}
                   onChange={() => toggleEventType(type)}
                   className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500"
                 />
@@ -231,7 +234,7 @@ export function Sidebar() {
               >
                 <input
                   type="checkbox"
-                  checked={selectedSeverities.has(severity)}
+                  checked={visibleSeverities.has(severity)}
                   onChange={() => toggleSeverity(severity)}
                   className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500"
                 />

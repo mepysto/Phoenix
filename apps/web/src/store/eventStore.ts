@@ -8,12 +8,34 @@ import {
   type SeverityLevel,
 } from "@/lib/api/client";
 
+export const ALL_EVENT_TYPES: EventType[] = [
+  "earthquake",
+  "flood",
+  "wildfire",
+  "hurricane",
+  "tsunami",
+  "volcano",
+  "war",
+  "pollution",
+  "drought",
+  "other",
+];
+
+export const ALL_SEVERITIES: SeverityLevel[] = [
+  "low",
+  "medium",
+  "high",
+  "critical",
+];
+
 interface EventState {
   events: ApiDisasterEvent[];
   selectedEvent: ApiDisasterEvent | null;
   isLoading: boolean;
   error: string | null;
   filter: EventFilter;
+  visibleTypes: Set<EventType>;
+  visibleSeverities: Set<SeverityLevel>;
   pagination: {
     total: number;
     limit: number;
@@ -40,6 +62,8 @@ const initialState: EventState = {
   isLoading: false,
   error: null,
   filter: {},
+  visibleTypes: new Set(ALL_EVENT_TYPES),
+  visibleSeverities: new Set(ALL_SEVERITIES),
   pagination: {
     total: 0,
     limit: 50,
@@ -52,11 +76,25 @@ const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
   ...initialState,
 
   fetchEvents: async () => {
-    const { filter, pagination } = get();
+    const { visibleTypes, visibleSeverities, filter, pagination } = get();
+
+    if (visibleTypes.size === 0 || visibleSeverities.size === 0) {
+      set({ events: [], isLoading: false });
+      return;
+    }
+
     set({ isLoading: true, error: null });
 
+    const apiFilter: EventFilter = { ...filter };
+    if (visibleTypes.size < ALL_EVENT_TYPES.length) {
+      apiFilter.types = Array.from(visibleTypes);
+    }
+    if (visibleSeverities.size < ALL_SEVERITIES.length) {
+      apiFilter.severities = Array.from(visibleSeverities);
+    }
+
     try {
-      const response = await eventsAPI.list(filter, pagination.limit, 0);
+      const response = await eventsAPI.list(apiFilter, pagination.limit, 0);
       set({
         events: response.data,
         pagination: {
@@ -87,50 +125,58 @@ const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
 
   toggleEventType: (type) => {
     set((state) => {
-      const currentTypes = state.filter.types || [];
-      const newTypes = currentTypes.includes(type)
-        ? currentTypes.filter((t) => t !== type)
-        : [...currentTypes, type];
-      return {
-        filter: {
-          ...state.filter,
-          types: newTypes.length > 0 ? newTypes : undefined,
-        },
-      };
+      const newVisibleTypes = new Set(state.visibleTypes);
+      if (newVisibleTypes.has(type)) {
+        newVisibleTypes.delete(type);
+      } else {
+        newVisibleTypes.add(type);
+      }
+      return { visibleTypes: newVisibleTypes };
     });
     get().fetchEvents();
   },
 
   toggleSeverity: (severity) => {
     set((state) => {
-      const currentSeverities = state.filter.severities || [];
-      const newSeverities = currentSeverities.includes(severity)
-        ? currentSeverities.filter((s) => s !== severity)
-        : [...currentSeverities, severity];
-      return {
-        filter: {
-          ...state.filter,
-          severities: newSeverities.length > 0 ? newSeverities : undefined,
-        },
-      };
+      const newVisibleSeverities = new Set(state.visibleSeverities);
+      if (newVisibleSeverities.has(severity)) {
+        newVisibleSeverities.delete(severity);
+      } else {
+        newVisibleSeverities.add(severity);
+      }
+      return { visibleSeverities: newVisibleSeverities };
     });
     get().fetchEvents();
   },
 
   clearFilters: () => {
-    set({ filter: {} });
+    set({
+      filter: {},
+      visibleTypes: new Set(ALL_EVENT_TYPES),
+      visibleSeverities: new Set(ALL_SEVERITIES),
+    });
     get().fetchEvents();
   },
 
   loadMore: async () => {
-    const { filter, pagination, events } = get();
+    const { visibleTypes, visibleSeverities, filter, pagination, events } =
+      get();
     if (!pagination.hasMore) return;
 
     set({ isLoading: true });
+
+    const apiFilter: EventFilter = { ...filter };
+    if (visibleTypes.size < ALL_EVENT_TYPES.length) {
+      apiFilter.types = Array.from(visibleTypes);
+    }
+    if (visibleSeverities.size < ALL_SEVERITIES.length) {
+      apiFilter.severities = Array.from(visibleSeverities);
+    }
+
     try {
       const newOffset = pagination.offset + pagination.limit;
       const response = await eventsAPI.list(
-        filter,
+        apiFilter,
         pagination.limit,
         newOffset,
       );
