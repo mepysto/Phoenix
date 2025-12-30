@@ -1,3 +1,27 @@
-from src.models.event import Event, DataSource, EventSource, GeoLayer, Dataset, EventMetric
+from src.models.admin_area import AdminArea
+from src.models.event import (
+    DataSource,
+    Dataset,
+    Event,
+    EventMetric,
+    EventSource,
+    EventType,
+    GeoLayer,
+    GeoMethod,
+    GeoPrecision,
+    SeverityLevel,
+)
 
-__all__ = ["Event", "DataSource", "EventSource", "GeoLayer", "Dataset", "EventMetric"]
+__all__ = [
+    "AdminArea",
+    "DataSource",
+    "Dataset",
+    "Event",
+    "EventMetric",
+    "EventSource",
+    "EventType",
+    "GeoLayer",
+    "GeoMethod",
+    "GeoPrecision",
+    "SeverityLevel",
+]

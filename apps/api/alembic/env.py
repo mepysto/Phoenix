@@ -27,6 +27,7 @@ if config.config_file_name is not None:
 # Import Base and all models to register them with the metadata
 # Models must be imported before accessing Base.metadata
 from src.db.database import Base
+from src.models.admin_area import AdminArea  # noqa: F401
 from src.models.event import (  # noqa: F401
     DataSource,
     Dataset,
