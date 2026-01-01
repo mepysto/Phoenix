@@ -214,11 +214,27 @@ Phase 4에서는 Cross-source 중복 제거(Dedup) 및 이벤트 병합(Merge) �
    - `src/utils/geo.py`: `point_within_distance()`, `distance_meters()`
    - `src/repositories/event_repository.py`: `find_candidates_by_spatiotemporal()`, `find_by_glide_number()`
 
-### Phase 5 (API 고도화) ← **다음 단계**
+### Phase 5 (API 고도화) ✅ COMPLETED (2026-01-01)
 
-- 응답에 `geo_precision`, `display_point` 포함
-- 공간 쿼리 API (bbox, radius 검색)
-- 실시간 WebSocket 업데이트
+1. **응답 필드 확장** ✅
+   - `EventResponse`에 `geo_precision` 필드 추가 (exact, approximate, admin1, country, unknown)
+   - `DisplayPoint` 스키마 추가 (lat, lng, source)
+   - UI 표시용 `display_point` 필드 추가 (이벤트 좌표 또는 admin centroid)
+
+2. **공간 쿼리 API** ✅
+   - bbox 검색: `GET /events?min_lat=...&max_lat=...&min_lng=...&max_lng=...`
+   - radius 검색: `GET /events?center_lat=...&center_lng=...&radius_km=...` (최대 500km)
+   - PostGIS `ST_DWithin`으로 정확한 거리 계산
+
+3. **스키마 유효성 검사** ✅
+   - radius 파라미터 3개 모두 있거나 모두 없어야 함
+   - `radius_km` 최대 500km 제한
+
+### Phase 6 (실시간/고급 기능) ← **다음 단계**
+
+- 실시간 WebSocket 업데이트 (이벤트 생성/수정 시 push)
+- Offline merge job (기존 중복 Event 정리)
+- Admin API (/admin/dedup/run 등)
 
 ---
 
@@ -411,16 +427,40 @@ Ingestion → Same-source check → Cross-source match (Strong key/Fuzzy)
 
 ---
 
-## 11. 다음 단계 추천 (Phase 5 착수)
+## 11. Phase 5 완료 변경사항 요약 (2026-01-01)
+
+**수정된 파일**
+| 파일 | 변경 내용 |
+|------|-----------|
+| `src/schemas/event.py` | DisplayPoint 클래스 추가, EventResponse에 geo_precision/display_point, EventFilter에 radius 파라미터 |
+| `src/api/v1/events.py` | center_lat, center_lng, radius_km 쿼리 파라미터 추가 |
+| `src/repositories/event_repository.py` | list_events에 PostGIS radius 필터 추가 |
+| `src/services/event_service.py` | \_compute_display_point() 헬퍼 추가, 응답에 새 필드 포함 |
+| `tests/api/test_events.py` | radius 검색 및 새 필드 테스트 4개 추가 |
+
+**테스트 현황**
+
+- 전체 369개 테스트 통과
+
+**새로운 API 기능**
+| 기능 | 엔드포인트 | 설명 |
+|------|-----------|------|
+| radius 검색 | `GET /events?center_lat=35&center_lng=139&radius_km=100` | 반경 내 이벤트 (최대 500km) |
+| geo_precision | 응답 필드 | exact, approximate, admin1, country, unknown |
+| display_point | 응답 필드 | UI 표시용 좌표 (source: event/admin_centroid) |
+
+---
+
+## 12. 다음 단계 추천 (Phase 6 착수)
 
 **즉시 착수 가능**
 
-1. API 응답에 `geo_precision`, `display_point` 필드 추가
-2. 공간 쿼리 API: `GET /events?bbox=...`, `GET /events?radius=50km&lat=...&lng=...`
-3. 실시간 WebSocket 업데이트 (이벤트 생성/수정 시 push)
+1. 실시간 WebSocket 업데이트 (이벤트 생성/수정 시 push)
+2. Offline merge job (기존 중복 Event 정리)
+3. Admin API (/admin/dedup/run 등)
 
-**선택적 확장 (Phase 4.5 - Offline Merge)**
+**선택적 확장**
 
-- 기존에 중복 생성된 Event 정리 (batch job)
-- `events.merged_into_id`, `events.is_canonical` 컬럼 추가
-- 관리용 엔드포인트: `/admin/dedup/run`
+- `events.merged_into_id`, `events.is_canonical` 컬럼 추가 (중복 숨김)
+- GeoJSON export API (`GET /events/geojson`)
+- 이벤트 클러스터링 API (zoom level별)

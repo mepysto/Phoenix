@@ -16,6 +16,7 @@ from src.api.v1.events import get_event_service
 from src.main import app
 from src.schemas.event import (
     DataSourceRef,
+    DisplayPoint,
     EventDetailResponse,
     EventListResponse,
     EventResponse,
@@ -38,6 +39,8 @@ def create_mock_event_response(
         title=f"Test {event_type.capitalize()} Event",
         description=f"Test {event_type} for unit testing",
         location=Location(lat=35.0, lng=135.0, country="Japan", country_code="JP"),
+        geo_precision="exact",
+        display_point=DisplayPoint(lat=35.0, lng=135.0, source="event"),
         severity=severity,
         affected_population=10000,
         start_date=now,
@@ -206,6 +209,50 @@ class TestListEvents:
         data = response.json()
         for event in data["data"]:
             assert event["type"] in ["earthquake", "flood"]
+
+    def test_list_events_with_radius_search(
+        self, client_with_mock_service: TestClient
+    ) -> None:
+        """Test listing events with radius search parameters."""
+        response = client_with_mock_service.get(
+            "/api/v1/events",
+            params={"center_lat": 35.0, "center_lng": 139.0, "radius_km": 100},
+        )
+        assert response.status_code == 200
+
+    def test_list_events_radius_km_validation(
+        self, client_with_mock_service: TestClient
+    ) -> None:
+        """Test that radius_km exceeding max returns validation error."""
+        response = client_with_mock_service.get(
+            "/api/v1/events",
+            params={"center_lat": 35.0, "center_lng": 139.0, "radius_km": 600},
+        )
+        assert response.status_code == 422
+
+    def test_list_events_response_has_geo_precision(
+        self, client_with_mock_service: TestClient
+    ) -> None:
+        """Test that events response includes geo_precision field."""
+        response = client_with_mock_service.get("/api/v1/events")
+        assert response.status_code == 200
+        data = response.json()
+        for event in data["data"]:
+            assert "geo_precision" in event
+
+    def test_list_events_response_has_display_point(
+        self, client_with_mock_service: TestClient
+    ) -> None:
+        """Test that events response includes display_point field."""
+        response = client_with_mock_service.get("/api/v1/events")
+        assert response.status_code == 200
+        data = response.json()
+        for event in data["data"]:
+            assert "display_point" in event
+            if event["display_point"]:
+                assert "lat" in event["display_point"]
+                assert "lng" in event["display_point"]
+                assert "source" in event["display_point"]
 
 
 class TestGetEvent:

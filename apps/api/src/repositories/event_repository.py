@@ -225,6 +225,21 @@ class EventRepository(BaseRepository):
             conditions.append(Event.latitude >= filters.min_lat)
             conditions.append(Event.latitude <= filters.max_lat)
 
+        center_lat = filters.center_lat
+        center_lng = filters.center_lng
+        radius_km = filters.radius_km
+        if center_lat is not None and center_lng is not None and radius_km is not None:
+            radius_meters = int(radius_km * 1000)
+            conditions.append(Event.location.isnot(None))
+            conditions.append(
+                point_within_distance(
+                    Event.location,
+                    center_lat,
+                    center_lng,
+                    radius_meters,
+                )
+            )
+
         # Apply all conditions
         for condition in conditions:
             stmt = stmt.where(condition)

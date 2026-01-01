@@ -1,16 +1,26 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class Location(BaseModel):
-    lat: float
-    lng: float
+    """Geographic location with optional coordinates and region info."""
+
+    lat: float | None = None  # NULL 허용 (좌표 없는 이벤트)
+    lng: float | None = None
     country: str | None = None
     country_code: str | None = None
     region: str | None = None
+
+
+class DisplayPoint(BaseModel):
+    """UI 표시용 좌표 (실제 좌표 또는 admin_area centroid)."""
+
+    lat: float
+    lng: float
+    source: Literal["event", "admin_centroid", "country_centroid"]
 
 
 class DataSourceRef(BaseModel):
@@ -30,6 +40,9 @@ class EventResponse(BaseModel):
     title: str
     description: str | None = None
     location: Location
+    geo_precision: str | None = None
+
+    display_point: DisplayPoint | None = None
     severity: str
     affected_population: int | None = None
     affected_area_km2: float | None = None
@@ -95,4 +108,17 @@ class EventFilter(BaseModel):
     min_lat: float | None = None
     max_lng: float | None = None
     max_lat: float | None = None
+    center_lat: float | None = None
+    center_lng: float | None = None
+    radius_km: float | None = None
     is_active: bool | None = None
+
+    @model_validator(mode="after")
+    def validate_radius_params(self) -> "EventFilter":
+        radius_params = [self.center_lat, self.center_lng, self.radius_km]
+        provided = [p is not None for p in radius_params]
+        if any(provided) and not all(provided):
+            raise ValueError(
+                "center_lat, center_lng, and radius_km must all be provided together"
+            )
+        return self

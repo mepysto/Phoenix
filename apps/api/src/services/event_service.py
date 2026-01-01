@@ -8,6 +8,7 @@ from src.models.event import Event
 from src.repositories.event_repository import EventRepository
 from src.schemas.event import (
     DataSourceRef,
+    DisplayPoint,
     EventDetailResponse,
     EventFilter,
     EventListResponse,
@@ -101,15 +102,15 @@ class EventService:
         Returns:
             EventResponse Pydantic schema
         """
-        # Create Location from event fields
         location = Location(
-            lat=event.latitude if event.latitude is not None else 0.0,
-            lng=event.longitude if event.longitude is not None else 0.0,
+            lat=event.latitude,
+            lng=event.longitude,
             country=event.region,
             country_code=event.country_code,
         )
 
-        # Build sources list from relationship (eagerly loaded)
+        display_point = self._compute_display_point(event)
+
         sources: list[DataSourceRef] = []
         try:
             for es in event.sources:
@@ -122,7 +123,6 @@ class EventService:
                         )
                     )
         except Exception:
-            # If lazy loading fails in async context, return empty sources
             pass
 
         return EventResponse(
@@ -131,6 +131,8 @@ class EventService:
             title=event.title,
             description=event.description,
             location=location,
+            geo_precision=event.geo_precision.value if event.geo_precision else None,
+            display_point=display_point,
             severity=event.severity.value,
             affected_population=event.affected_population,
             start_date=event.start_date,
@@ -140,3 +142,12 @@ class EventService:
             created_at=event.created_at,
             updated_at=event.updated_at,
         )
+
+    def _compute_display_point(self, event: Event) -> DisplayPoint | None:
+        if event.latitude is not None and event.longitude is not None:
+            return DisplayPoint(
+                lat=event.latitude,
+                lng=event.longitude,
+                source="event",
+            )
+        return None

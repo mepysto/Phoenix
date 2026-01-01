@@ -40,6 +40,9 @@ async def list_events(
     min_lat: float | None = None,
     max_lng: float | None = None,
     max_lat: float | None = None,
+    center_lat: float | None = Query(default=None, ge=-90, le=90),
+    center_lng: float | None = Query(default=None, ge=-180, le=180),
+    radius_km: float | None = Query(default=None, gt=0, le=500),
     is_active: bool | None = None,
     limit: int = Query(default=50, le=200),
     offset: int = Query(default=0, ge=0),
@@ -56,6 +59,9 @@ async def list_events(
         min_lat: Bounding box minimum latitude
         max_lng: Bounding box maximum longitude
         max_lat: Bounding box maximum latitude
+        center_lat: Center latitude for radius search (-90 to 90)
+        center_lng: Center longitude for radius search (-180 to 180)
+        radius_km: Search radius in km (max 500km)
         is_active: Filter by active status
         limit: Maximum number of events to return (default 50, max 200)
         offset: Number of events to skip for pagination
@@ -72,6 +78,9 @@ async def list_events(
         min_lat=min_lat,
         max_lng=max_lng,
         max_lat=max_lat,
+        center_lat=center_lat,
+        center_lng=center_lng,
+        radius_km=radius_km,
         is_active=is_active,
     )
     return await event_service.list_events(filters, limit, offset)

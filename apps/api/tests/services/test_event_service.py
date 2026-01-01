@@ -11,7 +11,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.models.event import Event, EventSource, EventType, SeverityLevel
+from src.models.event import Event, EventSource, EventType, GeoPrecision, SeverityLevel
 from src.schemas.event import (
     EventDetailResponse,
     EventFilter,
@@ -25,6 +25,7 @@ def create_mock_event(
     event_type: EventType = EventType.earthquake,
     severity: SeverityLevel = SeverityLevel.high,
     is_active: bool = True,
+    geo_precision: GeoPrecision = GeoPrecision.exact,
 ) -> Event:
     """Create a mock Event model for testing."""
     now = datetime.now(timezone.utc)
@@ -38,6 +39,7 @@ def create_mock_event(
     event.region = "Japan"
     event.country_code = "JP"
     event.severity = severity
+    event.geo_precision = geo_precision
     event.affected_population = 10000
     event.start_date = now
     event.end_date = None
@@ -301,8 +303,9 @@ class TestEventServiceToResponse:
 
         response = event_service._to_response(event)
 
-        assert response.location.lat == 0.0
-        assert response.location.lng == 0.0
+        assert response.location.lat is None
+        assert response.location.lng is None
+        assert response.display_point is None
 
     def test_to_response_extracts_event_type_value(
         self, event_service: EventService
