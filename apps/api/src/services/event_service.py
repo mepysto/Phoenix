@@ -1,6 +1,11 @@
-from datetime import datetime, timezone
-from uuid import UUID, uuid4
+"""Event service for managing disaster events with DB integration."""
 
+from uuid import UUID
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.models.event import Event
+from src.repositories.event_repository import EventRepository
 from src.schemas.event import (
     DataSourceRef,
     EventDetailResponse,
@@ -14,86 +19,124 @@ from src.schemas.event import (
 
 
 class EventService:
+    """Service for event operations using database repositories."""
+
+    def __init__(self, session: AsyncSession):
+        """Initialize EventService with database session.
+
+        Args:
+            session: AsyncSession for database operations
+        """
+        self.session = session
+        self.event_repo = EventRepository(session)
+
     async def list_events(
         self, filters: EventFilter, limit: int, offset: int
     ) -> EventListResponse:
-        mock_events = self._get_mock_events()
+        """List events from DB with filtering and pagination.
 
-        filtered = mock_events
-        if filters.types:
-            filtered = [e for e in filtered if e.type in filters.types]
-        if filters.severities:
-            filtered = [e for e in filtered if e.severity in filters.severities]
-        if filters.is_active is not None:
-            filtered = [e for e in filtered if e.is_active == filters.is_active]
+        Args:
+            filters: EventFilter with optional type, severity, date, bbox filters
+            limit: Maximum number of events to return
+            offset: Number of events to skip
 
-        total = len(filtered)
-        paginated = filtered[offset : offset + limit]
+        Returns:
+            EventListResponse with paginated event data
+        """
+        # Use with_sources=True to eagerly load sources and avoid N+1
+        events, total = await self.event_repo.list_events(
+            filters, limit, offset, with_sources=True
+        )
+
+        data = [self._to_response(event) for event in events]
 
         return EventListResponse(
-            data=paginated,
+            data=data,
             pagination=Pagination(
-                total=total, limit=limit, offset=offset, has_more=offset + limit < total
+                total=total,
+                limit=limit,
+                offset=offset,
+                has_more=offset + limit < total,
             ),
         )
 
     async def get_event(self, event_id: UUID) -> EventDetailResponse | None:
-        mock_events = self._get_mock_events()
-        for event in mock_events:
-            if event.id == event_id:
-                return EventDetailResponse(
-                    **event.model_dump(), layers=[], datasets=[], metrics=[]
-                )
-        return None
+        """Get event detail from DB including sources.
+
+        Args:
+            event_id: UUID of the event to retrieve
+
+        Returns:
+            EventDetailResponse if found, None otherwise
+        """
+        # Use method with eager loading for sources
+        event = await self.event_repo.get_by_id_with_sources(event_id)
+        if not event:
+            return None
+
+        return EventDetailResponse(
+            **self._to_response(event).model_dump(),
+            layers=[],  # Phase 2: empty list
+            datasets=[],  # Phase 2: empty list
+            metrics=[],  # Phase 2: empty list
+        )
 
     async def get_event_layers(self, event_id: UUID) -> list[GeoLayerResponse]:
+        """Get event layers (Phase 2: returns empty list).
+
+        Args:
+            event_id: UUID of the event
+
+        Returns:
+            Empty list for Phase 2
+        """
         return []
 
-    def _get_mock_events(self) -> list[EventResponse]:
-        now = datetime.now(timezone.utc)
-        return [
-            EventResponse(
-                id=uuid4(),
-                type="earthquake",
-                title="M 6.2 Earthquake - Turkey",
-                description="Moderate earthquake struck southeastern Turkey",
-                location=Location(lat=37.5, lng=37.0, country="Turkey", country_code="TR"),
-                severity="high",
-                affected_population=50000,
-                start_date=now,
-                is_active=True,
-                sources=[DataSourceRef(id=uuid4(), name="GDACS", type="disaster_alert")],
-                created_at=now,
-                updated_at=now,
-            ),
-            EventResponse(
-                id=uuid4(),
-                type="flood",
-                title="Severe Flooding - Bangladesh",
-                description="Monsoon flooding affecting multiple districts",
-                location=Location(lat=23.8, lng=90.4, country="Bangladesh", country_code="BD"),
-                severity="critical",
-                affected_population=200000,
-                start_date=now,
-                is_active=True,
-                sources=[DataSourceRef(id=uuid4(), name="GDACS", type="disaster_alert")],
-                created_at=now,
-                updated_at=now,
-            ),
-            EventResponse(
-                id=uuid4(),
-                type="wildfire",
-                title="Wildfire - California, USA",
-                description="Large wildfire burning in northern California",
-                location=Location(
-                    lat=39.5, lng=-121.5, country="United States", country_code="US"
-                ),
-                severity="high",
-                affected_population=10000,
-                start_date=now,
-                is_active=True,
-                sources=[DataSourceRef(id=uuid4(), name="GDACS", type="disaster_alert")],
-                created_at=now,
-                updated_at=now,
-            ),
-        ]
+    def _to_response(self, event: Event) -> EventResponse:
+        """Convert Event model to EventResponse schema.
+
+        Args:
+            event: Event SQLAlchemy model
+
+        Returns:
+            EventResponse Pydantic schema
+        """
+        # Create Location from event fields
+        location = Location(
+            lat=event.latitude if event.latitude is not None else 0.0,
+            lng=event.longitude if event.longitude is not None else 0.0,
+            country=event.region,
+            country_code=event.country_code,
+        )
+
+        # Build sources list from relationship (eagerly loaded)
+        sources: list[DataSourceRef] = []
+        try:
+            for es in event.sources:
+                if es.source:
+                    sources.append(
+                        DataSourceRef(
+                            id=es.source.id,
+                            name=es.source.name,
+                            type=es.source.type,
+                        )
+                    )
+        except Exception:
+            # If lazy loading fails in async context, return empty sources
+            pass
+
+        return EventResponse(
+            id=event.id,
+            type=event.type.value,
+            title=event.title,
+            description=event.description,
+            location=location,
+            severity=event.severity.value,
+            affected_population=event.affected_population,
+            start_date=event.start_date,
+            end_date=event.end_date,
+            is_active=event.is_active,
+            sources=sources,
+            created_at=event.created_at,
+            updated_at=event.updated_at,
+        )

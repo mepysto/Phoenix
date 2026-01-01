@@ -1,16 +1,32 @@
+"""Events API endpoints for disaster event management."""
+
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.schemas.event import EventFilter, EventListResponse, EventResponse, EventDetailResponse
+from src.db.database import get_db
+from src.schemas.event import (
+    EventDetailResponse,
+    EventFilter,
+    EventListResponse,
+)
 from src.services.event_service import EventService
 
 router = APIRouter()
 
 
-def get_event_service() -> EventService:
-    return EventService()
+def get_event_service(session: AsyncSession = Depends(get_db)) -> EventService:
+    """Dependency to create EventService with database session.
+
+    Args:
+        session: AsyncSession injected from get_db dependency
+
+    Returns:
+        EventService instance with database connection
+    """
+    return EventService(session)
 
 
 @router.get("", response_model=EventListResponse)
@@ -28,6 +44,25 @@ async def list_events(
     limit: int = Query(default=50, le=200),
     offset: int = Query(default=0, ge=0),
 ) -> EventListResponse:
+    """List disaster events with filtering and pagination.
+
+    Args:
+        event_service: Injected EventService instance
+        types: Filter by event types (earthquake, flood, etc.)
+        severities: Filter by severity levels (low, medium, high, critical)
+        start_date: Filter events starting from this date
+        end_date: Filter events up to this date
+        min_lng: Bounding box minimum longitude
+        min_lat: Bounding box minimum latitude
+        max_lng: Bounding box maximum longitude
+        max_lat: Bounding box maximum latitude
+        is_active: Filter by active status
+        limit: Maximum number of events to return (default 50, max 200)
+        offset: Number of events to skip for pagination
+
+    Returns:
+        EventListResponse with paginated event data
+    """
     filters = EventFilter(
         types=types,
         severities=severities,
@@ -47,6 +82,18 @@ async def get_event(
     event_id: UUID,
     event_service: Annotated[EventService, Depends(get_event_service)],
 ) -> EventDetailResponse:
+    """Get detailed information for a specific event.
+
+    Args:
+        event_id: UUID of the event to retrieve
+        event_service: Injected EventService instance
+
+    Returns:
+        EventDetailResponse with full event details
+
+    Raises:
+        HTTPException: 404 if event not found
+    """
     event = await event_service.get_event(event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -58,5 +105,14 @@ async def get_event_layers(
     event_id: UUID,
     event_service: Annotated[EventService, Depends(get_event_service)],
 ) -> dict:
+    """Get geographic layers for a specific event.
+
+    Args:
+        event_id: UUID of the event
+        event_service: Injected EventService instance
+
+    Returns:
+        Dictionary with layers list (currently empty in Phase 2)
+    """
     layers = await event_service.get_event_layers(event_id)
     return {"layers": layers}

@@ -122,7 +122,11 @@ def sample_events() -> list[EventResponse]:
 
 @pytest.fixture
 def mock_event_service() -> MagicMock:
-    """Create a mock EventService."""
+    """Create a mock EventService.
+    
+    Note: EventService now requires a session parameter in __init__.
+    This mock is used for testing without DB connection.
+    """
     service = MagicMock(spec=EventService)
     service.list_events = AsyncMock()
     service.get_event = AsyncMock()
