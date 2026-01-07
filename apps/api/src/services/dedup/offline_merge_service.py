@@ -13,6 +13,7 @@ from sqlalchemy.orm import selectinload
 
 from src.db.database import engine
 from src.models.event import Dataset, Event, EventMetric, EventSource, EventType, GeoLayer
+from src.services.dedup.merge import EventMerger
 from src.services.dedup.quality import QualityScorer
 
 ColumnExpr = ColumnElement[bool]
@@ -42,6 +43,7 @@ class OfflineMergeStats:
     datasets_relinked: int = 0
     metrics_relinked: int = 0
     duplicates_marked: int = 0
+    fields_merged: int = 0
     skipped: int = 0
     errors: list[str] = field(default_factory=list)
 
@@ -58,6 +60,7 @@ class OfflineMergeService:
         self.session = session
         self.config = config or OfflineMergeConfig()
         self.quality_scorer = QualityScorer()
+        self.event_merger = EventMerger()
         self._lock_connection: AsyncConnection | None = None
 
     async def run(
@@ -97,6 +100,7 @@ class OfflineMergeService:
                     stats.datasets_relinked += merge_stats.get("datasets_relinked", 0)
                     stats.metrics_relinked += merge_stats.get("metrics_relinked", 0)
                     stats.duplicates_marked += merge_stats.get("duplicates_marked", 0)
+                    stats.fields_merged += merge_stats.get("fields_merged", 0)
                     stats.scanned += len(group)
 
                     if not self.config.dry_run:
@@ -382,6 +386,7 @@ class OfflineMergeService:
             "datasets_relinked": 0,
             "metrics_relinked": 0,
             "duplicates_marked": 0,
+            "fields_merged": 0,
         }
 
         if len(event_ids) < 2:
@@ -398,17 +403,30 @@ class OfflineMergeService:
         if len(events) < 2:
             return stats
 
-        canonical = self._select_canonical(events)
+        canonical, quality_scores = self._select_canonical(events)
         duplicates = [e for e in events if e.id != canonical.id]
+        canonical_quality = quality_scores[canonical.id]
 
         logger.debug(
             f"Resolving group: canonical={canonical.id}, duplicates={[d.id for d in duplicates]}"
         )
 
         for duplicate in duplicates:
+            duplicate_quality = quality_scores[duplicate.id]
+
+            # Merge good fields from duplicate into canonical BEFORE relinking
+            merged_fields = await self.merge_into_canonical(
+                canonical=canonical,
+                duplicate=duplicate,
+                canonical_quality=canonical_quality,
+                duplicate_quality=duplicate_quality,
+            )
+            stats["fields_merged"] += len(merged_fields)
+
             if self.config.dry_run:
                 logger.info(
                     f"[DRY-RUN] Would merge {duplicate.id} into {canonical.id}"
+                    + (f" (fields: {merged_fields})" if merged_fields else "")
                 )
                 stats["duplicates_marked"] += 1
                 continue
@@ -427,8 +445,9 @@ class OfflineMergeService:
         stats["merges"] = 1 if duplicates else 0
         return stats
 
-    def _select_canonical(self, events: list[Event]) -> Event:
+    def _select_canonical(self, events: list[Event]) -> tuple[Event, dict[UUID, float]]:
         scored_events: list[tuple[Event, float]] = []
+        quality_scores: dict[UUID, float] = {}
 
         for event in events:
             source_name = None
@@ -438,9 +457,57 @@ class OfflineMergeService:
 
             quality = self.quality_scorer.score_existing(event, source_name)
             scored_events.append((event, quality.total))
+            quality_scores[event.id] = quality.total
 
         scored_events.sort(key=lambda x: x[1], reverse=True)
-        return scored_events[0][0]
+        return scored_events[0][0], quality_scores
+
+    def _event_to_dict(self, event: Event) -> dict[str, Any]:
+        return {
+            "title": event.title,
+            "description": event.description,
+            "severity": event.severity,
+            "latitude": event.latitude,
+            "longitude": event.longitude,
+            "geo_precision": event.geo_precision,
+            "geo_method": event.geo_method,
+            "glide_number": event.glide_number,
+            "region": event.region,
+            "country_code": event.country_code,
+            "affected_population": event.affected_population,
+            "source_url": event.source_url,
+        }
+
+    async def merge_into_canonical(
+        self,
+        canonical: Event,
+        duplicate: Event,
+        canonical_quality: float,
+        duplicate_quality: float,
+    ) -> list[str]:
+        incoming_dict = self._event_to_dict(duplicate)
+
+        patch = self.event_merger.build_merge_patch(
+            existing=canonical,
+            incoming=incoming_dict,
+            incoming_quality=duplicate_quality,
+            existing_quality=canonical_quality,
+        )
+
+        if patch is None:
+            return []
+
+        if self.config.dry_run:
+            return patch.updated_field_names
+
+        stmt = (
+            update(Event)
+            .where(Event.id == canonical.id)
+            .values(**patch.fields)
+        )
+        await self.session.execute(stmt)
+
+        return patch.updated_field_names
 
     async def relink_sources(self, from_event_id: UUID, to_event_id: UUID) -> int:
         if self.config.dry_run:

@@ -79,6 +79,11 @@ class TestOfflineMergeStats:
         assert stats.datasets_relinked == 0
         assert stats.metrics_relinked == 0
 
+    def test_fields_merged_defaults_to_zero(self):
+        stats = OfflineMergeStats()
+
+        assert stats.fields_merged == 0
+
 
 class TestOfflineMergeServiceInit:
     def test_init_with_default_config(self):
@@ -200,25 +205,29 @@ class TestOfflineMergeServiceSelectCanonical:
         event_approximate = self._create_mock_event(geo_precision=GeoPrecision.approximate)
         event_exact = self._create_mock_event(geo_precision=GeoPrecision.exact)
 
-        canonical = service._select_canonical([event_approximate, event_exact])
+        canonical, quality_scores = service._select_canonical([event_approximate, event_exact])
 
         assert canonical.id == event_exact.id
+        assert event_exact.id in quality_scores
+        assert event_approximate.id in quality_scores
 
     def test_select_higher_source_reliability(self, service):
         event_gdacs = self._create_mock_event(source_name="GDACS")
         event_eonet = self._create_mock_event(source_name="EONET")
 
-        canonical = service._select_canonical([event_eonet, event_gdacs])
+        canonical, quality_scores = service._select_canonical([event_eonet, event_gdacs])
 
         assert canonical.id == event_gdacs.id
+        assert quality_scores[event_gdacs.id] > quality_scores[event_eonet.id]
 
     def test_select_with_no_sources(self, service):
         event1 = self._create_mock_event(has_sources=False)
         event2 = self._create_mock_event(has_sources=True, source_name="GDACS")
 
-        canonical = service._select_canonical([event1, event2])
+        canonical, quality_scores = service._select_canonical([event1, event2])
 
         assert canonical.id == event2.id
+        assert len(quality_scores) == 2
 
 
 class TestOfflineMergeServiceResolveGroup:
@@ -627,3 +636,217 @@ class TestOfflineMergeServiceRelinkChildren:
             "event_metrics": 4,
         }
         assert dry_run_service.session.execute.call_count == 3
+
+
+class TestOfflineMergeServiceMergeIntoCanonical:
+    @pytest.fixture
+    def service(self):
+        session = AsyncMock()
+        config = OfflineMergeConfig(dry_run=False)
+        return OfflineMergeService(session, config)
+
+    @pytest.fixture
+    def dry_run_service(self):
+        session = AsyncMock()
+        config = OfflineMergeConfig(dry_run=True)
+        return OfflineMergeService(session, config)
+
+    def _create_mock_event(
+        self,
+        event_id=None,
+        geo_precision=GeoPrecision.approximate,
+        description=None,
+        glide_number=None,
+        source_name="GDACS",
+        title="Test Event",
+        severity=SeverityLevel.high,
+        affected_population=None,
+        source_url=None,
+        region=None,
+    ) -> MagicMock:
+        event = MagicMock(spec=Event)
+        event.id = event_id or uuid4()
+        event.type = EventType.earthquake
+        event.title = title
+        event.description = description
+        event.latitude = 35.0
+        event.longitude = 139.0
+        event.geo_precision = geo_precision
+        event.geo_method = None
+        event.region = region
+        event.country_code = "JP"
+        event.severity = severity
+        event.glide_number = glide_number
+        event.affected_population = affected_population
+        event.source_url = source_url
+        event.updated_at = datetime.now(timezone.utc)
+        event.created_at = datetime.now(timezone.utc)
+
+        if source_name:
+            mock_source = MagicMock()
+            mock_source.source = MagicMock()
+            mock_source.source.name = source_name
+            event.sources = [mock_source]
+        else:
+            event.sources = []
+
+        return event
+
+    @pytest.mark.asyncio
+    async def test_merge_fills_null_fields_on_canonical(self, service):
+        canonical = self._create_mock_event(
+            description=None,
+            geo_precision=GeoPrecision.approximate,
+        )
+        duplicate = self._create_mock_event(
+            description="Detailed earthquake description",
+            geo_precision=GeoPrecision.approximate,
+        )
+
+        merged_fields = await service.merge_into_canonical(
+            canonical=canonical,
+            duplicate=duplicate,
+            canonical_quality=50.0,
+            duplicate_quality=50.0,
+        )
+
+        assert "description" in merged_fields
+        service.session.execute.assert_called_once()
+
+        call_args = service.session.execute.call_args[0][0]
+        compiled = str(call_args.compile(compile_kwargs={"literal_binds": True}))
+        assert "UPDATE" in compiled.upper()
+
+    @pytest.mark.asyncio
+    async def test_merge_keeps_better_geo_precision(self, service):
+        canonical = self._create_mock_event(
+            geo_precision=GeoPrecision.approximate,
+        )
+        duplicate = self._create_mock_event(
+            geo_precision=GeoPrecision.exact,
+        )
+
+        merged_fields = await service.merge_into_canonical(
+            canonical=canonical,
+            duplicate=duplicate,
+            canonical_quality=60.0,
+            duplicate_quality=50.0,
+        )
+
+        assert "geo_precision" in merged_fields
+        service.session.execute.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_merge_preserves_glide_number(self, service):
+        canonical = self._create_mock_event(
+            glide_number=None,
+        )
+        duplicate = self._create_mock_event(
+            glide_number="EQ-2024-000123-JPN",
+        )
+
+        merged_fields = await service.merge_into_canonical(
+            canonical=canonical,
+            duplicate=duplicate,
+            canonical_quality=60.0,
+            duplicate_quality=40.0,
+        )
+
+        assert "glide_number" in merged_fields
+        service.session.execute.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_merge_returns_empty_when_no_updates(self, service):
+        canonical = self._create_mock_event(
+            description="Already has description",
+            geo_precision=GeoPrecision.exact,
+            glide_number="EQ-2024-000001-JPN",
+        )
+        duplicate = self._create_mock_event(
+            description=None,
+            geo_precision=GeoPrecision.approximate,
+            glide_number=None,
+        )
+
+        merged_fields = await service.merge_into_canonical(
+            canonical=canonical,
+            duplicate=duplicate,
+            canonical_quality=70.0,
+            duplicate_quality=30.0,
+        )
+
+        assert merged_fields == []
+        service.session.execute.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_merge_dry_run_returns_fields_without_update(self, dry_run_service):
+        canonical = self._create_mock_event(
+            description=None,
+            glide_number=None,
+        )
+        duplicate = self._create_mock_event(
+            description="New description",
+            glide_number="EQ-2024-000999-JPN",
+        )
+
+        merged_fields = await dry_run_service.merge_into_canonical(
+            canonical=canonical,
+            duplicate=duplicate,
+            canonical_quality=50.0,
+            duplicate_quality=50.0,
+        )
+
+        assert "description" in merged_fields
+        assert "glide_number" in merged_fields
+        dry_run_service.session.execute.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_fields_merged_stat_is_tracked(self):
+        session = AsyncMock()
+        config = OfflineMergeConfig(dry_run=True)
+        service = OfflineMergeService(session, config)
+
+        event1 = self._create_mock_event(
+            description="Has description",
+            geo_precision=GeoPrecision.exact,
+            glide_number="EQ-2024-000001-JPN",
+        )
+        event2 = self._create_mock_event(
+            description=None,
+            geo_precision=GeoPrecision.approximate,
+            glide_number=None,
+        )
+
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = [event1, event2]
+        session.execute.return_value = mock_result
+
+        result = await service.resolve_group([event1.id, event2.id])
+
+        assert result["fields_merged"] >= 0
+        assert "fields_merged" in result
+
+    @pytest.mark.asyncio
+    async def test_merge_with_higher_incoming_quality_applies_more_fields(self, service):
+        canonical = self._create_mock_event(
+            description="Old description",
+            region=None,
+            affected_population=None,
+        )
+        duplicate = self._create_mock_event(
+            description="Better description from better source",
+            region="Kanto Region",
+            affected_population=50000,
+        )
+
+        merged_fields = await service.merge_into_canonical(
+            canonical=canonical,
+            duplicate=duplicate,
+            canonical_quality=30.0,
+            duplicate_quality=70.0,
+        )
+
+        assert "description" in merged_fields
+        assert "region" in merged_fields
+        assert "affected_population" in merged_fields
+        service.session.execute.assert_called_once()
