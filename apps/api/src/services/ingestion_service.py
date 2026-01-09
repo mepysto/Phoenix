@@ -13,6 +13,7 @@ from src.services.connectors.base import RawEvent
 from src.services.copernicus_service import CopernicusEvent
 from src.services.dedup import DedupService
 from src.services.gdacs_service import GDACSEvent
+from src.services.broadcaster import event_broadcaster
 from src.services.normalization.severity import get_severity_strategy
 
 logger = logging.getLogger(__name__)
@@ -303,6 +304,17 @@ class IngestionService:
             result.created += 1
             logger.debug(f"Created {raw_event.source_name} event: {raw_event.external_id}")
 
+            # Broadcast event creation
+            await event_broadcaster.broadcast_event_created(
+                event_id=event.id,
+                event_type=event_type.value,
+                title=raw_event.title,
+                severity=severity.value,
+                lat=raw_event.lat,
+                lng=raw_event.lng,
+                source_name=raw_event.source_name or "Unknown",
+            )
+
         else:
             # 5. Update existing (same source) - existing logic
             await self.event_source_repo.upsert(
@@ -334,6 +346,13 @@ class IngestionService:
             if update_result is not None:
                 result.updated += 1
                 logger.debug(f"Updated {raw_event.source_name} event: {raw_event.external_id}")
+
+                # Broadcast event update
+                await event_broadcaster.broadcast_event_updated(
+                    event_id=existing_event_id,
+                    updated_fields=list(update_result.keys()) if isinstance(update_result, dict) else [],
+                    source_name=raw_event.source_name or "Unknown",
+                )
             else:
                 # Event source was updated but event data wasn't improved
                 result.updated += 1
@@ -425,6 +444,13 @@ class IngestionService:
         logger.info(
             f"Merged {raw_event.source_name} event {raw_event.external_id} "
             f"into existing event {match_event_id} via {match_method}"
+        )
+
+        # Broadcast event merge
+        await event_broadcaster.broadcast_event_merged(
+            event_id=match_event_id,
+            merged_from_source=raw_event.source_name or "Unknown",
+            match_method=match_method,
         )
 
     async def ingest_usgs_events(

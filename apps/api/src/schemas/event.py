@@ -122,3 +122,40 @@ class EventFilter(BaseModel):
                 "center_lat, center_lng, and radius_km must all be provided together"
             )
         return self
+
+
+class GeoJSONFeature(BaseModel):
+    type: Literal["Feature"] = "Feature"
+    geometry: dict[str, Any] | None
+    properties: dict[str, Any]
+
+
+class GeoJSONFeatureCollection(BaseModel):
+    type: Literal["FeatureCollection"] = "FeatureCollection"
+    features: list[GeoJSONFeature]
+    metadata: dict[str, Any] | None = None
+
+
+class ClusterBBox(BaseModel):
+    min_lat: float
+    max_lat: float
+    min_lng: float
+    max_lng: float
+
+
+class EventCluster(BaseModel):
+    cluster_id: str
+    center_lat: float
+    center_lng: float
+    count: int
+    bbox: ClusterBBox | None = None
+    event_types: dict[str, int]
+    max_severity: str | None = None
+
+
+class ClusterResponse(BaseModel):
+    zoom: int
+    clusters: list[EventCluster]
+    unclustered: list[EventResponse]
+    total_events: int
+    total_clusters: int

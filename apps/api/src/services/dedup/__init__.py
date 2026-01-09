@@ -15,8 +15,12 @@ from src.services.dedup.types import (
     QualityScore,
 )
 
-# Facade
 from src.services.dedup.dedup_service import DedupService
+from src.services.dedup.offline_merge_service import (
+    OfflineMergeConfig,
+    OfflineMergeService,
+    OfflineMergeStats,
+)
 
 __all__ = [
     # Types
@@ -33,6 +37,9 @@ __all__ = [
     "FuzzyMatcher",
     "EventMerger",
     "MergePatch",
-    # Facade
+    # Facades
     "DedupService",
+    "OfflineMergeConfig",
+    "OfflineMergeService",
+    "OfflineMergeStats",
 ]

@@ -5,7 +5,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.v1 import events, geodata, sync
+from src.api.v1 import admin, events, geodata, sync, websocket
 from src.core.config import settings
 from src.services.scheduler import scheduler_service
 
@@ -47,6 +47,8 @@ app.add_middleware(
 app.include_router(events.router, prefix="/api/v1/events", tags=["Events"])
 app.include_router(geodata.router, prefix="/api/v1/geodata", tags=["GeoData"])
 app.include_router(sync.router, prefix="/api/v1/sync", tags=["Sync"])
+app.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 
 
 @app.get("/health")

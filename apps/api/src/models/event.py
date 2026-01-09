@@ -10,6 +10,7 @@ from uuid import UUID, uuid4
 from geoalchemy2 import Geometry
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     DateTime,
     Enum,
     Float,
@@ -101,6 +102,12 @@ class Event(Base):
     )
     glide_number: Mapped[str | None] = mapped_column(String(50))
 
+    # Merge tracking columns
+    merged_into_id: Mapped[UUID | None] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("events.id", ondelete="SET NULL"), nullable=True
+    )
+    is_canonical: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
     affected_area_geojson: Mapped[str | None] = mapped_column(Text)
     country_code: Mapped[str | None] = mapped_column(String(3))
     region: Mapped[str | None] = mapped_column(String(255))
@@ -121,6 +128,9 @@ class Event(Base):
     sources: Mapped[list["EventSource"]] = relationship(back_populates="event")
     layers: Mapped[list["GeoLayer"]] = relationship(back_populates="event")
     datasets: Mapped[list["Dataset"]] = relationship(back_populates="event")
+    merged_into: Mapped["Event | None"] = relationship(
+        "Event", remote_side="Event.id", foreign_keys=[merged_into_id]
+    )
 
     __table_args__ = (
         Index("idx_events_lat_lon", "latitude", "longitude"),
@@ -132,6 +142,9 @@ class Event(Base):
         Index("idx_events_geo_precision", "geo_precision"),
         Index("idx_events_admin_area", "admin_area_id"),
         Index("idx_events_glide", "glide_number"),
+        Index("idx_events_merged_into", "merged_into_id"),
+        Index("idx_events_is_canonical", "is_canonical"),
+        CheckConstraint("id != merged_into_id", name="chk_events_no_self_merge"),
     )
 
 
