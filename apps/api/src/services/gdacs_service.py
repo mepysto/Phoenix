@@ -1,11 +1,13 @@
 import asyncio
 import logging
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # types only; parsing goes through defusedxml
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
 import httpx
+from defusedxml import ElementTree as SafeET
+from defusedxml.common import DefusedXmlException
 
 from src.core.config import settings
 from src.core.exceptions import DataSyncError, ExternalAPIError
@@ -221,7 +223,13 @@ class GDACSService:
 
     def _parse_rss(self, xml_content: str) -> list[GDACSEvent]:
         events: list[GDACSEvent] = []
-        root = ET.fromstring(xml_content)
+        # External feed: reject entity expansion / external entities (XXE, billion laughs)
+        try:
+            root = SafeET.fromstring(xml_content)
+        except (ET.ParseError, DefusedXmlException) as e:
+            raise DataSyncError(
+                message=f"GDACS RSS feed rejected: {type(e).__name__}", source="GDACS"
+            ) from e
 
         ns = {
             "gdacs": "http://www.gdacs.org",

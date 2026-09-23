@@ -21,6 +21,7 @@ dependencies = [
     "python-multipart>=0.0.18",
     "geojson>=3.1.0",
     "feedparser>=6.0.0",
+    "defusedxml>=0.7.1",
     # PostGIS + Geo dependencies
     "geoalchemy2>=0.15.0",
     "shapely>=2.0.0",

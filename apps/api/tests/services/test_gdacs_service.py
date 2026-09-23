@@ -563,3 +563,16 @@ class TestGDACSToRawEvent:
             )
         )
         assert events[0].to_raw_event().end_date is None
+
+
+class TestGDACSUnsafeXML:
+    def test_entity_expansion_is_rejected(self):
+        bomb = """<?xml version="1.0"?>
+<!DOCTYPE lolz [<!ENTITY lol "lol"><!ENTITY lol2 "&lol;&lol;&lol;&lol;">]>
+<rss><channel><item><title>&lol2;</title></item></channel></rss>"""
+        with pytest.raises(DataSyncError, match="rejected"):
+            GDACSService()._parse_rss(bomb)
+
+    def test_malformed_xml_is_a_sync_error(self):
+        with pytest.raises(DataSyncError):
+            GDACSService()._parse_rss("<rss><channel>")
