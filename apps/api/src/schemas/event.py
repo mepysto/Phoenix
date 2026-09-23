@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
+
+from src.models.event import EventType, SeverityLevel
 
 
 class Location(BaseModel):
@@ -100,14 +102,15 @@ class EventListResponse(BaseModel):
 
 
 class EventFilter(BaseModel):
-    types: list[str] | None = None
-    severities: list[str] | None = None
-    start_date: str | None = None
-    end_date: str | None = None
-    min_lng: float | None = None
-    min_lat: float | None = None
-    max_lng: float | None = None
-    max_lat: float | None = None
+    # Typed so invalid values are rejected with 422 instead of failing in SQL
+    types: list[EventType] | None = None
+    severities: list[SeverityLevel] | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    min_lng: float | None = Field(default=None, ge=-180, le=180)
+    min_lat: float | None = Field(default=None, ge=-90, le=90)
+    max_lng: float | None = Field(default=None, ge=-180, le=180)
+    max_lat: float | None = Field(default=None, ge=-90, le=90)
     center_lat: float | None = None
     center_lng: float | None = None
     radius_km: float | None = None

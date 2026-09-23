@@ -2,11 +2,15 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from src.api.v1 import admin, events, geodata, sync, websocket
 from src.core.config import settings
+from src.core.exceptions import DataSyncError, ExternalAPIError
 from src.core.security import verify_api_key
 from src.services.scheduler import scheduler_service
 
@@ -36,6 +40,21 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan,
 )
+
+@app.exception_handler(ValidationError)
+async def validation_error_handler(request: Request, exc: ValidationError) -> JSONResponse:
+    """Models built inside endpoints (e.g. EventFilter) are client input errors."""
+    errors = exc.errors(include_url=False, include_context=False)
+    return JSONResponse(status_code=422, content={"detail": jsonable_encoder(errors)})
+
+
+@app.exception_handler(ExternalAPIError)
+@app.exception_handler(DataSyncError)
+async def upstream_error_handler(request: Request, exc: ExternalAPIError) -> JSONResponse:
+    """Upstream data source failures are gateway errors, not internal bugs."""
+    logger.warning("Upstream failure on %s: %s", request.url.path, exc.message)
+    return JSONResponse(status_code=502, content={"detail": "Upstream data source unavailable"})
+
 
 app.add_middleware(
     CORSMiddleware,

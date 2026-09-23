@@ -373,3 +373,24 @@ class TestSyncApiKeyValidation:
         for endpoint in endpoints:
             response = client.post(endpoint)
             assert response.status_code == 401, f"Endpoint {endpoint} should require API key"
+
+
+class TestSyncInputValidation:
+    @pytest.mark.parametrize(
+        ("path", "params"),
+        [("/api/v1/sync/usgs", {"feed": "bogus"}), ("/api/v1/sync/eonet", {"status": "maybe"})],
+    )
+    def test_unknown_option_returns_422(self, client: TestClient, api_sync_key: str, path, params):
+        response = client.post(path, params=params, headers={"X-API-Key": api_sync_key})
+        assert response.status_code == 422
+
+    def test_upstream_failure_returns_502(self, client: TestClient, api_sync_key: str):
+        from src.core.exceptions import ExternalAPIError
+
+        with patch("src.api.v1.sync.USGSConnector") as connector_cls:
+            connector_cls.return_value.fetch_events = AsyncMock(
+                side_effect=ExternalAPIError("USGS timed out", service_name="USGS")
+            )
+            response = client.post("/api/v1/sync/usgs", headers={"X-API-Key": api_sync_key})
+        assert response.status_code == 502
+        assert "USGS" not in response.text  # internal detail not leaked

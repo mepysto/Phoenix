@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -59,7 +59,7 @@ async def sync_copernicus(session: AsyncSession = Depends(get_db)) -> dict:
 @router.post("/usgs", dependencies=[Depends(verify_sync_key)])
 async def sync_usgs(
     feed: Annotated[
-        str,
+        Literal["4.5_day", "4.5_week", "all_day", "significant_month"],
         Query(
             description="USGS feed to sync. Options: 4.5_day, 4.5_week, all_day, significant_month"
         ),
@@ -93,7 +93,7 @@ async def sync_usgs(
 @router.post("/eonet", dependencies=[Depends(verify_sync_key)])
 async def sync_eonet(
     status: Annotated[
-        str,
+        Literal["open", "closed", "all"],
         Query(description="Event status filter. Options: open, closed, all"),
     ] = "open",
     days: Annotated[

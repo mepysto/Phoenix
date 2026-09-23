@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -5,6 +6,7 @@ from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import get_db
+from src.models.event import EventType, SeverityLevel
 from src.schemas.event import ClusterResponse, EventFilter, GeoJSONFeatureCollection
 from src.services.clustering_service import ClusteringService
 from src.services.event_service import EventService
@@ -33,8 +35,8 @@ async def get_event_clusters(
     max_lat: float | None = None,
     min_lng: float | None = None,
     max_lng: float | None = None,
-    types: Annotated[list[str] | None, Query()] = None,
-    severities: Annotated[list[str] | None, Query()] = None,
+    types: Annotated[list[EventType] | None, Query()] = None,
+    severities: Annotated[list[SeverityLevel] | None, Query()] = None,
     is_active: bool | None = True,
 ) -> ClusterResponse:
     filters = EventFilter(
@@ -52,17 +54,17 @@ async def get_event_clusters(
 @router.get("/events/geojson", response_model=GeoJSONFeatureCollection)
 async def get_events_geojson(
     event_service: Annotated[EventService, Depends(get_event_service)],
-    types: Annotated[list[str] | None, Query()] = None,
-    severities: Annotated[list[str] | None, Query()] = None,
-    start_date: str | None = None,
-    end_date: str | None = None,
+    types: Annotated[list[EventType] | None, Query()] = None,
+    severities: Annotated[list[SeverityLevel] | None, Query()] = None,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
     min_lng: float | None = None,
     min_lat: float | None = None,
     max_lng: float | None = None,
     max_lat: float | None = None,
     is_active: bool | None = None,
     include_properties: bool = True,
-    limit: int = Query(default=1000, le=5000),
+    limit: int = Query(default=1000, ge=1, le=5000),
 ) -> GeoJSONFeatureCollection:
     filters = EventFilter(
         types=types,
