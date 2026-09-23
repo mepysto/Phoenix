@@ -109,10 +109,17 @@ class EventRepository(BaseRepository):
         if "updated_at" not in kwargs:
             kwargs["updated_at"] = datetime.now(UTC)
 
-        stmt = update(Event).where(Event.id == event_id).values(**kwargs)
-        await self.session.execute(stmt)
-        await self.session.flush()
-        return await self.get_by_id(event_id)
+        # One round trip; populate_existing refreshes an already-loaded Event
+        # in the session so callers never see stale attribute values.
+        stmt = (
+            update(Event)
+            .where(Event.id == event_id)
+            .values(**kwargs)
+            .returning(Event)
+            .execution_options(populate_existing=True)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
     async def update_if_better(
         self,

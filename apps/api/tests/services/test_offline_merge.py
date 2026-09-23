@@ -693,6 +693,26 @@ class TestOfflineMergeServiceMergeIntoCanonical:
         return event
 
     @pytest.mark.asyncio
+    async def test_more_precise_duplicate_moves_canonical_coordinates(self, service):
+        """Regression: coordinates were sent as latitude/longitude and ignored."""
+        canonical = self._create_mock_event(geo_precision=GeoPrecision.country)
+        duplicate = self._create_mock_event(geo_precision=GeoPrecision.exact)
+        duplicate.latitude, duplicate.longitude = 35.6812, 139.7671
+
+        merged_fields = await service.merge_into_canonical(
+            canonical=canonical,
+            duplicate=duplicate,
+            canonical_quality=0.3,
+            duplicate_quality=0.9,
+        )
+
+        assert {"lat", "lng"} <= set(merged_fields)
+        stmt = service.session.execute.call_args.args[0]
+        values = {col.name: getattr(v, "value", v) for col, v in stmt._values.items()}
+        assert values["latitude"] == 35.6812 and values["longitude"] == 139.7671
+        assert "location" in values  # PostGIS point kept in sync
+
+    @pytest.mark.asyncio
     async def test_merge_fills_null_fields_on_canonical(self, service):
         canonical = self._create_mock_event(
             description=None,

@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.db.database import engine
+from src.repositories.event_repository import EventRepository
 from src.models.event import Dataset, Event, EventMetric, EventSource, EventType, GeoLayer
 from src.services.dedup.merge import EventMerger
 from src.services.dedup.quality import QualityScorer
@@ -467,8 +468,9 @@ class OfflineMergeService:
             "title": event.title,
             "description": event.description,
             "severity": event.severity,
-            "latitude": event.latitude,
-            "longitude": event.longitude,
+            # EventMerger reads "lat"/"lng" (same shape as the online ingest path)
+            "lat": event.latitude,
+            "lng": event.longitude,
             "geo_precision": event.geo_precision,
             "geo_method": event.geo_method,
             "glide_number": event.glide_number,
@@ -500,12 +502,10 @@ class OfflineMergeService:
         if self.config.dry_run:
             return patch.updated_field_names
 
-        stmt = (
-            update(Event)
-            .where(Event.id == canonical.id)
-            .values(**patch.fields)
-        )
-        await self.session.execute(stmt)
+        # The repository converts lat/lng into latitude/longitude + PostGIS location
+        # and refreshes `canonical` in place, so later duplicates in this group
+        # are compared against the merged values rather than stale ones.
+        await EventRepository(self.session).update(canonical.id, **patch.fields)
 
         return patch.updated_field_names
 
