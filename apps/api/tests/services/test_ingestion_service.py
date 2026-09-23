@@ -15,9 +15,7 @@ from src.services.ingestion_service import (
     IngestionResult,
     IngestionService,
     GDACS_EVENT_TYPE_MAP,
-    GDACS_SEVERITY_MAP,
     COPERNICUS_EVENT_TYPE_MAP,
-    COPERNICUS_SEVERITY_MAP,
     USGS_EVENT_TYPE_MAP,
     EONET_EVENT_TYPE_MAP,
 )
@@ -64,23 +62,11 @@ class TestTypeMappings:
         for event_type in expected_types:
             assert event_type in GDACS_EVENT_TYPE_MAP
 
-    def test_gdacs_severity_map_completeness(self) -> None:
-        """Test GDACS severity map covers expected levels."""
-        expected_severities = ["low", "medium", "high", "critical"]
-        for severity in expected_severities:
-            assert severity in GDACS_SEVERITY_MAP
-
     def test_copernicus_event_type_map_completeness(self) -> None:
         """Test Copernicus event type map covers expected types."""
         expected_types = ["flood", "hurricane", "wildfire", "earthquake", "volcano", "drought", "landslide"]
         for event_type in expected_types:
             assert event_type in COPERNICUS_EVENT_TYPE_MAP
-
-    def test_copernicus_severity_map_completeness(self) -> None:
-        """Test Copernicus severity map covers expected levels."""
-        expected_severities = ["low", "medium", "high", "critical"]
-        for severity in expected_severities:
-            assert severity in COPERNICUS_SEVERITY_MAP
 
     def test_usgs_event_type_map_has_earthquake(self) -> None:
         """Test USGS event type map has earthquake."""
@@ -95,62 +81,6 @@ class TestTypeMappings:
         ]
         for event_type in expected_types:
             assert event_type in EONET_EVENT_TYPE_MAP
-
-
-class TestIngestionServiceTypeMappings:
-    """Tests for IngestionService type mapping methods."""
-
-    @pytest.fixture
-    def service(self) -> IngestionService:
-        """Create IngestionService with mock session."""
-        mock_session = MagicMock()
-        return IngestionService(mock_session)
-
-    def test_map_gdacs_event_type_known(self, service: IngestionService) -> None:
-        """Test mapping known GDACS event types."""
-        assert service._map_gdacs_event_type("earthquake") == EventType.earthquake
-        assert service._map_gdacs_event_type("flood") == EventType.flood
-        assert service._map_gdacs_event_type("hurricane") == EventType.hurricane
-        assert service._map_gdacs_event_type("wildfire") == EventType.wildfire
-
-    def test_map_gdacs_event_type_unknown(self, service: IngestionService) -> None:
-        """Test mapping unknown GDACS event type returns other."""
-        assert service._map_gdacs_event_type("unknown_type") == EventType.other
-        assert service._map_gdacs_event_type("") == EventType.other
-
-    def test_map_gdacs_event_type_case_insensitive(self, service: IngestionService) -> None:
-        """Test GDACS event type mapping is case insensitive."""
-        assert service._map_gdacs_event_type("EARTHQUAKE") == EventType.earthquake
-        assert service._map_gdacs_event_type("Flood") == EventType.flood
-
-    def test_map_gdacs_severity_known(self, service: IngestionService) -> None:
-        """Test mapping known GDACS severity levels."""
-        assert service._map_gdacs_severity("low") == SeverityLevel.low
-        assert service._map_gdacs_severity("medium") == SeverityLevel.medium
-        assert service._map_gdacs_severity("high") == SeverityLevel.high
-        assert service._map_gdacs_severity("critical") == SeverityLevel.critical
-
-    def test_map_gdacs_severity_unknown(self, service: IngestionService) -> None:
-        """Test mapping unknown GDACS severity returns medium."""
-        assert service._map_gdacs_severity("unknown") == SeverityLevel.medium
-        assert service._map_gdacs_severity("") == SeverityLevel.medium
-
-    def test_map_copernicus_event_type_known(self, service: IngestionService) -> None:
-        """Test mapping known Copernicus event types."""
-        assert service._map_copernicus_event_type("flood") == EventType.flood
-        assert service._map_copernicus_event_type("wildfire") == EventType.wildfire
-        assert service._map_copernicus_event_type("landslide") == EventType.landslide
-
-    def test_map_copernicus_event_type_unknown(self, service: IngestionService) -> None:
-        """Test mapping unknown Copernicus event type returns other."""
-        assert service._map_copernicus_event_type("unknown") == EventType.other
-
-    def test_map_copernicus_severity_known(self, service: IngestionService) -> None:
-        """Test mapping known Copernicus severity levels."""
-        assert service._map_copernicus_severity("low") == SeverityLevel.low
-        assert service._map_copernicus_severity("medium") == SeverityLevel.medium
-        assert service._map_copernicus_severity("high") == SeverityLevel.high
-        assert service._map_copernicus_severity("critical") == SeverityLevel.critical
 
 
 class TestIngestionServiceGDACS:
@@ -211,6 +141,8 @@ class TestIngestionServiceGDACS:
         mock_event = MagicMock()
         mock_event.id = uuid4()
         service.event_repo.create = AsyncMock(return_value=mock_event)
+        # No cross-source match
+        service.dedup_service.find_matching_event = AsyncMock(return_value=None)
         
         result = await service.ingest_gdacs_events([sample_gdacs_event])
         
@@ -223,6 +155,11 @@ class TestIngestionServiceGDACS:
         call_kwargs = service.event_repo.create.call_args.kwargs
         assert call_kwargs["type"] == EventType.earthquake
         assert call_kwargs["title"] == sample_gdacs_event.title
+        assert call_kwargs["affected_population"] == sample_gdacs_event.population
+        assert call_kwargs["is_active"] is True
+        # External key includes the hazard type (GDACS ids repeat across types)
+        upsert_kwargs = service.event_source_repo.upsert.call_args.kwargs
+        assert upsert_kwargs["external_id"] == sample_gdacs_event.source_key
         assert call_kwargs["lat"] == sample_gdacs_event.lat
         assert call_kwargs["lng"] == sample_gdacs_event.lng
         assert call_kwargs["geo_precision"] == GeoPrecision.approximate
@@ -322,6 +259,8 @@ class TestIngestionServiceCopernicus:
         mock_event = MagicMock()
         mock_event.id = uuid4()
         service.event_repo.create = AsyncMock(return_value=mock_event)
+        # No cross-source match
+        service.dedup_service.find_matching_event = AsyncMock(return_value=None)
         
         result = await service.ingest_copernicus_events([sample_copernicus_event])
         
@@ -366,6 +305,8 @@ class TestIngestionServiceCopernicus:
         mock_event = MagicMock()
         mock_event.id = uuid4()
         service.event_repo.create = AsyncMock(return_value=mock_event)
+        # No cross-source match
+        service.dedup_service.find_matching_event = AsyncMock(return_value=None)
         
         # Create two events
         events = [sample_copernicus_event, sample_copernicus_event]

@@ -9,6 +9,7 @@ import httpx
 
 from src.core.config import settings
 from src.core.exceptions import DataSyncError, ExternalAPIError
+from src.services.connectors.base import RawEvent
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,45 @@ class GDACSEvent:
     start_date: datetime
     url: str
     raw_data: dict[str, Any]
+    end_date: datetime | None = None
+    glide_number: str | None = None
+
+    @property
+    def source_key(self) -> str:
+        """Collision-free external ID: GDACS eventids repeat across hazard types."""
+        code = self.raw_data.get("event_type_code") or ""
+        return f"{code}-{self.external_id}" if code else self.external_id
+
+    def to_raw_event(self) -> RawEvent:
+        """Convert to the connector-neutral RawEvent used by the ingestion pipeline."""
+        return RawEvent(
+            source_name="GDACS",
+            external_id=self.source_key,
+            title=self.title,
+            description=self.description or None,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            source_url=self.url or None,
+            lat=self.lat,
+            lng=self.lng,
+            country=self.country or None,
+            event_type_raw=self.event_type,
+            severity_raw=self.raw_data.get("alert_level"),
+            glide_number=self.glide_number,
+            affected_population=self.population,
+            raw_data=self.raw_data,
+        )
+
+
+def _parse_iso(value: str) -> datetime | None:
+    value = (value or "").strip()
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
 class GDACSService:
@@ -254,6 +294,12 @@ class GDACSService:
             except Exception:
                 pass
 
+        end_date = None
+        # GDACS keeps finished events in the feed with iscurrent=false
+        if item.findtext("gdacs:iscurrent", "true", ns).strip().lower() == "false":
+            end_date = _parse_iso(item.findtext("gdacs:todate", "", ns)) or start_date
+        glide = (item.findtext("gdacs:glide", "", ns) or "").strip() or None
+
         raw_data = {
             "event_type_code": event_type_code,
             "alert_level": alert_level,
@@ -276,6 +322,8 @@ class GDACSService:
             start_date=start_date,
             url=link,
             raw_data=raw_data,
+            end_date=end_date,
+            glide_number=glide,
         )
 
     async def fetch_api_events(

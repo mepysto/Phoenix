@@ -9,6 +9,7 @@ import httpx
 
 from src.core.config import settings
 from src.core.exceptions import DataSyncError, ExternalAPIError
+from src.services.connectors.base import RawEvent
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,23 @@ class CopernicusEvent:
     start_date: datetime
     url: str
     raw_data: dict[str, Any]
+
+    def to_raw_event(self) -> RawEvent:
+        """Convert to the connector-neutral RawEvent used by the ingestion pipeline."""
+        return RawEvent(
+            source_name="Copernicus",
+            external_id=self.external_id,
+            title=self.title,
+            description=self.description or None,
+            start_date=self.start_date,
+            source_url=self.url or None,
+            lat=self.lat,
+            lng=self.lng,
+            country=self.country or None,
+            event_type_raw=self.event_type,
+            severity_raw=self.severity,
+            raw_data=self.raw_data,
+        )
 
 
 @dataclass

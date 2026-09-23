@@ -531,3 +531,35 @@ class TestGDACSItemIdentityAndCoords:
         )
         assert len(events) == 1
         assert events[0].lat == 12.5 and events[0].lng == -45.25
+
+
+class TestGDACSToRawEvent:
+    """GDACS items are converted into the shared RawEvent pipeline format."""
+
+    def test_finished_event_gets_end_date_and_typed_key(self):
+        events = GDACSService()._parse_rss(
+            _rss(
+                "<gdacs:eventid>1000</gdacs:eventid>"
+                "<gdacs:iscurrent>false</gdacs:iscurrent>"
+                "<gdacs:todate>2026-09-05T12:00:00Z</gdacs:todate>"
+                "<gdacs:glide>EQ-2026-000123-JPN</gdacs:glide>"
+                "<gdacs:population>1500</gdacs:population>"
+                "<geo:lat>1.0</geo:lat><geo:long>2.0</geo:long>"
+            )
+        )
+        raw = events[0].to_raw_event()
+        assert raw.source_name == "GDACS"
+        assert raw.external_id == "EQ-1000"
+        assert raw.end_date == datetime(2026, 9, 5, 12, tzinfo=timezone.utc)
+        assert raw.glide_number == "EQ-2026-000123-JPN"
+        assert raw.affected_population == 1500
+        assert raw.severity_raw == "Orange"
+
+    def test_current_event_has_no_end_date(self):
+        events = GDACSService()._parse_rss(
+            _rss(
+                "<gdacs:eventid>7</gdacs:eventid><gdacs:iscurrent>true</gdacs:iscurrent>"
+                "<geo:lat>1.0</geo:lat><geo:long>2.0</geo:long>"
+            )
+        )
+        assert events[0].to_raw_event().end_date is None

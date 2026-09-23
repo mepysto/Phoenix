@@ -32,14 +32,6 @@ GDACS_EVENT_TYPE_MAP: dict[str, EventType] = {
     "other": EventType.other,
 }
 
-# GDACS severity mapping
-GDACS_SEVERITY_MAP: dict[str, SeverityLevel] = {
-    "low": SeverityLevel.low,
-    "medium": SeverityLevel.medium,
-    "high": SeverityLevel.high,
-    "critical": SeverityLevel.critical,
-}
-
 # Copernicus event type mapping
 COPERNICUS_EVENT_TYPE_MAP: dict[str, EventType] = {
     "flood": EventType.flood,
@@ -52,14 +44,6 @@ COPERNICUS_EVENT_TYPE_MAP: dict[str, EventType] = {
     "tsunami": EventType.tsunami,
     "industrial": EventType.industrial,
     "other": EventType.other,
-}
-
-# Copernicus severity mapping
-COPERNICUS_SEVERITY_MAP: dict[str, SeverityLevel] = {
-    "low": SeverityLevel.low,
-    "medium": SeverityLevel.medium,
-    "high": SeverityLevel.high,
-    "critical": SeverityLevel.critical,
 }
 
 # USGS event type mapping (earthquakes only)
@@ -303,6 +287,7 @@ class IngestionService:
                 end_date=raw_event.end_date,
                 source_id=raw_event.external_id,  # legacy field
                 source_url=raw_event.source_url,
+                affected_population=raw_event.affected_population,
                 is_active=raw_event.end_date is None,  # Active if no end date
                 geo_precision=geo_precision,
                 geo_method=GeoMethod.source_provided,
@@ -357,6 +342,7 @@ class IngestionService:
                     "geo_method": GeoMethod.source_provided,
                     "end_date": raw_event.end_date,
                     "is_active": raw_event.end_date is None,
+                    "affected_population": raw_event.affected_population,
                 },
             )
 
@@ -535,357 +521,44 @@ class IngestionService:
         events: list[GDACSEvent],
         atomic: bool = True,
     ) -> dict[str, Any]:
-        """Ingest GDACS events into the database.
+        """Ingest GDACS events through the shared RawEvent pipeline.
 
-        Process:
-        1. Get or create DataSource "GDACS"
-        2. For each event:
-           - Look up existing event by (source_id, external_id) in event_sources
-           - If not found: Create Event + EventSource
-           - If found: Upsert EventSource + Update Event if better data
-
-        Args:
-            events: List of GDACSEvent objects from GDACS service
-            atomic: If True, all events in one transaction (rollback on failure).
-                   If False, process individually (skip failures).
-
-        Returns:
-            Dictionary with created, updated, failed counts and errors list
+        Going through ingest_raw_events gives GDACS the same cross-source
+        dedup, closed-event handling (iscurrent=false -> end_date) and
+        WebSocket broadcasts as the other sources.
         """
-        result = IngestionResult(errors=[])
-
-        if not events:
-            return result.to_dict()
-
-        try:
-            # Get or create the GDACS data source
-            data_source = await self.data_source_repo.get_or_create(
-                name="GDACS",
-                type="disaster_alert",
-                defaults={
-                    "api_url": "https://www.gdacs.org/xml/rss.xml",
-                    "update_frequency": "5 minutes",
-                    "sync_interval_minutes": 5,
-                    "is_realtime": False,
-                },
-            )
-
-            for gdacs_event in events:
-                try:
-                    async with self._savepoint(atomic):
-                        await self._process_gdacs_event(gdacs_event, data_source.id, result)
-                except Exception as e:
-                    error_msg = f"Failed to process GDACS event {gdacs_event.external_id}: {e}"
-                    logger.error(error_msg)
-                    result.failed += 1
-                    result.add_error(error_msg)
-
-                    if atomic:
-                        # In atomic mode, re-raise to trigger rollback
-                        raise
-
-            # Update sync status on success
-            await self.data_source_repo.update_sync_status(
-                data_source.id,
-                last_sync=datetime.now(timezone.utc),
-                status="success",
-            )
-
-        except Exception as e:
-            if atomic:
-                # Let the exception propagate for rollback
-                raise
-            error_msg = f"GDACS ingestion error: {e}"
-            logger.error(error_msg)
-            result.add_error(error_msg)
-
-        return result.to_dict()
-
-    async def _process_gdacs_event(
-        self,
-        gdacs_event: GDACSEvent,
-        data_source_id: Any,
-        result: IngestionResult,
-    ) -> None:
-        """Process a single GDACS event.
-
-        Args:
-            gdacs_event: The GDACS event to process
-            data_source_id: UUID of the GDACS data source
-            result: IngestionResult to update with counts
-        """
-        fetched_at = datetime.now(timezone.utc)
-
-        # Check if this event already exists
-        existing_event_id = await self.event_source_repo.find_event_id_by_source_external(
-            source_id=data_source_id,
-            external_id=gdacs_event.external_id,
+        result = await self.ingest_raw_events(
+            events=[event.to_raw_event() for event in events],
+            source_name="GDACS",
+            event_type_map=GDACS_EVENT_TYPE_MAP,
+            data_source_defaults={
+                "type": "disaster_alert",
+                "api_url": "https://www.gdacs.org/xml/rss.xml",
+                "update_frequency": "5 minutes",
+                "sync_interval_minutes": 5,
+                "is_realtime": False,
+            },
+            atomic=atomic,
         )
-
-        if existing_event_id is None:
-            # Create new event
-            event = await self.event_repo.create(
-                type=self._map_gdacs_event_type(gdacs_event.event_type),
-                title=gdacs_event.title,
-                description=gdacs_event.description,
-                lat=gdacs_event.lat,
-                lng=gdacs_event.lng,
-                region=gdacs_event.country,
-                severity=self._map_gdacs_severity(gdacs_event.severity),
-                affected_population=gdacs_event.population,
-                start_date=gdacs_event.start_date,
-                source_id=gdacs_event.external_id,  # legacy field
-                source_url=gdacs_event.url,
-                is_active=True,
-                geo_precision=GeoPrecision.approximate,
-                geo_method=GeoMethod.source_provided,
-            )
-
-            # Create event source link
-            await self.event_source_repo.upsert(
-                source_id=data_source_id,
-                external_id=gdacs_event.external_id,
-                event_id=event.id,
-                raw_data=gdacs_event.raw_data,
-                fetched_at=fetched_at,
-            )
-
-            result.created += 1
-            logger.debug(f"Created GDACS event: {gdacs_event.external_id}")
-
-        else:
-            # Update existing event source with fresh data
-            await self.event_source_repo.upsert(
-                source_id=data_source_id,
-                external_id=gdacs_event.external_id,
-                event_id=existing_event_id,
-                raw_data=gdacs_event.raw_data,
-                fetched_at=fetched_at,
-            )
-
-            # Try to update the event if we have better data
-            update_result = await self.event_repo.update_if_better(
-                existing_event_id,
-                {
-                    "title": gdacs_event.title,
-                    "description": gdacs_event.description,
-                    "lat": gdacs_event.lat,
-                    "lng": gdacs_event.lng,
-                    "region": gdacs_event.country,
-                    "severity": self._map_gdacs_severity(gdacs_event.severity),
-                    "affected_population": gdacs_event.population,
-                    "source_url": gdacs_event.url,
-                    "geo_precision": GeoPrecision.approximate,
-                    "geo_method": GeoMethod.source_provided,
-                },
-            )
-
-            if update_result is not None:
-                result.updated += 1
-                logger.debug(f"Updated GDACS event: {gdacs_event.external_id}")
-            else:
-                # Event source was updated but event data wasn't improved
-                result.updated += 1
-                logger.debug(f"Refreshed GDACS event source: {gdacs_event.external_id}")
+        return result.to_dict()
 
     async def ingest_copernicus_events(
         self,
         events: list[CopernicusEvent],
         atomic: bool = True,
     ) -> dict[str, Any]:
-        """Ingest Copernicus EMS events into the database.
-
-        Process:
-        1. Get or create DataSource "Copernicus"
-        2. For each event:
-           - Look up existing event by (source_id, external_id) in event_sources
-           - If not found: Create Event + EventSource
-           - If found: Upsert EventSource + Update Event if better data
-
-        Args:
-            events: List of CopernicusEvent objects from Copernicus service
-            atomic: If True, all events in one transaction (rollback on failure).
-                   If False, process individually (skip failures).
-
-        Returns:
-            Dictionary with created, updated, failed counts and errors list
-        """
-        result = IngestionResult(errors=[])
-
-        if not events:
-            return result.to_dict()
-
-        try:
-            # Get or create the Copernicus data source
-            data_source = await self.data_source_repo.get_or_create(
-                name="Copernicus",
-                type="satellite",
-                defaults={
-                    "api_url": "https://mapping.emergency.copernicus.eu/activations/api/activations/",
-                    "update_frequency": "30 minutes",
-                    "sync_interval_minutes": 30,
-                    "is_realtime": False,
-                },
-            )
-
-            for copernicus_event in events:
-                try:
-                    async with self._savepoint(atomic):
-                        await self._process_copernicus_event(
-                            copernicus_event, data_source.id, result
-                        )
-                except Exception as e:
-                    error_msg = f"Failed to process Copernicus event {copernicus_event.external_id}: {e}"
-                    logger.error(error_msg)
-                    result.failed += 1
-                    result.add_error(error_msg)
-
-                    if atomic:
-                        # In atomic mode, re-raise to trigger rollback
-                        raise
-
-            # Update sync status on success
-            await self.data_source_repo.update_sync_status(
-                data_source.id,
-                last_sync=datetime.now(timezone.utc),
-                status="success",
-            )
-
-        except Exception as e:
-            if atomic:
-                # Let the exception propagate for rollback
-                raise
-            error_msg = f"Copernicus ingestion error: {e}"
-            logger.error(error_msg)
-            result.add_error(error_msg)
-
-        return result.to_dict()
-
-    async def _process_copernicus_event(
-        self,
-        copernicus_event: CopernicusEvent,
-        data_source_id: Any,
-        result: IngestionResult,
-    ) -> None:
-        """Process a single Copernicus event.
-
-        Args:
-            copernicus_event: The Copernicus event to process
-            data_source_id: UUID of the Copernicus data source
-            result: IngestionResult to update with counts
-        """
-        fetched_at = datetime.now(timezone.utc)
-
-        # Check if this event already exists
-        existing_event_id = await self.event_source_repo.find_event_id_by_source_external(
-            source_id=data_source_id,
-            external_id=copernicus_event.external_id,
+        """Ingest Copernicus EMS activations through the shared RawEvent pipeline."""
+        result = await self.ingest_raw_events(
+            events=[event.to_raw_event() for event in events],
+            source_name="Copernicus",
+            event_type_map=COPERNICUS_EVENT_TYPE_MAP,
+            data_source_defaults={
+                "type": "satellite",
+                "api_url": "https://mapping.emergency.copernicus.eu/activations/api/activations/",
+                "update_frequency": "30 minutes",
+                "sync_interval_minutes": 30,
+                "is_realtime": False,
+            },
+            atomic=atomic,
         )
-
-        if existing_event_id is None:
-            # Create new event
-            event = await self.event_repo.create(
-                type=self._map_copernicus_event_type(copernicus_event.event_type),
-                title=copernicus_event.title,
-                description=copernicus_event.description,
-                lat=copernicus_event.lat,
-                lng=copernicus_event.lng,
-                region=copernicus_event.country,
-                severity=self._map_copernicus_severity(copernicus_event.severity),
-                start_date=copernicus_event.start_date,
-                source_id=copernicus_event.external_id,  # legacy field (EMSR code)
-                source_url=copernicus_event.url,
-                is_active=True,
-                geo_precision=GeoPrecision.approximate,
-                geo_method=GeoMethod.source_provided,
-            )
-
-            # Create event source link
-            await self.event_source_repo.upsert(
-                source_id=data_source_id,
-                external_id=copernicus_event.external_id,
-                event_id=event.id,
-                raw_data=copernicus_event.raw_data,
-                fetched_at=fetched_at,
-            )
-
-            result.created += 1
-            logger.debug(f"Created Copernicus event: {copernicus_event.external_id}")
-
-        else:
-            # Update existing event source with fresh data
-            await self.event_source_repo.upsert(
-                source_id=data_source_id,
-                external_id=copernicus_event.external_id,
-                event_id=existing_event_id,
-                raw_data=copernicus_event.raw_data,
-                fetched_at=fetched_at,
-            )
-
-            # Try to update the event if we have better data
-            update_result = await self.event_repo.update_if_better(
-                existing_event_id,
-                {
-                    "title": copernicus_event.title,
-                    "description": copernicus_event.description,
-                    "lat": copernicus_event.lat,
-                    "lng": copernicus_event.lng,
-                    "region": copernicus_event.country,
-                    "severity": self._map_copernicus_severity(copernicus_event.severity),
-                    "source_url": copernicus_event.url,
-                    "geo_precision": GeoPrecision.approximate,
-                    "geo_method": GeoMethod.source_provided,
-                },
-            )
-
-            if update_result is not None:
-                result.updated += 1
-                logger.debug(f"Updated Copernicus event: {copernicus_event.external_id}")
-            else:
-                # Event source was updated but event data wasn't improved
-                result.updated += 1
-                logger.debug(f"Refreshed Copernicus event source: {copernicus_event.external_id}")
-
-    def _map_gdacs_event_type(self, event_type: str) -> EventType:
-        """Map GDACS event type string to EventType enum.
-
-        Args:
-            event_type: Event type string from GDACS (e.g., "earthquake", "flood")
-
-        Returns:
-            Corresponding EventType enum value
-        """
-        return GDACS_EVENT_TYPE_MAP.get(event_type.lower(), EventType.other)
-
-    def _map_gdacs_severity(self, severity: str) -> SeverityLevel:
-        """Map GDACS severity string to SeverityLevel enum.
-
-        Args:
-            severity: Severity string from GDACS (e.g., "low", "medium", "high")
-
-        Returns:
-            Corresponding SeverityLevel enum value
-        """
-        return GDACS_SEVERITY_MAP.get(severity.lower(), SeverityLevel.medium)
-
-    def _map_copernicus_event_type(self, event_type: str) -> EventType:
-        """Map Copernicus event type string to EventType enum.
-
-        Args:
-            event_type: Event type string from Copernicus (e.g., "flood", "wildfire")
-
-        Returns:
-            Corresponding EventType enum value
-        """
-        return COPERNICUS_EVENT_TYPE_MAP.get(event_type.lower(), EventType.other)
-
-    def _map_copernicus_severity(self, severity: str) -> SeverityLevel:
-        """Map Copernicus severity string to SeverityLevel enum.
-
-        Args:
-            severity: Severity string from Copernicus (from calculate_severity)
-
-        Returns:
-            Corresponding SeverityLevel enum value
-        """
-        return COPERNICUS_SEVERITY_MAP.get(severity.lower(), SeverityLevel.medium)
+        return result.to_dict()
