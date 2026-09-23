@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
+import { createBasemapStyle } from "@/lib/map/basemaps";
 
 interface MiniMapProps {
   lat: number;
@@ -19,30 +20,7 @@ export default function MiniMap({ lat, lng, zoom = 8 }: MiniMapProps) {
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: {
-        version: 8,
-        sources: {
-          osm: {
-            type: "raster",
-            tiles: [
-              "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-              "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-              "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-            ],
-            tileSize: 256,
-            attribution: "&copy; OpenStreetMap contributors, &copy; CARTO",
-          },
-        },
-        layers: [
-          {
-            id: "osm",
-            type: "raster",
-            source: "osm",
-            minzoom: 0,
-            maxzoom: 19,
-          },
-        ],
-      },
+      style: createBasemapStyle("dark"),
       center: [lng, lat],
       zoom: zoom,
       interactive: true,

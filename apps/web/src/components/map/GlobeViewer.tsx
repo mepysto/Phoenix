@@ -22,6 +22,7 @@ import { useMapStore } from "@/store/mapStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
+import { applyBasemap, createBasemapStyle, LABEL_FONT } from "@/lib/map/basemaps";
 
 type DisasterEvent = ApiDisasterEvent;
 
@@ -128,53 +129,7 @@ export default function GlobeViewer({
       const currentBasemap = useMapStore.getState().basemap;
       map.current = new maplibregl.Map({
         container: mapContainer.current,
-        style: {
-          version: 8,
-          sources: {
-            dark: {
-              type: "raster",
-              tiles: [
-                "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-                "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-                "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-              ],
-              tileSize: 256,
-              attribution: "&copy; OpenStreetMap contributors, &copy; CARTO",
-            },
-            satellite: {
-              type: "raster",
-              tiles: [
-                "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-              ],
-              tileSize: 256,
-              maxzoom: 19,
-              attribution: "Esri, Maxar, Earthstar Geographics",
-            },
-          },
-          layers: [
-            {
-              id: "dark-basemap",
-              type: "raster",
-              source: "dark",
-              minzoom: 0,
-              maxzoom: 19,
-              layout: {
-                visibility: currentBasemap === "dark" ? "visible" : "none",
-              },
-            },
-            {
-              id: "satellite-basemap",
-              type: "raster",
-              source: "satellite",
-              minzoom: 0,
-              maxzoom: 19,
-              layout: {
-                visibility: currentBasemap === "satellite" ? "visible" : "none",
-              },
-            },
-          ],
-          glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-        },
+        style: createBasemapStyle(currentBasemap),
         center: [0, 20],
         zoom: 2,
       });
@@ -239,6 +194,7 @@ export default function GlobeViewer({
           filter: ["has", "point_count"],
           layout: {
             "text-field": ["get", "point_count_abbreviated"],
+            "text-font": LABEL_FONT,
             "text-size": 12,
           },
           paint: {
@@ -411,16 +367,7 @@ export default function GlobeViewer({
   useEffect(() => {
     if (!map.current || !mapReady) return;
 
-    map.current.setLayoutProperty(
-      "dark-basemap",
-      "visibility",
-      basemap === "dark" ? "visible" : "none",
-    );
-    map.current.setLayoutProperty(
-      "satellite-basemap",
-      "visibility",
-      basemap === "satellite" ? "visible" : "none",
-    );
+    applyBasemap(map.current, basemap);
   }, [basemap, mapReady]);
 
   useEffect(() => {

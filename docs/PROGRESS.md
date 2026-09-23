@@ -146,7 +146,7 @@
 
 ### 4.2 Base Layers
 
-- [x] Dark 베이스맵 (CARTO)
+- [x] Dark 베이스맵 (Esri World Dark Gray, 키 불필요 — CARTO는 키 요구로 교체됨)
 - [x] 위성 영상 베이스맵 (Esri World Imagery)
 - [x] 2D/3D 모드 전환
 
