@@ -210,12 +210,10 @@ class GDACSService:
         alert_level = item.findtext("gdacs:alertlevel", "Green", ns)
         severity = GDACS_SEVERITY_MAP.get(alert_level, "medium")
 
-        lat_str = item.findtext("geo:lat", "", ns) or item.findtext(
-            "{http://www.georss.org/georss}point", ""
-        )
+        lat_str = item.findtext("geo:lat", "", ns)
         lng_str = item.findtext("geo:long", "", ns)
 
-        if not lat_str:
+        if not lat_str or not lng_str:
             georss_point = item.findtext("{http://www.georss.org/georss}point", "")
             if georss_point:
                 parts = georss_point.strip().split()
@@ -233,7 +231,12 @@ class GDACSService:
         population_str = item.findtext("gdacs:population", "", ns) or ""
         population = int(population_str.replace(" ", "").replace(",", "")) if population_str else None
 
-        event_id = item.findtext("gdacs:eventid", "", ns) or link.split("/")[-1] if link else ""
+        event_id = item.findtext("gdacs:eventid", "", ns) or (
+            link.rstrip("/").split("/")[-1] if link else ""
+        )
+        if not event_id:
+            logger.warning("Skipping GDACS item without eventid or link")
+            return None
 
         pub_date_str = item.findtext("pubDate", "")
         from_date_str = item.findtext("gdacs:fromdate", "", ns)

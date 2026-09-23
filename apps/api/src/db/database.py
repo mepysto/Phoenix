@@ -14,7 +14,7 @@ DATABASE_URL = settings.database_url.replace("postgresql://", "postgresql+asyncp
 
 engine = create_async_engine(
     DATABASE_URL,
-    echo=settings.api_debug,
+    echo=settings.db_echo,
     pool_pre_ping=True,
     pool_size=10,
     max_overflow=20,

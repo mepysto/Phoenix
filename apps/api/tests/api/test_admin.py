@@ -7,6 +7,31 @@ from httpx import AsyncClient, ASGITransport
 
 from src.main import app
 from src.db.database import get_db
+from src.core.config import settings
+
+AUTH_HEADERS = {"X-API-Key": settings.api_sync_key}
+
+
+class TestAdminAuth:
+    """Admin endpoints must require the operator API key."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("method", "path"),
+        [
+            ("get", "/api/v1/admin/status"),
+            ("post", "/api/v1/admin/sync/trigger"),
+            ("post", "/api/v1/admin/merge/trigger?dry_run=false"),
+            ("get", "/scheduler/status"),
+        ],
+    )
+    @pytest.mark.parametrize("headers", [{}, {"X-API-Key": "wrong-key"}])
+    async def test_rejects_missing_or_wrong_key(self, method, path, headers):
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test", headers=headers
+        ) as client:
+            response = await getattr(client, method)(path)
+        assert response.status_code == 401
 
 
 class TestAdminStatus:
@@ -16,8 +41,9 @@ class TestAdminStatus:
     async def test_admin_status(self):
         """Should return system status."""
         async with AsyncClient(
-            transport=ASGITransport(app=app), 
-            base_url="http://test"
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+            headers=AUTH_HEADERS,
         ) as client:
             response = await client.get("/api/v1/admin/status")
         
@@ -50,7 +76,8 @@ class TestDedupStatus:
         try:
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test"
+                base_url="http://test",
+                headers=AUTH_HEADERS,
             ) as client:
                 response = await client.get("/api/v1/admin/dedup/status")
             
@@ -76,7 +103,8 @@ class TestSyncTrigger:
         with patch("src.api.v1.admin.scheduler_service") as mock_scheduler:
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test"
+                base_url="http://test",
+                headers=AUTH_HEADERS,
             ) as client:
                 response = await client.post(
                     "/api/v1/admin/sync/trigger",
@@ -94,7 +122,8 @@ class TestSyncTrigger:
         with patch("src.api.v1.admin.scheduler_service") as mock_scheduler:
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test"
+                base_url="http://test",
+                headers=AUTH_HEADERS,
             ) as client:
                 response = await client.post("/api/v1/admin/sync/trigger")
         
@@ -107,7 +136,8 @@ class TestSyncTrigger:
         """Should reject invalid source name."""
         async with AsyncClient(
             transport=ASGITransport(app=app),
-            base_url="http://test"
+            base_url="http://test",
+            headers=AUTH_HEADERS,
         ) as client:
             response = await client.post(
                 "/api/v1/admin/sync/trigger",

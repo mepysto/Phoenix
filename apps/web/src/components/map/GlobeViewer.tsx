@@ -24,93 +24,8 @@ interface GlobeViewerProps {
   onEventClick?: (event: DisasterEvent) => void;
 }
 
-const MOCK_EVENTS: DisasterEvent[] = [
-  {
-    id: "1",
-    type: "earthquake",
-    title: "M 6.2 Earthquake - Turkey",
-    description: "Moderate earthquake struck southeastern Turkey",
-    location: { lat: 37.5, lng: 37.0, country: "Turkey", countryCode: "TR" },
-    severity: "high",
-    affectedPopulation: 50000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    type: "flood",
-    title: "Severe Flooding - Bangladesh",
-    description: "Monsoon flooding affecting multiple districts",
-    location: {
-      lat: 23.8,
-      lng: 90.4,
-      country: "Bangladesh",
-      countryCode: "BD",
-    },
-    severity: "critical",
-    affectedPopulation: 200000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    type: "wildfire",
-    title: "Wildfire - California, USA",
-    description: "Large wildfire burning in northern California",
-    location: {
-      lat: 39.5,
-      lng: -121.5,
-      country: "United States",
-      countryCode: "US",
-    },
-    severity: "high",
-    affectedPopulation: 10000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    type: "hurricane",
-    title: "Tropical Cyclone - Philippines",
-    description: "Category 4 typhoon approaching eastern coast",
-    location: {
-      lat: 14.5,
-      lng: 126.0,
-      country: "Philippines",
-      countryCode: "PH",
-    },
-    severity: "critical",
-    affectedPopulation: 500000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "5",
-    type: "war",
-    title: "Armed Conflict - Ukraine",
-    description: "Ongoing military operations in eastern regions",
-    location: { lat: 48.5, lng: 37.5, country: "Ukraine", countryCode: "UA" },
-    severity: "critical",
-    affectedPopulation: 1000000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+// Stable reference so effects depending on `events` do not re-run every render
+const NO_EVENTS: DisasterEvent[] = [];
 
 function getMarkerColor(event: DisasterEvent): string {
   return EVENT_TYPE_COLORS[event.type as EventType] || "#808080";
@@ -151,7 +66,7 @@ function eventsToGeoJSON(events: DisasterEvent[]): GeoJSON.FeatureCollection {
 }
 
 export default function GlobeViewer({
-  events = MOCK_EVENTS,
+  events = NO_EVENTS,
   onEventClick,
 }: GlobeViewerProps) {
   const mapContainer = useRef<HTMLDivElement>(null);

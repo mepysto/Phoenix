@@ -30,7 +30,12 @@ vi.mock("@/lib/api/client", () => ({
 }));
 
 // Import the store after mocking
-import { useEventStore } from "@/store/eventStore";
+import { eventsAPI } from "@/lib/api/client";
+import {
+  ALL_EVENT_TYPES,
+  ALL_SEVERITIES,
+  useEventStore,
+} from "@/store/eventStore";
 
 const resetStore = () => {
   useEventStore.setState({
@@ -39,6 +44,8 @@ const resetStore = () => {
     isLoading: false,
     error: null,
     filter: {},
+    visibleTypes: new Set(ALL_EVENT_TYPES),
+    visibleSeverities: new Set(ALL_SEVERITIES),
     pagination: {
       total: 0,
       limit: 50,
@@ -133,88 +140,72 @@ describe("eventStore", () => {
   });
 
   describe("toggleEventType", () => {
-    it("adds event type to filter when toggled on", async () => {
+    it("hides a visible type and queries only the remaining types", async () => {
       await act(async () => {
         useEventStore.getState().toggleEventType("earthquake");
       });
 
-      const { filter } = useEventStore.getState();
-      expect(filter.types).toContain("earthquake");
+      const { visibleTypes } = useEventStore.getState();
+      expect(visibleTypes.has("earthquake")).toBe(false);
+      const filter = vi.mocked(eventsAPI.list).mock.calls.at(-1)![0]!;
+      expect(filter.types).toHaveLength(ALL_EVENT_TYPES.length - 1);
+      expect(filter.types).not.toContain("earthquake");
     });
 
-    it("removes event type from filter when toggled off", async () => {
-      // First add the type
+    it("shows the type again when toggled twice", async () => {
+      await act(async () => {
+        useEventStore.getState().toggleEventType("earthquake");
+      });
       await act(async () => {
         useEventStore.getState().toggleEventType("earthquake");
       });
 
-      // Then remove it
-      await act(async () => {
-        useEventStore.getState().toggleEventType("earthquake");
-      });
-
-      const { filter } = useEventStore.getState();
+      expect(useEventStore.getState().visibleTypes.has("earthquake")).toBe(true);
+      // All types visible → no type filter sent to the API
+      const filter = vi.mocked(eventsAPI.list).mock.calls.at(-1)![0]!;
       expect(filter.types).toBeUndefined();
-    });
-
-    it("can toggle multiple event types", async () => {
-      await act(async () => {
-        useEventStore.getState().toggleEventType("earthquake");
-      });
-
-      await act(async () => {
-        useEventStore.getState().toggleEventType("flood");
-      });
-
-      const { filter } = useEventStore.getState();
-      expect(filter.types).toBeDefined();
-      expect(filter.types!).toContain("earthquake");
-      expect(filter.types!).toContain("flood");
     });
   });
 
   describe("toggleSeverity", () => {
-    it("adds severity to filter when toggled on", async () => {
+    it("hides a visible severity", async () => {
       await act(async () => {
         useEventStore.getState().toggleSeverity("high");
       });
 
-      const { filter } = useEventStore.getState();
-      expect(filter.severities).toContain("high");
+      expect(useEventStore.getState().visibleSeverities.has("high")).toBe(false);
     });
 
-    it("removes severity from filter when toggled off", async () => {
+    it("clears the map without an API call when nothing is visible", async () => {
+      for (const severity of ALL_SEVERITIES) {
+        await act(async () => {
+          useEventStore.getState().toggleSeverity(severity);
+        });
+      }
+      vi.mocked(eventsAPI.list).mockClear();
       await act(async () => {
-        useEventStore.getState().toggleSeverity("high");
+        await useEventStore.getState().fetchEvents();
       });
 
-      await act(async () => {
-        useEventStore.getState().toggleSeverity("high");
-      });
-
-      const { filter } = useEventStore.getState();
-      expect(filter.severities).toBeUndefined();
+      expect(useEventStore.getState().events).toEqual([]);
+      expect(eventsAPI.list).not.toHaveBeenCalled();
     });
   });
 
   describe("clearFilters", () => {
-    it("clears all filters", async () => {
-      // Add some filters first
+    it("restores every type and severity", async () => {
       await act(async () => {
         useEventStore.getState().toggleEventType("earthquake");
-      });
-
-      await act(async () => {
         useEventStore.getState().toggleSeverity("high");
       });
-
-      // Clear filters
       await act(async () => {
         useEventStore.getState().clearFilters();
       });
 
-      const { filter } = useEventStore.getState();
-      expect(filter).toEqual({});
+      const state = useEventStore.getState();
+      expect(state.filter).toEqual({});
+      expect(state.visibleTypes.size).toBe(ALL_EVENT_TYPES.length);
+      expect(state.visibleSeverities.size).toBe(ALL_SEVERITIES.length);
     });
   });
 

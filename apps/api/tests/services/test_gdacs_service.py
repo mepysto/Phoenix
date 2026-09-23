@@ -485,3 +485,49 @@ class TestGDACSServiceConfiguration:
         """Test custom max retries can be set."""
         service = GDACSService(max_retries=5)
         assert service.max_retries == 5
+
+
+def _rss(item_body: str) -> str:
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:gdacs="http://www.gdacs.org"
+    xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#"
+    xmlns:georss="http://www.georss.org/georss">
+  <channel><item>
+    <title>Test event</title>
+    <gdacs:eventtype>EQ</gdacs:eventtype>
+    <gdacs:alertlevel>Orange</gdacs:alertlevel>
+    <gdacs:fromdate>2026-09-01T00:00:00Z</gdacs:fromdate>
+    {item_body}
+  </item></channel>
+</rss>"""
+
+
+class TestGDACSItemIdentityAndCoords:
+    """Regression tests for event_id precedence and georss fallback."""
+
+    def test_event_id_falls_back_to_link(self):
+        events = GDACSService()._parse_rss(
+            _rss(
+                "<link>https://www.gdacs.org/report.aspx?x=/EQ/1234/</link>"
+                "<geo:lat>1.0</geo:lat><geo:long>2.0</geo:long>"
+            )
+        )
+        assert len(events) == 1
+        assert events[0].external_id.endswith("1234")
+
+    def test_item_without_id_or_link_is_skipped(self):
+        events = GDACSService()._parse_rss(_rss("<geo:lat>1.0</geo:lat><geo:long>2.0</geo:long>"))
+        assert events == []
+
+    def test_eventid_preferred_even_without_link(self):
+        events = GDACSService()._parse_rss(
+            _rss("<gdacs:eventid>555</gdacs:eventid><geo:lat>1.0</geo:lat><geo:long>2.0</geo:long>")
+        )
+        assert events[0].external_id == "555"
+
+    def test_georss_point_fallback(self):
+        events = GDACSService()._parse_rss(
+            _rss("<gdacs:eventid>9</gdacs:eventid><georss:point>12.5 -45.25</georss:point>")
+        )
+        assert len(events) == 1
+        assert events[0].lat == 12.5 and events[0].lng == -45.25

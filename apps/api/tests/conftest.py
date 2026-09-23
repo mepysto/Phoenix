@@ -215,4 +215,6 @@ def sample_gdacs_rss_xml() -> str:
 @pytest.fixture
 def api_sync_key() -> str:
     """Return the test API sync key."""
-    return "dev-sync-key"
+    from src.core.config import settings
+
+    return settings.api_sync_key

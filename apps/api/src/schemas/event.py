@@ -112,6 +112,8 @@ class EventFilter(BaseModel):
     center_lng: float | None = None
     radius_km: float | None = None
     is_active: bool | None = None
+    # Merged (non-canonical) duplicates are hidden unless explicitly requested
+    include_merged: bool = False
 
     @model_validator(mode="after")
     def validate_radius_params(self) -> "EventFilter":

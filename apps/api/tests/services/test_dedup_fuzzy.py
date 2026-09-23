@@ -480,3 +480,44 @@ class TestFuzzyMatcherTitleSimilarity:
         )
         # After removing stop words, both become {"earthquake"}
         assert score == 1.0
+
+
+class TestSameSourceExclusion:
+    """Distinct records from one source must never be fuzzy-merged."""
+
+    def _candidate(self, source_names):
+        from types import SimpleNamespace
+
+        from src.models.event import EventType
+
+        return SimpleNamespace(
+            id="cand",
+            type=EventType.earthquake,
+            latitude=35.0,
+            longitude=139.0,
+            start_date=datetime(2026, 9, 1, tzinfo=timezone.utc),
+            title="M 5.1 - near Tokyo",
+            sources=[
+                SimpleNamespace(source=SimpleNamespace(name=n)) for n in source_names
+            ],
+        )
+
+    def _raw(self, source_name):
+        return RawEvent(
+            source_name=source_name,
+            external_id="aftershock-2",
+            title="M 5.1 - near Tokyo",
+            start_date=datetime(2026, 9, 1, 1, tzinfo=timezone.utc),
+            lat=35.01,
+            lng=139.01,
+            event_type_raw="earthquake",
+        )
+
+    def test_same_source_candidate_is_rejected(self):
+        matcher = FuzzyMatcher(MagicMock())
+        assert matcher.score_candidate(self._raw("USGS"), self._candidate(["USGS"])) is None
+
+    def test_cross_source_candidate_still_matches(self):
+        matcher = FuzzyMatcher(MagicMock())
+        match = matcher.score_candidate(self._raw("GDACS"), self._candidate(["USGS"]))
+        assert match is not None and match.event_id == "cand"

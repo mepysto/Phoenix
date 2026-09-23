@@ -49,7 +49,9 @@ services:
       REDIS_URL: redis://redis:6379
       API_HOST: 0.0.0.0
       API_PORT: 28000
-      API_DEBUG: ${API_DEBUG:-true}
+      API_DEBUG: ${API_DEBUG:-false}
+      API_SYNC_KEY: ${API_SYNC_KEY:-dev-sync-key}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
     ports:
       - "28000:8000"
     volumes:

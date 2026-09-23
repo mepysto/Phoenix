@@ -8,10 +8,9 @@ const mockToggleSeverity = vi.fn();
 
 vi.mock("@/store/eventStore", () => ({
   useEventStore: () => ({
-    filter: {
-      types: [],
-      severities: [],
-    },
+    filter: {},
+    visibleTypes: new Set(["earthquake", "flood"]),
+    visibleSeverities: new Set(["high"]),
     toggleEventType: mockToggleEventType,
     toggleSeverity: mockToggleSeverity,
     events: [],

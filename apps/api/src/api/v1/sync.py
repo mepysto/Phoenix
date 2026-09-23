@@ -1,9 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.config import settings
+from src.core.security import verify_api_key
 from src.db.database import get_db
 from src.services.connectors.eonet_connector import EONETConnector
 from src.services.connectors.usgs_connector import USGSConnector
@@ -14,9 +14,8 @@ from src.services.ingestion_service import IngestionService
 router = APIRouter()
 
 
-def verify_sync_key(x_api_key: Annotated[str | None, Header()] = None) -> None:
-    if x_api_key != settings.api_sync_key:
-        raise HTTPException(status_code=401, detail="Invalid API key")
+# Kept as an alias so existing imports/overrides keep working
+verify_sync_key = verify_api_key
 
 
 @router.post("/gdacs", dependencies=[Depends(verify_sync_key)])

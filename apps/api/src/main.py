@@ -2,11 +2,12 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.v1 import admin, events, geodata, sync, websocket
 from src.core.config import settings
+from src.core.security import verify_api_key
 from src.services.scheduler import scheduler_service
 
 logging.basicConfig(
@@ -48,7 +49,12 @@ app.include_router(events.router, prefix="/api/v1/events", tags=["Events"])
 app.include_router(geodata.router, prefix="/api/v1/geodata", tags=["GeoData"])
 app.include_router(sync.router, prefix="/api/v1/sync", tags=["Sync"])
 app.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
-app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
+app.include_router(
+    admin.router,
+    prefix="/api/v1/admin",
+    tags=["Admin"],
+    dependencies=[Depends(verify_api_key)],
+)
 
 
 @app.get("/health")
@@ -56,6 +62,6 @@ async def health_check() -> dict[str, str]:
     return {"status": "healthy"}
 
 
-@app.get("/scheduler/status")
+@app.get("/scheduler/status", dependencies=[Depends(verify_api_key)])
 async def scheduler_status() -> dict:
     return scheduler_service.get_status()

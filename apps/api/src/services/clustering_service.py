@@ -172,6 +172,9 @@ class ClusteringService:
         if filters.is_active is not None:
             conditions.append(Event.is_active == filters.is_active)
 
+        if not filters.include_merged:
+            conditions.append(Event.is_canonical.is_(True))
+
         if filters.start_date:
             conditions.append(Event.start_date >= filters.start_date)
 

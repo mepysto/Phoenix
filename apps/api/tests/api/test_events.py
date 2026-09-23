@@ -328,9 +328,17 @@ class TestHealthEndpoint:
 class TestSchedulerStatus:
     """Tests for the scheduler status endpoint."""
 
-    def test_scheduler_status(self, client_with_mock_service: TestClient) -> None:
+    def test_scheduler_status(
+        self, client_with_mock_service: TestClient, api_sync_key: str
+    ) -> None:
         """Test scheduler status endpoint returns valid response."""
-        response = client_with_mock_service.get("/scheduler/status")
+        response = client_with_mock_service.get(
+            "/scheduler/status", headers={"X-API-Key": api_sync_key}
+        )
         assert response.status_code == 200
         data = response.json()
         assert "running" in data or "status" in data or "last_sync" in data
+
+    def test_scheduler_status_requires_key(self, client_with_mock_service: TestClient) -> None:
+        """Scheduler status exposes internal errors, so it is operator-only."""
+        assert client_with_mock_service.get("/scheduler/status").status_code == 401

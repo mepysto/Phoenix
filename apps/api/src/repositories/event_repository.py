@@ -22,6 +22,17 @@ GEO_PRECISION_RANK: dict[GeoPrecision, int] = {
 }
 
 
+def _pop_coord(data: dict[str, Any], short: str, long: str) -> Any:
+    """Pop a coordinate by short or long key, treating 0.0 as a valid value."""
+    short_val = data.pop(short, None)
+    long_val = data.pop(long, None)
+    return short_val if short_val is not None else long_val
+
+
+# Fields that may legitimately be cleared to None by a source refresh
+NULLABLE_REFRESH_FIELDS = frozenset({"end_date"})
+
+
 class EventRepository(BaseRepository):
     """Repository for Event CRUD operations."""
 
@@ -37,8 +48,8 @@ class EventRepository(BaseRepository):
             The created Event
         """
         # Extract lat/lng for PostGIS conversion
-        lat = kwargs.pop("lat", None) or kwargs.pop("latitude", None)
-        lng = kwargs.pop("lng", None) or kwargs.pop("longitude", None)
+        lat = _pop_coord(kwargs, "lat", "latitude")
+        lng = _pop_coord(kwargs, "lng", "longitude")
 
         # Convert string enum values to proper enum types if needed
         if "type" in kwargs and isinstance(kwargs["type"], str):
@@ -75,8 +86,8 @@ class EventRepository(BaseRepository):
             Updated Event if found, None otherwise
         """
         # Handle lat/lng conversion
-        lat = kwargs.pop("lat", None) or kwargs.pop("latitude", None)
-        lng = kwargs.pop("lng", None) or kwargs.pop("longitude", None)
+        lat = _pop_coord(kwargs, "lat", "latitude")
+        lng = _pop_coord(kwargs, "lng", "longitude")
 
         if validate_lat_lng(lat, lng):
             kwargs["latitude"] = lat
@@ -108,63 +119,65 @@ class EventRepository(BaseRepository):
         event_id: UUID,
         patch: dict[str, Any],
     ) -> Event | None:
-        """Update event only if the patch improves geo_precision.
+        """Refresh an event from its own source.
 
-        Compares geo_precision ranks and only updates if new precision
-        is better than current.
+        Status/descriptive fields (title, severity, end_date, is_active, ...)
+        are always applied so that source-side changes (e.g. an event closing)
+        propagate. Location fields are applied only when the incoming
+        geo_precision is at least as good as the current one.
 
         Args:
             event_id: UUID of the event to update
             patch: Dictionary of fields to update
 
         Returns:
-            Updated Event if update was applied, None otherwise
+            Updated Event if any field changed, None otherwise
         """
-        # Get current event
         event = await self.get_by_id(event_id)
         if event is None:
             return None
 
-        # Check if geo_precision improvement is needed
-        current_precision = event.geo_precision or GeoPrecision.unknown
-        new_precision = patch.get("geo_precision")
+        patch = dict(patch)
+        lat = _pop_coord(patch, "lat", "latitude")
+        lng = _pop_coord(patch, "lng", "longitude")
 
-        if new_precision:
-            if isinstance(new_precision, str):
-                new_precision = GeoPrecision(new_precision)
+        new_precision = patch.pop("geo_precision", None)
+        if isinstance(new_precision, str):
+            new_precision = GeoPrecision(new_precision)
+        geo_method = patch.pop("geo_method", None)
 
-            current_rank = GEO_PRECISION_RANK.get(current_precision, 0)
-            new_rank = GEO_PRECISION_RANK.get(new_precision, 0)
-
-            # Only update if new precision is better
-            if new_rank <= current_rank:
-                return None
-
-            patch["geo_precision"] = new_precision
-
-        # Handle lat/lng conversion if present
-        lat = patch.pop("lat", None) or patch.pop("latitude", None)
-        lng = patch.pop("lng", None) or patch.pop("longitude", None)
-
-        if validate_lat_lng(lat, lng):
+        current_rank = GEO_PRECISION_RANK.get(event.geo_precision or GeoPrecision.unknown, 0)
+        new_rank = GEO_PRECISION_RANK.get(new_precision, 0) if new_precision else current_rank
+        location_ok = new_rank >= current_rank and validate_lat_lng(lat, lng)
+        if location_ok:
             patch["latitude"] = lat
             patch["longitude"] = lng
-            patch["location"] = make_point_expr(lat, lng)
+            if new_precision is not None:
+                patch["geo_precision"] = new_precision
+            if geo_method is not None:
+                patch["geo_method"] = geo_method
 
-        # Convert string enum values
         if "type" in patch and isinstance(patch["type"], str):
             patch["type"] = EventType(patch["type"])
         if "severity" in patch and isinstance(patch["severity"], str):
             patch["severity"] = SeverityLevel(patch["severity"])
 
-        # Update timestamp
-        patch["updated_at"] = datetime.now(UTC)
+        # Keep only real changes; a refresh never erases data with None
+        changes = {
+            key: value
+            for key, value in patch.items()
+            if (value is not None or key in NULLABLE_REFRESH_FIELDS)
+            and getattr(event, key, None) != value
+        }
+        if "latitude" in changes or "longitude" in changes:
+            changes["location"] = make_point_expr(lat, lng)
+        if not changes:
+            return None
 
-        stmt = update(Event).where(Event.id == event_id).values(**patch)
+        changes["updated_at"] = datetime.now(UTC)
+        stmt = update(Event).where(Event.id == event_id).values(**changes)
         await self.session.execute(stmt)
         await self.session.flush()
-
-        # Return updated event
         return await self.get_by_id(event_id)
 
     async def list_events(
@@ -208,6 +221,9 @@ class EventRepository(BaseRepository):
 
         if filters.is_active is not None:
             conditions.append(Event.is_active == filters.is_active)
+
+        if not filters.include_merged:
+            conditions.append(Event.is_canonical.is_(True))
 
         if filters.start_date:
             conditions.append(Event.start_date >= filters.start_date)
@@ -369,6 +385,7 @@ class EventRepository(BaseRepository):
         stmt = (
             select(Event)
             .where(Event.type == event_type)
+            .where(Event.is_canonical.is_(True))
             .where(Event.location.isnot(None))
             .where(point_within_distance(Event.location, lat, lng, radius_meters))
             .where(Event.start_date >= min_date)
@@ -392,7 +409,11 @@ class EventRepository(BaseRepository):
         stmt = (
             select(Event)
             .where(Event.glide_number == glide_number)
+            .where(Event.is_canonical.is_(True))
             .options(selectinload(Event.sources).selectinload(EventSource.source))
+            .order_by(Event.created_at)
+            .limit(1)
         )
         result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        # Legacy data may hold several events per GLIDE; take the oldest canonical one
+        return result.scalars().first()

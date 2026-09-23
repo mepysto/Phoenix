@@ -1,6 +1,8 @@
 """IngestionService for storing GDACS/Copernicus events to database."""
 
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -126,6 +128,20 @@ class IngestionService:
         self.event_source_repo = EventSourceRepository(session)
         self.dedup_service = DedupService(session)
 
+
+    @asynccontextmanager
+    async def _savepoint(self, atomic: bool) -> AsyncIterator[None]:
+        """Isolate one event's writes so a failure does not poison the batch.
+
+        In atomic mode the whole batch shares one transaction (a failure
+        re-raises and rolls everything back), so no savepoint is needed.
+        """
+        if atomic:
+            yield
+            return
+        async with self.session.begin_nested():
+            yield
+
     async def ingest_raw_events(
         self,
         events: list[RawEvent],
@@ -172,13 +188,14 @@ class IngestionService:
 
             for raw_event in events:
                 try:
-                    await self._process_raw_event(
-                        raw_event=raw_event,
-                        data_source_id=data_source.id,
-                        event_type_map=event_type_map,
-                        severity_strategy=severity_strategy,
-                        result=result,
-                    )
+                    async with self._savepoint(atomic):
+                        await self._process_raw_event(
+                            raw_event=raw_event,
+                            data_source_id=data_source.id,
+                            event_type_map=event_type_map,
+                            severity_strategy=severity_strategy,
+                            result=result,
+                        )
                 except Exception as e:
                     error_msg = f"Failed to process {source_name} event {raw_event.external_id}: {e}"
                     logger.error(error_msg)
@@ -555,7 +572,8 @@ class IngestionService:
 
             for gdacs_event in events:
                 try:
-                    await self._process_gdacs_event(gdacs_event, data_source.id, result)
+                    async with self._savepoint(atomic):
+                        await self._process_gdacs_event(gdacs_event, data_source.id, result)
                 except Exception as e:
                     error_msg = f"Failed to process GDACS event {gdacs_event.external_id}: {e}"
                     logger.error(error_msg)
@@ -712,9 +730,10 @@ class IngestionService:
 
             for copernicus_event in events:
                 try:
-                    await self._process_copernicus_event(
-                        copernicus_event, data_source.id, result
-                    )
+                    async with self._savepoint(atomic):
+                        await self._process_copernicus_event(
+                            copernicus_event, data_source.id, result
+                        )
                 except Exception as e:
                     error_msg = f"Failed to process Copernicus event {copernicus_event.external_id}: {e}"
                     logger.error(error_msg)
