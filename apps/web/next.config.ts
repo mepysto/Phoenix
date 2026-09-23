@@ -1,6 +1,11 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for the production Docker image
+  output: "standalone",
+  // Monorepo: trace workspace packages (@phoenix/shared) from the repo root
+  outputFileTracingRoot: path.join(process.cwd(), "../.."),
   transpilePackages: ["@phoenix/shared"],
   experimental: {
     optimizePackageImports: ["lucide-react", "@phoenix/shared", "maplibre-gl"],
