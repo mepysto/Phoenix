@@ -215,26 +215,30 @@ class GeoLayer(Base):
 
     @validates("geojson")
     def validate_geojson_size(self, key: str, value: Any) -> dict:
-        """Validate GeoJSON payload size and format, ensuring it's under 5MB."""
+        """Validate GeoJSON payload: under 5MB, a JSON object with a "type"."""
         max_size = 5 * 1024 * 1024  # 5MB
-        
+
         if isinstance(value, str):
-            payload_bytes = value.encode("utf-8")
-            if len(payload_bytes) > max_size:
+            if len(value.encode("utf-8")) > max_size:
                 raise ValueError("GeoJSON payload exceeds 5MB size limit")
             try:
                 parsed_value = json.loads(value)
             except json.JSONDecodeError as e:
-                raise ValueError(f"Invalid JSON string in GeoJSON: {e}")
+                raise ValueError(f"Invalid JSON string in GeoJSON: {e}") from e
         elif isinstance(value, dict):
-            serialized = json.dumps(value)
-            payload_bytes = serialized.encode("utf-8")
-            if len(payload_bytes) > max_size:
+            try:
+                serialized = json.dumps(value)
+            except (TypeError, ValueError) as e:
+                raise ValueError(f"GeoJSON is not JSON-serializable: {e}") from e
+            if len(serialized.encode("utf-8")) > max_size:
                 raise ValueError("GeoJSON payload exceeds 5MB size limit")
             parsed_value = value
         else:
             raise ValueError("GeoJSON must be a dictionary or a valid JSON string")
-            
+
+        # A JSON string may decode to a list/number/null; GeoJSON is always an object
+        if not isinstance(parsed_value, dict) or not isinstance(parsed_value.get("type"), str):
+            raise ValueError('GeoJSON must be a JSON object with a string "type" member')
         return parsed_value
 
     __table_args__ = (Index("idx_geo_layers_event_id", "event_id"),)

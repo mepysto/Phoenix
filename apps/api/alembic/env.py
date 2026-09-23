@@ -57,6 +57,20 @@ def get_url() -> str:
     return config.get_main_option("sqlalchemy.url", "")
 
 
+# Tables owned by PostgreSQL extensions (PostGIS, TimescaleDB), not by our models
+EXTENSION_TABLES = frozenset({"spatial_ref_sys", "geography_columns", "geometry_columns"})
+
+
+def include_object(obj, name, type_, reflected, compare_to) -> bool:  # noqa: ANN001
+    """Exclude extension-owned objects from autogenerate/check."""
+    if type_ == "table" and name in EXTENSION_TABLES:
+        return False
+    # create_hypertable() adds a "<table>_time_idx" index the models don't declare
+    if type_ == "index" and reflected and compare_to is None and name.endswith("_time_idx"):
+        return False
+    return True
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -74,7 +88,10 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
-        compare_server_default=True,
+        # Models declare Python-side defaults while migrations add server
+        # defaults; comparing them only produces noise in `alembic check`.
+        compare_server_default=False,
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -87,7 +104,10 @@ def do_run_migrations(connection: Connection) -> None:
         connection=connection,
         target_metadata=target_metadata,
         compare_type=True,
-        compare_server_default=True,
+        # Models declare Python-side defaults while migrations add server
+        # defaults; comparing them only produces noise in `alembic check`.
+        compare_server_default=False,
+        include_object=include_object,
     )
 
     with context.begin_transaction():

@@ -82,3 +82,17 @@ def test_geolayer_geojson_size_limit() -> None:
     large_string = json.dumps(large_geojson)
     with pytest.raises(ValueError, match="GeoJSON payload exceeds 5MB size limit"):
         layer.geojson = large_string
+
+
+@pytest.mark.parametrize("payload", ["[1, 2]", "123", "null", '{"features": []}', {"no": "type"}])
+def test_geolayer_rejects_non_geojson_objects(payload) -> None:
+    """Valid JSON that is not a GeoJSON object must be rejected."""
+    layer = GeoLayer(layer_type="test_layer")
+    with pytest.raises(ValueError, match='JSON object with a string "type"'):
+        layer.geojson = payload
+
+
+def test_geolayer_rejects_unserializable_dict() -> None:
+    layer = GeoLayer(layer_type="test_layer")
+    with pytest.raises(ValueError, match="not JSON-serializable"):
+        layer.geojson = {"type": "Feature", "properties": {"t": datetime.now(UTC)}}
