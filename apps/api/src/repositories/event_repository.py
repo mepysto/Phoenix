@@ -1,6 +1,6 @@
 """Repository for Event operations."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
@@ -96,7 +96,7 @@ class EventRepository(BaseRepository):
 
         # Ensure updated_at is set
         if "updated_at" not in kwargs:
-            kwargs["updated_at"] = datetime.utcnow()
+            kwargs["updated_at"] = datetime.now(UTC)
 
         stmt = update(Event).where(Event.id == event_id).values(**kwargs)
         await self.session.execute(stmt)
@@ -158,7 +158,7 @@ class EventRepository(BaseRepository):
             patch["severity"] = SeverityLevel(patch["severity"])
 
         # Update timestamp
-        patch["updated_at"] = datetime.utcnow()
+        patch["updated_at"] = datetime.now(UTC)
 
         stmt = update(Event).where(Event.id == event_id).values(**patch)
         await self.session.execute(stmt)
@@ -330,7 +330,7 @@ class EventRepository(BaseRepository):
         stmt = (
             update(Event)
             .where(Event.id == event_id)
-            .values(is_active=False, updated_at=datetime.utcnow())
+            .values(is_active=False, updated_at=datetime.now(UTC))
         )
         await self.session.execute(stmt)
 

@@ -3,7 +3,7 @@
 import logging
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 from uuid import UUID
 
@@ -632,7 +632,7 @@ class OfflineMergeService:
                 merged_into_id=canonical_id,
                 is_canonical=False,
                 is_active=False,
-                updated_at=datetime.utcnow(),
+                updated_at=datetime.now(UTC),
             )
         )
         await self.session.execute(stmt)
