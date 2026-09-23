@@ -16,6 +16,7 @@ import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
 import { useMapStore } from "@/store/mapStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 
 type DisasterEvent = ApiDisasterEvent;
 
@@ -42,13 +43,15 @@ function getMarkerSize(severity: SeverityLevel): number {
 }
 
 function eventsToGeoJSON(events: DisasterEvent[]): GeoJSON.FeatureCollection {
-  return {
-    type: "FeatureCollection",
-    features: events.map((event) => ({
-      type: "Feature" as const,
+  const features: GeoJSON.Feature[] = [];
+  for (const event of events) {
+    const position = getEventPosition(event);
+    if (!position) continue; // cannot be placed on the map
+    features.push({
+      type: "Feature",
       geometry: {
-        type: "Point" as const,
-        coordinates: [event.location.lng, event.location.lat],
+        type: "Point",
+        coordinates: [position.lng, position.lat],
       },
       properties: {
         id: event.id,
@@ -61,8 +64,9 @@ function eventsToGeoJSON(events: DisasterEvent[]): GeoJSON.FeatureCollection {
         affectedPopulation: event.affectedPopulation || 0,
         country: event.location.country || "",
       },
-    })),
-  };
+    });
+  }
+  return { type: "FeatureCollection", features };
 }
 
 export default function GlobeViewer({
@@ -532,7 +536,7 @@ export default function GlobeViewer({
               <span className="text-gray-500">{t.events.location}</span>
               <span className="text-gray-300">
                 {selectedEvent.location.country ||
-                  `${selectedEvent.location.lat.toFixed(2)}, ${selectedEvent.location.lng.toFixed(2)}`}
+                  formatPosition(getEventPosition(selectedEvent))}
               </span>
             </div>
             <div className="flex justify-between">

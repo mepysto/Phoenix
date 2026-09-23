@@ -18,12 +18,20 @@ import {
   EyeOff,
 } from "lucide-react";
 import type { EventType, SeverityLevel } from "@phoenix/shared/types";
-import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
+import {
+  EVENT_TYPE_COLORS,
+  EVENT_TYPE_LABELS,
+  EVENT_TYPES,
+  SEVERITY_COLORS,
+} from "@phoenix/shared/constants";
 import { useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const EVENT_ICONS: Record<EventType, React.ReactNode> = {
+// Types without a dedicated icon fall back to `other`
+const EVENT_ICONS: Partial<Record<EventType, React.ReactNode>> & {
+  other: React.ReactNode;
+} = {
   earthquake: <Mountain className="h-4 w-4" />,
   flood: <Droplets className="h-4 w-4" />,
   wildfire: <Flame className="h-4 w-4" />,
@@ -72,18 +80,6 @@ function FilterSection({
   );
 }
 
-const EVENT_TYPES: EventType[] = [
-  "earthquake",
-  "flood",
-  "wildfire",
-  "hurricane",
-  "tsunami",
-  "volcano",
-  "war",
-  "pollution",
-  "drought",
-  "other",
-];
 
 const SEVERITY_LEVELS: SeverityLevel[] = ["low", "medium", "high", "critical"];
 
@@ -214,9 +210,12 @@ export function Sidebar() {
                   className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500"
                 />
                 <span style={{ color: EVENT_TYPE_COLORS[type] }}>
-                  {EVENT_ICONS[type]}
+                  {EVENT_ICONS[type] ?? EVENT_ICONS.other}
                 </span>
-                <span className="text-sm text-gray-300">{t.sidebar[type]}</span>
+                <span className="text-sm text-gray-300">
+                  {/* Newer types have no translations yet: fall back to English */}
+                  {(t.sidebar as Record<string, string>)[type] ?? EVENT_TYPE_LABELS[type]}
+                </span>
               </label>
             ))}
           </div>

@@ -8,7 +8,14 @@ export type EventType =
   | 'war'
   | 'pollution'
   | 'drought'
-  | 'other';
+  | 'other'
+  | 'landslide'
+  | 'industrial'
+  | 'epidemic'
+  | 'storm'
+  | 'coldwave'
+  | 'heatwave'
+  | 'complex_emergency';
 
 export type SeverityLevel = 'low' | 'medium' | 'high' | 'critical';
 

@@ -19,6 +19,7 @@ import type {
 } from "@/lib/api/client";
 import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
 import { escapeHtml } from "@/lib/escapeHtml";
+import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 
 if (typeof window !== "undefined") {
   Ion.defaultAccessToken = process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN || "";
@@ -133,7 +134,10 @@ export default function CesiumViewer({
         }}
       >
         <BuildingsLoader showBuildings={showBuildings} />
-        {events.map((event) => (
+        {events.map((event) => {
+          const position = getEventPosition(event);
+          if (!position) return null; // cannot be placed on the globe
+          return (
           <Entity
             key={event.id}
             name={event.title}
@@ -147,15 +151,11 @@ export default function CesiumViewer({
                   ${event.affectedPopulation ? `<span style="font-size: 11px; color: #666;">${event.affectedPopulation.toLocaleString()} affected</span>` : ""}
                 </div>
                 <div style="margin-top: 8px; font-size: 11px; color: #666;">
-                  Location: ${event.location.country ? escapeHtml(event.location.country) : `${event.location.lat.toFixed(2)}, ${event.location.lng.toFixed(2)}`}
+                  Location: ${event.location.country ? escapeHtml(event.location.country) : formatPosition(position)}
                 </div>
               </div>
             `}
-            position={Cartesian3.fromDegrees(
-              event.location.lng,
-              event.location.lat,
-              0,
-            )}
+            position={Cartesian3.fromDegrees(position.lng, position.lat, 0)}
             onClick={() => handleEventClick(event)}
           >
             <PointGraphics
@@ -166,7 +166,8 @@ export default function CesiumViewer({
               disableDepthTestDistance={Number.POSITIVE_INFINITY}
             />
           </Entity>
-        ))}
+          );
+        })}
       </Viewer>
 
       <div className="absolute bottom-4 left-4 rounded-lg bg-gray-900/90 p-3 text-xs text-gray-300 shadow-lg backdrop-blur">
@@ -207,7 +208,7 @@ export default function CesiumViewer({
               <span className="text-gray-500">Location</span>
               <span className="text-gray-300">
                 {selectedEvent.location.country ||
-                  `${selectedEvent.location.lat.toFixed(2)}, ${selectedEvent.location.lng.toFixed(2)}`}
+                  formatPosition(getEventPosition(selectedEvent))}
               </span>
             </div>
             <div className="flex justify-between">

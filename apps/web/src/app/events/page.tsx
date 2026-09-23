@@ -28,9 +28,13 @@ import {
   type SeverityLevel,
 } from "@/store/eventStore";
 import { Header } from "@/components/layout/Header";
+import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const EVENT_ICONS: Record<EventType, React.ReactNode> = {
+// Types without a dedicated icon fall back to `other`
+const EVENT_ICONS: Partial<Record<EventType, React.ReactNode>> & {
+  other: React.ReactNode;
+} = {
   earthquake: <Mountain className="h-5 w-5" />,
   flood: <Droplets className="h-5 w-5" />,
   wildfire: <Flame className="h-5 w-5" />,
@@ -59,7 +63,7 @@ function EventCard({ event }: { event: DisasterEvent }) {
             className="flex h-10 w-10 items-center justify-center rounded-lg"
             style={{ backgroundColor: `${typeColor}20`, color: typeColor }}
           >
-            {EVENT_ICONS[event.type as EventType]}
+            {EVENT_ICONS[event.type as EventType] ?? EVENT_ICONS.other}
           </div>
           <div className="flex-1">
             <h3 className="font-medium text-white">{event.title}</h3>
@@ -75,8 +79,7 @@ function EventCard({ event }: { event: DisasterEvent }) {
         <div className="flex items-center gap-1">
           <MapPin className="h-4 w-4" />
           <span>
-            {event.location.country ||
-              `${event.location.lat.toFixed(2)}, ${event.location.lng.toFixed(2)}`}
+            {event.location.country || formatPosition(getEventPosition(event))}
           </span>
         </div>
         {event.affectedPopulation && (
@@ -178,7 +181,7 @@ export default function EventsPage() {
                         : EVENT_TYPE_COLORS[type],
                     }}
                   >
-                    {EVENT_ICONS[type]}
+                    {EVENT_ICONS[type] ?? EVENT_ICONS.other}
                   </span>
                   {EVENT_TYPE_LABELS[type]}
                 </button>

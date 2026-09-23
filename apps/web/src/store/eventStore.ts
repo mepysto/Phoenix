@@ -1,5 +1,6 @@
 import { create, StateCreator } from "zustand";
 import { devtools, DevtoolsOptions } from "zustand/middleware";
+import { EVENT_TYPES } from "@phoenix/shared/constants";
 import {
   eventsAPI,
   type ApiDisasterEvent,
@@ -8,18 +9,8 @@ import {
   type SeverityLevel,
 } from "@/lib/api/client";
 
-export const ALL_EVENT_TYPES: EventType[] = [
-  "earthquake",
-  "flood",
-  "wildfire",
-  "hurricane",
-  "tsunami",
-  "volcano",
-  "war",
-  "pollution",
-  "drought",
-  "other",
-];
+// Must list every type the API returns, or a partial filter silently hides the rest
+export const ALL_EVENT_TYPES: EventType[] = [...EVENT_TYPES];
 
 export const ALL_SEVERITIES: SeverityLevel[] = [
   "low",
