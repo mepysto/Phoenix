@@ -1,7 +1,7 @@
 """Tests for WebSocket broadcaster service."""
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 from src.services.broadcaster import (

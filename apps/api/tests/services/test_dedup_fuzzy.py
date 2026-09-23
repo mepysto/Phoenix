@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
-from src.models.event import Event, EventType, GeoPrecision, SeverityLevel
+from src.models.event import Event, EventType
 from src.services.connectors.base import RawEvent
 from src.services.dedup.fuzzy import FuzzyConfig, FuzzyMatcher
 
@@ -228,7 +228,7 @@ class TestFuzzyMatcherScoreCandidate:
         candidate.start_date = datetime(2024, 1, 1, 14, 0, tzinfo=timezone.utc)
 
         # Should still work (temporal only)
-        match = matcher.score_candidate(raw, candidate)
+        matcher.score_candidate(raw, candidate)  # must not raise
         # May return None or low score depending on implementation
 
     def test_score_candidate_no_candidate_coords(self, matcher, raw_event):
@@ -240,7 +240,7 @@ class TestFuzzyMatcherScoreCandidate:
         candidate.longitude = None
         candidate.start_date = datetime(2024, 1, 1, 14, 0, tzinfo=timezone.utc)
 
-        match = matcher.score_candidate(raw_event, candidate)
+        matcher.score_candidate(raw_event, candidate)  # must not raise
         # Should only use temporal matching
 
     def test_score_candidate_same_location(self, matcher, raw_event):

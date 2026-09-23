@@ -5,7 +5,6 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING
-from uuid import UUID
 
 from src.models.event import Event, EventType
 from src.services.connectors.base import RawEvent

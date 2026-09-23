@@ -2,7 +2,6 @@
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from fastapi.testclient import TestClient
 from httpx import AsyncClient, ASGITransport
 
 from src.main import app
@@ -100,7 +99,7 @@ class TestSyncTrigger:
     @pytest.mark.asyncio
     async def test_trigger_single_source(self):
         """Should trigger sync for single source."""
-        with patch("src.api.v1.admin.scheduler_service") as mock_scheduler:
+        with patch("src.api.v1.admin.scheduler_service"):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test",
@@ -119,7 +118,7 @@ class TestSyncTrigger:
     @pytest.mark.asyncio
     async def test_trigger_all_sources(self):
         """Should trigger sync for all sources."""
-        with patch("src.api.v1.admin.scheduler_service") as mock_scheduler:
+        with patch("src.api.v1.admin.scheduler_service"):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test",

@@ -1,25 +1,20 @@
 """Tests for OfflineMergeService."""
 
 import pytest
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from uuid import uuid4
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from src.models.event import (
-    Dataset,
     Event,
-    EventMetric,
-    EventSource,
     EventType,
     GeoPrecision,
-    GeoLayer,
     SeverityLevel,
 )
 from src.services.dedup.offline_merge_service import (
     OfflineMergeConfig,
     OfflineMergeService,
     OfflineMergeStats,
-    ADVISORY_LOCK_ID,
 )
 from src.services.dedup import offline_merge_service as oms_module
 

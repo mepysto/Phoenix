@@ -1,7 +1,6 @@
 """Tests for EventMerger."""
 
 import pytest
-from datetime import datetime, timezone
 from uuid import uuid4
 from unittest.mock import MagicMock
 

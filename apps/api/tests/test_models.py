@@ -3,9 +3,8 @@
 import json
 import pytest
 from datetime import datetime, UTC
-from uuid import uuid4
 
-from src.models.event import Event, GeoLayer, Dataset, EventSource
+from src.models.event import Event, GeoLayer
 from src.models.admin_area import AdminArea
 
 

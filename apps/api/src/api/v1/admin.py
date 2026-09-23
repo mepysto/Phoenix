@@ -15,7 +15,6 @@ from src.services.broadcaster import connection_manager
 from src.services.dedup.offline_merge_service import (
     OfflineMergeConfig,
     OfflineMergeService,
-    OfflineMergeStats,
 )
 from src.services.scheduler import scheduler_service
 

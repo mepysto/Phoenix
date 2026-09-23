@@ -21,14 +21,12 @@ Usage:
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
-from functools import lru_cache
 from typing import TYPE_CHECKING
 from uuid import UUID
 
 from geoalchemy2.functions import ST_Contains, ST_SetSRID, ST_MakePoint, ST_X, ST_Y
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.admin_area import AdminArea
