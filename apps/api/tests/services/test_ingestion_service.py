@@ -798,3 +798,19 @@ class TestIngestionServiceGeoPrecision:
         
         call_kwargs = service.event_repo.create.call_args.kwargs
         assert call_kwargs["geo_precision"] == GeoPrecision.unknown
+
+
+class TestFitRegion:
+    def test_long_multi_country_region_is_clipped_to_column_size(self) -> None:
+        from src.services.ingestion_service import REGION_MAX_LENGTH, _fit
+
+        countries = ", ".join(["Bosnia & Herzegovina"] * 20)  # ~430 chars
+        clipped = _fit(countries, REGION_MAX_LENGTH)
+        assert len(clipped) <= REGION_MAX_LENGTH
+        assert clipped.endswith("…")
+
+    def test_short_and_missing_values_pass_through(self) -> None:
+        from src.services.ingestion_service import _fit
+
+        assert _fit("Japan", 255) == "Japan"
+        assert _fit(None, 255) is None

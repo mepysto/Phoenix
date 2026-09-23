@@ -21,6 +21,16 @@ from src.services.normalization.severity import get_severity_strategy
 
 logger = logging.getLogger(__name__)
 
+# events.region is VARCHAR(255); multi-country GDACS events list 20+ countries
+REGION_MAX_LENGTH = 255
+
+
+def _fit(text: str | None, limit: int) -> str | None:
+    """Clip text to a column limit, marking the cut with an ellipsis."""
+    if text is None or len(text) <= limit:
+        return text
+    return text[: limit - 1].rstrip(", ") + "…"
+
 # GDACS event type mapping
 GDACS_EVENT_TYPE_MAP: dict[str, EventType] = {
     "earthquake": EventType.earthquake,
@@ -296,7 +306,7 @@ class IngestionService:
                 description=raw_event.description,
                 lat=raw_event.lat,
                 lng=raw_event.lng,
-                region=raw_event.country,
+                region=_fit(raw_event.country, REGION_MAX_LENGTH),
                 severity=severity,
                 start_date=raw_event.start_date,
                 end_date=raw_event.end_date,
@@ -351,7 +361,7 @@ class IngestionService:
                     "description": raw_event.description,
                     "lat": raw_event.lat,
                     "lng": raw_event.lng,
-                    "region": raw_event.country,
+                    "region": _fit(raw_event.country, REGION_MAX_LENGTH),
                     "severity": severity,
                     "source_url": raw_event.source_url,
                     "geo_precision": geo_precision,
@@ -427,7 +437,7 @@ class IngestionService:
             "description": raw_event.description,
             "lat": raw_event.lat,
             "lng": raw_event.lng,
-            "region": raw_event.country,
+            "region": _fit(raw_event.country, REGION_MAX_LENGTH),
             "severity": severity,
             "geo_precision": geo_precision,
             "geo_method": GeoMethod.source_provided,
