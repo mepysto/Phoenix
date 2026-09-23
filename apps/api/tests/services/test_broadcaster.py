@@ -150,3 +150,26 @@ class TestEventBroadcaster:
         
         assert message["type"] == "event_merged"
         assert message["data"]["match_method"] == "fuzzy"
+
+
+class TestSlowClient:
+    @pytest.mark.asyncio
+    async def test_slow_client_is_dropped_without_blocking_others(self, monkeypatch):
+        import asyncio
+
+        from src.services import broadcaster as mod
+
+        monkeypatch.setattr(mod, "SEND_TIMEOUT_SECONDS", 0.05)
+        manager = mod.ConnectionManager()
+
+        async def hang(_text):
+            await asyncio.sleep(10)
+
+        slow, fast = AsyncMock(), AsyncMock()
+        slow.send_text = hang
+        manager.active_connections = [slow, fast]
+
+        await asyncio.wait_for(manager.broadcast({"type": "ping"}), timeout=1)
+
+        fast.send_text.assert_awaited_once()
+        assert manager.active_connections == [fast]

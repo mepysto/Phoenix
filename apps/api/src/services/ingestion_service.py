@@ -1,9 +1,10 @@
 """IngestionService for storing GDACS/Copernicus events to database."""
 
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from functools import partial
 from datetime import datetime, timezone
 from typing import Any
 
@@ -15,7 +16,7 @@ from src.services.connectors.base import RawEvent
 from src.services.copernicus_service import CopernicusEvent
 from src.services.dedup import DedupService
 from src.services.gdacs_service import GDACSEvent
-from src.services.broadcaster import event_broadcaster
+from src.services.broadcaster import broadcast_after_commit, event_broadcaster
 from src.services.normalization.severity import get_severity_strategy
 
 logger = logging.getLogger(__name__)
@@ -107,6 +108,7 @@ class IngestionService:
             session: SQLAlchemy async session for database operations
         """
         self.session = session
+        self._staged_broadcasts: list[Callable[[], Awaitable[None]]] = []
         self.data_source_repo = DataSourceRepository(session)
         self.event_repo = EventRepository(session)
         self.event_source_repo = EventSourceRepository(session)
@@ -125,6 +127,16 @@ class IngestionService:
             return
         async with self.session.begin_nested():
             yield
+
+    def _stage_broadcast(self, send: Callable[..., Awaitable[None]], **kwargs: Any) -> None:
+        """Stage a broadcast for the event currently being processed."""
+        self._staged_broadcasts.append(partial(send, **kwargs))
+
+    def _publish_staged_broadcasts(self) -> None:
+        """Queue the current event's broadcasts for delivery after commit."""
+        for send in self._staged_broadcasts:
+            broadcast_after_commit(self.session, send)
+        self._staged_broadcasts.clear()
 
     async def ingest_raw_events(
         self,
@@ -180,7 +192,10 @@ class IngestionService:
                             severity_strategy=severity_strategy,
                             result=result,
                         )
+                    # Only events whose writes survived get announced (after commit)
+                    self._publish_staged_broadcasts()
                 except Exception as e:
+                    self._staged_broadcasts.clear()
                     error_msg = f"Failed to process {source_name} event {raw_event.external_id}: {e}"
                     logger.error(error_msg)
                     result.failed += 1
@@ -307,7 +322,8 @@ class IngestionService:
             logger.debug(f"Created {raw_event.source_name} event: {raw_event.external_id}")
 
             # Broadcast event creation
-            await event_broadcaster.broadcast_event_created(
+            self._stage_broadcast(
+                event_broadcaster.broadcast_event_created,
                 event_id=event.id,
                 event_type=event_type.value,
                 title=raw_event.title,
@@ -351,7 +367,8 @@ class IngestionService:
                 logger.debug(f"Updated {raw_event.source_name} event: {raw_event.external_id}")
 
                 # Broadcast event update
-                await event_broadcaster.broadcast_event_updated(
+                self._stage_broadcast(
+                    event_broadcaster.broadcast_event_updated,
                     event_id=existing_event_id,
                     updated_fields=list(update_result.keys()) if isinstance(update_result, dict) else [],
                     source_name=raw_event.source_name or "Unknown",
@@ -450,7 +467,8 @@ class IngestionService:
         )
 
         # Broadcast event merge
-        await event_broadcaster.broadcast_event_merged(
+        self._stage_broadcast(
+            event_broadcaster.broadcast_event_merged,
             event_id=match_event_id,
             merged_from_source=raw_event.source_name or "Unknown",
             match_method=match_method,

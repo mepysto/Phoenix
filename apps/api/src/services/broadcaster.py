@@ -4,12 +4,18 @@ import asyncio
 import json
 import logging
 from datetime import datetime, timezone
+from collections.abc import Awaitable, Callable
 from typing import Any
 from uuid import UUID
 
 from fastapi import WebSocket
+from sqlalchemy import event
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
+
+SEND_TIMEOUT_SECONDS = 5.0
 
 
 class ConnectionManager:
@@ -39,19 +45,23 @@ class ConnectionManager:
             return
 
         message_json = json.dumps(message, default=str)
-        disconnected: list[WebSocket] = []
-
+        # Snapshot under the lock, send outside it: one slow client must not
+        # block connects/disconnects or delay delivery to everyone else.
         async with self._lock:
-            for connection in self.active_connections:
-                try:
-                    await connection.send_text(message_json)
-                except Exception as e:
-                    logger.warning(f"Failed to send to client: {e}")
-                    disconnected.append(connection)
+            connections = list(self.active_connections)
 
-        # Clean up failed connections
-        for conn in disconnected:
-            await self.disconnect(conn)
+        async def send(connection: WebSocket) -> WebSocket | None:
+            try:
+                await asyncio.wait_for(connection.send_text(message_json), SEND_TIMEOUT_SECONDS)
+                return None
+            except Exception as e:  # timeout or closed socket
+                logger.warning(f"Failed to send to client: {e!r}")
+                return connection
+
+        failed = await asyncio.gather(*(send(c) for c in connections))
+        for conn in failed:
+            if conn is not None:
+                await self.disconnect(conn)
 
     @property
     def connection_count(self) -> int:
@@ -128,3 +138,50 @@ class EventBroadcaster:
 # Global instances
 connection_manager = ConnectionManager()
 event_broadcaster = EventBroadcaster(connection_manager)
+
+
+# ---------------------------------------------------------------------------
+# Transaction-aware delivery
+# ---------------------------------------------------------------------------
+
+BroadcastSend = Callable[[], Awaitable[None]]
+_PENDING_KEY = "phoenix_pending_broadcasts"
+# Strong references so fire-and-forget tasks are not garbage-collected mid-send
+_inflight: set[asyncio.Task[None]] = set()
+
+
+def broadcast_after_commit(session: AsyncSession, send: BroadcastSend) -> None:
+    """Deliver `send()` only once the session's transaction commits.
+
+    Clients must never be told about rows that are later rolled back. On
+    rollback the queued broadcasts are discarded.
+    """
+    sync_session = getattr(session, "sync_session", None)
+    if not isinstance(sync_session, Session):
+        # Not a real session (unit tests with mocks): nothing will ever commit
+        return
+    sync_session.info.setdefault(_PENDING_KEY, []).append(send)
+
+
+@event.listens_for(Session, "after_commit")
+def _deliver_pending(session: Session) -> None:
+    # after_commit also fires when a SAVEPOINT is released; only the outermost
+    # commit makes the rows visible to other connections.
+    if session.in_nested_transaction():
+        return
+    pending: list[BroadcastSend] = session.info.pop(_PENDING_KEY, [])
+    if not pending:
+        return
+    loop = asyncio.get_running_loop()
+    for send in pending:
+        task = loop.create_task(send())
+        _inflight.add(task)
+        task.add_done_callback(_inflight.discard)
+
+
+@event.listens_for(Session, "after_soft_rollback")
+def _discard_pending(session: Session, previous_transaction: Any) -> None:
+    # A savepoint rollback (one failed event in a batch) must not drop the
+    # broadcasts of events that already succeeded; only the outermost does.
+    if previous_transaction.parent is None:
+        session.info.pop(_PENDING_KEY, None)
