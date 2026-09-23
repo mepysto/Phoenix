@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -24,10 +25,17 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Starting Phoenix API...")
-    await scheduler_service.sync_gdacs()
-    scheduler_service.start(sync_interval_minutes=5)
+    initial_sync: asyncio.Task[None] | None = None
+    if settings.scheduler_enabled:
+        # Initial sync runs in the background: a slow or unreachable feed must
+        # not block startup (it took up to ~47s with retries).
+        initial_sync = asyncio.create_task(scheduler_service.sync_gdacs())
+        scheduler_service.start(sync_interval_minutes=5)
     yield
-    scheduler_service.stop()
+    if initial_sync is not None and not initial_sync.done():
+        initial_sync.cancel()
+    if settings.scheduler_enabled:
+        scheduler_service.stop()
     logger.info("Phoenix API shutdown complete")
 
 

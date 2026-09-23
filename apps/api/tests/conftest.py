@@ -3,14 +3,19 @@ Common pytest fixtures for Phoenix API tests.
 """
 from collections.abc import Generator
 from datetime import datetime, timezone
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
-import pytest
-from fastapi.testclient import TestClient
+import os
 
-from src.main import app
+# Tests must never hit live feeds: no scheduler, no startup sync.
+# Set before importing the app so Settings picks it up.
+os.environ.setdefault("SCHEDULER_ENABLED", "false")
+
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+
+from src.main import app  # noqa: E402
 from src.schemas.event import (
     DataSourceRef,
     DisplayPoint,

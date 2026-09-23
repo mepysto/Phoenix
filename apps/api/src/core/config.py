@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # SQL statement logging (includes bound parameters) — never enable in production
     db_echo: bool = False
     environment: str = "development"
+    # Run the ingestion scheduler in this process. Disable in tests and in
+    # API-only replicas when a dedicated worker runs the scheduler.
+    scheduler_enabled: bool = True
 
     api_sync_key: str = DEV_SYNC_KEY
 
