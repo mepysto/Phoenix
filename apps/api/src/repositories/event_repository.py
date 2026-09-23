@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.orm import selectinload
 
 from src.models.event import Event, EventSource, EventType, GeoPrecision, SeverityLevel
@@ -20,6 +20,11 @@ GEO_PRECISION_RANK: dict[GeoPrecision, int] = {
     GeoPrecision.approximate: 3,
     GeoPrecision.exact: 4,
 }
+
+
+def _escape_like(text: str) -> str:
+    """Escape LIKE wildcards so user input is matched literally."""
+    return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 def _pop_coord(data: dict[str, Any], short: str, long: str) -> Any:
@@ -231,6 +236,15 @@ class EventRepository(BaseRepository):
 
         if not filters.include_merged:
             conditions.append(Event.is_canonical.is_(True))
+
+        if filters.q:
+            pattern = f"%{_escape_like(filters.q.strip())}%"
+            conditions.append(
+                or_(
+                    Event.title.ilike(pattern, escape="\\"),
+                    Event.region.ilike(pattern, escape="\\"),
+                )
+            )
 
         if filters.start_date:
             conditions.append(Event.start_date >= filters.start_date)

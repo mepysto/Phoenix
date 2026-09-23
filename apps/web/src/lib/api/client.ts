@@ -119,6 +119,8 @@ export type EventType = components["schemas"]["EventType"];
 export type SeverityLevel = components["schemas"]["SeverityLevel"];
 
 export interface EventFilter {
+  /** Free-text search over title and region */
+  q?: string;
   types?: EventType[];
   severities?: SeverityLevel[];
   startDate?: string;
@@ -141,6 +143,7 @@ export const eventsAPI = {
     const { data, error, response } = await client.GET("/api/v1/events", {
       params: {
         query: {
+          q: filter?.q || undefined,
           types: filter?.types,
           severities: filter?.severities,
           start_date: filter?.startDate,

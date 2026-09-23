@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -23,6 +24,8 @@ import {
 } from "@phoenix/shared/constants";
 import {
   useEventStore,
+  ALL_EVENT_TYPES,
+  ALL_SEVERITIES,
   type DisasterEvent,
   type EventType,
   type SeverityLevel,
@@ -117,27 +120,34 @@ function EventCard({ event }: { event: DisasterEvent }) {
   );
 }
 
-export default function EventsPage() {
+function EventsPageContent() {
   const { t } = useTranslation();
   const {
     events,
     isLoading,
     error,
-    fetchEvents,
-    filter,
+    visibleTypes,
+    visibleSeverities,
     toggleEventType,
     toggleSeverity,
     clearFilters,
+    setFilter,
   } = useEventStore();
 
+  // Header search navigates to /events?q=...; setFilter refetches
+  const query = useSearchParams().get("q")?.trim() || undefined;
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    setFilter({ q: query });
+  }, [query, setFilter]);
 
   const eventTypes = Object.keys(EVENT_TYPE_LABELS) as EventType[];
   const severityLevels: SeverityLevel[] = ["critical", "high", "medium", "low"];
-  const selectedTypes = new Set(filter.types || []);
-  const selectedSeverities = new Set(filter.severities || []);
+  // Pills show what is visible, matching the sidebar checkboxes (same store)
+  const selectedTypes = visibleTypes;
+  const selectedSeverities = visibleSeverities;
+  const isFiltered =
+    visibleTypes.size < ALL_EVENT_TYPES.length ||
+    visibleSeverities.size < ALL_SEVERITIES.length;
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-950">
@@ -152,6 +162,14 @@ export default function EventsPage() {
               </h1>
               <p className="mt-1 text-sm text-gray-400">
                 {events.length} {t.events.eventsFound}
+                {query && (
+                  <>
+                    {" · "}&ldquo;{query}&rdquo;{" "}
+                    <Link href="/events" className="text-primary-400 hover:underline">
+                      ✕
+                    </Link>
+                  </>
+                )}
               </p>
             </div>
             <Link
@@ -168,6 +186,7 @@ export default function EventsPage() {
                 <button
                   key={type}
                   onClick={() => toggleEventType(type)}
+                  aria-pressed={selectedTypes.has(type)}
                   className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     selectedTypes.has(type)
                       ? "bg-primary-600 text-white"
@@ -193,6 +212,7 @@ export default function EventsPage() {
                 <button
                   key={severity}
                   onClick={() => toggleSeverity(severity)}
+                  aria-pressed={selectedSeverities.has(severity)}
                   className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     selectedSeverities.has(severity)
                       ? "text-white"
@@ -208,7 +228,7 @@ export default function EventsPage() {
                 </button>
               ))}
             </div>
-            {(filter.types?.length || filter.severities?.length) && (
+            {isFiltered && (
               <button
                 onClick={clearFilters}
                 className="rounded-full bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-300 hover:bg-gray-700 transition-colors"
@@ -251,5 +271,14 @@ export default function EventsPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+// useSearchParams() needs a Suspense boundary for static rendering
+export default function EventsPage() {
+  return (
+    <Suspense>
+      <EventsPageContent />
+    </Suspense>
   );
 }

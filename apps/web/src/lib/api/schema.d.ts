@@ -772,6 +772,7 @@ export interface operations {
     list_events_api_v1_events_get: {
         parameters: {
             query?: {
+                q?: string | null;
                 types?: components["schemas"]["EventType"][] | null;
                 severities?: components["schemas"]["SeverityLevel"][] | null;
                 start_date?: string | null;

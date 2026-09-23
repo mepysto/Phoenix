@@ -34,6 +34,7 @@ def get_event_service(session: AsyncSession = Depends(get_db)) -> EventService:
 @router.get("", response_model=EventListResponse)
 async def list_events(
     event_service: Annotated[EventService, Depends(get_event_service)],
+    q: Annotated[str | None, Query(min_length=1, max_length=100)] = None,
     types: Annotated[list[EventType] | None, Query()] = None,
     severities: Annotated[list[SeverityLevel] | None, Query()] = None,
     start_date: datetime | None = None,
@@ -72,6 +73,7 @@ async def list_events(
         EventListResponse with paginated event data
     """
     filters = EventFilter(
+        q=q,
         types=types,
         severities=severities,
         start_date=start_date,

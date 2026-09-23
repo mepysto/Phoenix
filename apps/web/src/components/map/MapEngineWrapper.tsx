@@ -31,11 +31,14 @@ const CesiumViewer = dynamic(() => import("./CesiumViewer"), {
 interface MapEngineWrapperProps {
   events?: ApiDisasterEvent[];
   onEventClick?: (event: ApiDisasterEvent) => void;
+  /** Event to fly to and open (deep link); MapLibre engine only for now */
+  focusEvent?: ApiDisasterEvent | null;
 }
 
 export default function MapEngineWrapper({
   events,
   onEventClick,
+  focusEvent,
 }: MapEngineWrapperProps) {
   const { engine, viewerConfig } = useMapStore();
 
@@ -50,5 +53,11 @@ export default function MapEngineWrapper({
     );
   }
 
-  return <GlobeViewer events={events} onEventClick={onEventClick} />;
+  return (
+    <GlobeViewer
+      events={events}
+      onEventClick={onEventClick}
+      focusEvent={focusEvent}
+    />
+  );
 }

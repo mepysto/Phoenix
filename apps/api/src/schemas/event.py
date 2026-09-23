@@ -102,6 +102,8 @@ class EventListResponse(BaseModel):
 
 
 class EventFilter(BaseModel):
+    # Free-text search over title and region
+    q: str | None = Field(default=None, min_length=1, max_length=100)
     # Typed so invalid values are rejected with 422 instead of failing in SQL
     types: list[EventType] | None = None
     severities: list[SeverityLevel] | None = None
