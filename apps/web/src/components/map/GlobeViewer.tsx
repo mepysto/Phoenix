@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import type {
   Map as MapLibreMap,
   NavigationControl,
@@ -12,7 +12,12 @@ import type {
   EventType,
   SeverityLevel,
 } from "@/lib/api/client";
-import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
+import {
+  EVENT_TYPE_COLORS,
+  EVENT_TYPE_LABELS,
+  EVENT_TYPES,
+  SEVERITY_COLORS,
+} from "@phoenix/shared/constants";
 import { useMapStore } from "@/store/mapStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -23,6 +28,8 @@ type DisasterEvent = ApiDisasterEvent;
 interface GlobeViewerProps {
   events?: DisasterEvent[];
   onEventClick?: (event: DisasterEvent) => void;
+  /** Fly to this event and open its card (e.g. from a /?event=<id> link) */
+  focusEvent?: DisasterEvent | null;
 }
 
 // Stable reference so effects depending on `events` do not re-run every render
@@ -72,6 +79,7 @@ function eventsToGeoJSON(events: DisasterEvent[]): GeoJSON.FeatureCollection {
 export default function GlobeViewer({
   events = NO_EVENTS,
   onEventClick,
+  focusEvent,
 }: GlobeViewerProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
@@ -94,14 +102,28 @@ export default function GlobeViewer({
     eventsRef.current = events;
   }, [events]);
 
+  // The map is created once per mount. Values the init code needs are read
+  // through refs so changing them never tears down and rebuilds the map
+  // (which reset the camera and left basemap/layer state unapplied).
+  const onEventClickRef = useRef(onEventClick);
+  useEffect(() => {
+    onEventClickRef.current = onEventClick;
+  }, [onEventClick]);
+  const is3DRef = useRef(is3D);
+  useEffect(() => {
+    is3DRef.current = is3D;
+  }, [is3D]);
+
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
+    let cancelled = false;
 
     const initMap = async () => {
       const maplibregl = await import("maplibre-gl");
       maplibreRef.current = maplibregl;
 
-      if (!mapContainer.current) return;
+      // Unmounted (or StrictMode's first pass cleaned up) while loading
+      if (cancelled || !mapContainer.current || map.current) return;
 
       const currentBasemap = useMapStore.getState().basemap;
       map.current = new maplibregl.Map({
@@ -166,7 +188,7 @@ export default function GlobeViewer({
               setProjection: (proj: { type: string }) => void;
             }
           ).setProjection({
-            type: is3D ? "globe" : "mercator",
+            type: is3DRef.current ? "globe" : "mercator",
           });
         }
 
@@ -304,7 +326,7 @@ export default function GlobeViewer({
 
           if (clickedEvent) {
             setSelectedEvent(clickedEvent);
-            onEventClick?.(clickedEvent);
+            onEventClickRef.current?.(clickedEvent);
           }
         });
 
@@ -348,17 +370,34 @@ export default function GlobeViewer({
       );
     };
 
-    if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(() => initMap());
-    } else {
-      setTimeout(initMap, 1);
-    }
+    const cancelScheduled =
+      "requestIdleCallback" in window
+        ? (() => {
+            const id = window.requestIdleCallback(() => void initMap());
+            return () => window.cancelIdleCallback(id);
+          })()
+        : (() => {
+            const id = setTimeout(() => void initMap(), 1);
+            return () => clearTimeout(id);
+          })();
 
     return () => {
+      cancelled = true;
+      cancelScheduled();
       map.current?.remove();
       map.current = null;
+      setMapReady(false);
     };
-  }, [is3D, onEventClick]);
+  }, []);
+
+  useEffect(() => {
+    if (!map.current || !mapReady || !focusEvent) return;
+    const position = getEventPosition(focusEvent);
+    setSelectedEvent(focusEvent);
+    if (position) {
+      map.current.flyTo({ center: [position.lng, position.lat], zoom: 5 });
+    }
+  }, [focusEvent, mapReady]);
 
   useEffect(() => {
     if (!map.current || !mapReady) return;
@@ -455,6 +494,12 @@ export default function GlobeViewer({
     }
   }, [layers, mapReady]);
 
+  // Only list types actually on the map, in the canonical order
+  const legendTypes = useMemo(() => {
+    const present = new Set(events.map((e) => e.type as EventType));
+    return EVENT_TYPES.filter((type) => present.has(type));
+  }, [events]);
+
   const toggleProjection = useCallback(() => {
     if (!map.current) return;
     const newIs3D = !is3D;
@@ -502,13 +547,28 @@ export default function GlobeViewer({
         <div className="mb-2 font-medium text-white">
           {t.map.activeEvents}: {events.length}
         </div>
-        <div className="flex flex-wrap gap-2">
-          {(["critical", "high", "medium", "low"] as SeverityLevel[]).map(
+        {/* Markers: colour = event type, size = severity (see eventsToGeoJSON) */}
+        <div className="mb-2 flex max-w-xs flex-wrap gap-x-3 gap-y-1">
+          {legendTypes.map((type) => (
+            <div key={type} className="flex items-center gap-1">
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: EVENT_TYPE_COLORS[type] }}
+              />
+              <span>{EVENT_TYPE_LABELS[type]}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-3">
+          {(["low", "medium", "high", "critical"] as SeverityLevel[]).map(
             (severity) => (
               <div key={severity} className="flex items-center gap-1">
                 <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: SEVERITY_COLORS[severity] }}
+                  className="rounded-full bg-gray-400"
+                  style={{
+                    width: getMarkerSize(severity),
+                    height: getMarkerSize(severity),
+                  }}
                 />
                 <span className="capitalize">{severity}</span>
               </div>

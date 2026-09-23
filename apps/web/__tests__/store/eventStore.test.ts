@@ -230,4 +230,40 @@ describe("eventStore", () => {
       expect(events[0]?.type).toBe("earthquake");
     });
   });
+
+  describe("fetchEvents pagination and races", () => {
+    const page = (ids: string[], hasMore: boolean, total: number) => ({
+      data: ids.map((id) => ({ id, type: "flood", severity: "low" })),
+      pagination: { total, limit: 200, offset: 0, hasMore },
+    });
+
+    it("loads every page instead of stopping at the first", async () => {
+      vi.mocked(eventsAPI.list)
+        .mockResolvedValueOnce(page(["a", "b"], true, 3) as never)
+        .mockResolvedValueOnce(page(["c"], false, 3) as never);
+
+      await act(async () => {
+        await useEventStore.getState().fetchEvents();
+      });
+
+      expect(useEventStore.getState().events.map((e) => e.id)).toEqual(["a", "b", "c"]);
+      expect(vi.mocked(eventsAPI.list).mock.calls.map((c) => c[2])).toEqual([0, 200]);
+    });
+
+    it("ignores a slow response that was superseded by a newer request", async () => {
+      let resolveSlow: (v: unknown) => void = () => {};
+      vi.mocked(eventsAPI.list)
+        .mockImplementationOnce(() => new Promise((r) => (resolveSlow = r)) as never)
+        .mockResolvedValueOnce(page(["new"], false, 1) as never);
+
+      await act(async () => {
+        const slow = useEventStore.getState().fetchEvents();
+        await useEventStore.getState().fetchEvents();
+        resolveSlow(page(["stale"], false, 1));
+        await slow;
+      });
+
+      expect(useEventStore.getState().events.map((e) => e.id)).toEqual(["new"]);
+    });
+  });
 });

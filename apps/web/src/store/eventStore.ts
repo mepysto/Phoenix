@@ -42,10 +42,15 @@ interface EventActions {
   toggleEventType: (type: EventType) => void;
   toggleSeverity: (severity: SeverityLevel) => void;
   clearFilters: () => void;
-  loadMore: () => Promise<void>;
 }
 
 type EventStore = EventState & EventActions;
+
+/** API maximum page size */
+const PAGE_SIZE = 200;
+/** Safety cap on events held in memory for the map */
+export const MAX_EVENTS = 2000;
+let latestRequestId = 0;
 
 const initialState: EventState = {
   events: [],
@@ -67,10 +72,14 @@ const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
   ...initialState,
 
   fetchEvents: async () => {
-    const { visibleTypes, visibleSeverities, filter, pagination } = get();
+    const { visibleTypes, visibleSeverities, filter } = get();
+    // Every call supersedes earlier ones: rapid filter toggles must not let a
+    // slow, stale response overwrite the result of the latest filter.
+    const requestId = ++latestRequestId;
+    const isStale = () => requestId !== latestRequestId;
 
     if (visibleTypes.size === 0 || visibleSeverities.size === 0) {
-      set({ events: [], isLoading: false });
+      set({ events: [], isLoading: false, error: null });
       return;
     }
 
@@ -85,16 +94,28 @@ const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
     }
 
     try {
-      const response = await eventsAPI.list(apiFilter, pagination.limit, 0);
+      // The map shows every matching event, not just the first page
+      const events: ApiDisasterEvent[] = [];
+      let total = 0;
+      for (let offset = 0; offset < MAX_EVENTS; offset += PAGE_SIZE) {
+        const response = await eventsAPI.list(apiFilter, PAGE_SIZE, offset);
+        if (isStale()) return;
+        events.push(...response.data);
+        total = response.pagination.total;
+        if (!response.pagination.hasMore) break;
+      }
       set({
-        events: response.data,
+        events,
         pagination: {
-          ...response.pagination,
+          total,
+          limit: PAGE_SIZE,
           offset: 0,
+          hasMore: total > events.length,
         },
         isLoading: false,
       });
     } catch (error) {
+      if (isStale()) return;
       set({
         error:
           error instanceof Error ? error.message : "Failed to fetch events",
@@ -147,45 +168,6 @@ const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
       visibleSeverities: new Set(ALL_SEVERITIES),
     });
     get().fetchEvents();
-  },
-
-  loadMore: async () => {
-    const { visibleTypes, visibleSeverities, filter, pagination, events } =
-      get();
-    if (!pagination.hasMore) return;
-
-    set({ isLoading: true });
-
-    const apiFilter: EventFilter = { ...filter };
-    if (visibleTypes.size < ALL_EVENT_TYPES.length) {
-      apiFilter.types = Array.from(visibleTypes);
-    }
-    if (visibleSeverities.size < ALL_SEVERITIES.length) {
-      apiFilter.severities = Array.from(visibleSeverities);
-    }
-
-    try {
-      const newOffset = pagination.offset + pagination.limit;
-      const response = await eventsAPI.list(
-        apiFilter,
-        pagination.limit,
-        newOffset,
-      );
-      set({
-        events: [...events, ...response.data],
-        pagination: {
-          ...response.pagination,
-          offset: newOffset,
-        },
-        isLoading: false,
-      });
-    } catch (error) {
-      set({
-        error:
-          error instanceof Error ? error.message : "Failed to load more events",
-        isLoading: false,
-      });
-    }
   },
 });
 
