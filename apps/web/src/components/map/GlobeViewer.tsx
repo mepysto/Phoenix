@@ -1,32 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type {
   Map as MapLibreMap,
   NavigationControl,
   ScaleControl,
   GeoJSONSource,
 } from "maplibre-gl";
-import type {
-  ApiDisasterEvent,
-  EventType,
-  SeverityLevel,
-} from "@/lib/api/client";
-import {
-  EVENT_TYPE_COLORS,
-  EVENT_TYPE_LABELS,
-  EVENT_TYPES,
-} from "@phoenix/shared/constants";
+import type { ApiDisasterEvent } from "@/lib/api/client";
 import { useMapStore } from "@/store/mapStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getEventPosition } from "@/lib/eventPosition";
-import { applyBasemap, loadBasemapStyle, LABEL_FONT } from "@/lib/map/basemaps";
+import { applyBasemap, loadBasemapStyle } from "@/lib/map/basemaps";
 import type { MapView } from "@/lib/map/urlState";
 import { currentViewport } from "@/lib/map/viewport";
 import { setMapInstance } from "@/lib/map/mapInstance";
-import { VIEW_MODES, isViewMode, viewModeFilter } from "@/lib/map/viewModes";
+import { addEventLayers, eventsToGeoJSON, readView } from "@/lib/map/eventLayers";
+import { viewModeFilter } from "@/lib/map/viewModes";
 import { EventInfoPanel } from "./EventInfoPanel";
+import { MapControls } from "./MapControls";
+import { MapLegend } from "./MapLegend";
 import { ViewModeFilters } from "./ViewModeFilters";
 import { useMapOverlays } from "./useMapOverlays";
 
@@ -46,58 +40,6 @@ interface GlobeViewerProps {
 
 // Stable reference so effects depending on `events` do not re-run every render
 const NO_EVENTS: DisasterEvent[] = [];
-
-function getMarkerColor(event: DisasterEvent): string {
-  return EVENT_TYPE_COLORS[event.type as EventType] || "#808080";
-}
-
-function getMarkerSize(severity: SeverityLevel): number {
-  const sizes: Record<SeverityLevel, number> = {
-    low: 6,
-    medium: 8,
-    high: 10,
-    critical: 12,
-  };
-  return sizes[severity] || 8;
-}
-
-function readView(map: MapLibreMap): MapView {
-  const center = map.getCenter();
-  return {
-    lng: center.lng,
-    lat: center.lat,
-    zoom: map.getZoom(),
-    bearing: map.getBearing(),
-    pitch: map.getPitch(),
-  };
-}
-
-function eventsToGeoJSON(events: DisasterEvent[]): GeoJSON.FeatureCollection {
-  const features: GeoJSON.Feature[] = [];
-  for (const event of events) {
-    const position = getEventPosition(event);
-    if (!position) continue; // cannot be placed on the map
-    features.push({
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [position.lng, position.lat],
-      },
-      properties: {
-        id: event.id,
-        title: event.title,
-        description: event.description || "",
-        type: event.type,
-        severity: event.severity,
-        color: getMarkerColor(event),
-        size: getMarkerSize(event.severity as SeverityLevel),
-        affectedPopulation: event.affectedPopulation || 0,
-        country: event.location.country || "",
-      },
-    });
-  }
-  return { type: "FeatureCollection", features };
-}
 
 export default function GlobeViewer({
   events = NO_EVENTS,
@@ -121,11 +63,8 @@ export default function GlobeViewer({
   const [mapReady, setMapReady] = useState(false);
   // Per-field selectors: the store also carries the viewport, which changes on every move
   const basemap = useMapStore((s) => s.basemap);
-  const toggleBasemap = useMapStore((s) => s.toggleBasemap);
   const layers = useMapStore((s) => s.layers);
   const viewMode = useMapStore((s) => s.viewMode);
-  const setEngine = useMapStore((s) => s.setEngine);
-  const setViewMode = useMapStore((s) => s.setViewMode);
 
   const eventsRef = useRef<DisasterEvent[]>(events);
   useEffect(() => {
@@ -204,162 +143,12 @@ export default function GlobeViewer({
           return;
         }
 
-        map.current.addSource("events", {
-          type: "geojson",
-          data: eventsToGeoJSON(eventsRef.current),
-          cluster: true,
-          clusterMaxZoom: 14,
-          clusterRadius: 50,
-        });
-
-        map.current.addLayer({
-          id: "clusters",
-          type: "circle",
-          source: "events",
-          filter: ["has", "point_count"],
-          paint: {
-            "circle-color": [
-              "step",
-              ["get", "point_count"],
-              "#51bbd6",
-              10,
-              "#f1f075",
-              50,
-              "#f28cb1",
-            ],
-            "circle-radius": [
-              "step",
-              ["get", "point_count"],
-              20,
-              10,
-              30,
-              50,
-              40,
-            ],
-          },
-        });
-
-        map.current.addLayer({
-          id: "cluster-count",
-          type: "symbol",
-          source: "events",
-          filter: ["has", "point_count"],
-          layout: {
-            "text-field": ["get", "point_count_abbreviated"],
-            "text-font": LABEL_FONT,
-            "text-size": 12,
-          },
-          paint: {
-            "text-color": "#ffffff",
-          },
-        });
-
-        map.current.addLayer({
-          id: "events-layer",
-          type: "circle",
-          source: "events",
-          filter: ["!", ["has", "point_count"]],
-          paint: {
-            "circle-radius": ["get", "size"],
-            "circle-color": ["get", "color"],
-            "circle-stroke-color": "#ffffff",
-            "circle-stroke-width": 2,
-            "circle-opacity": 0.9,
-          },
-        });
-
-        map.current.addLayer({
-          id: "events-pulse",
-          type: "circle",
-          source: "events",
-          filter: [
-            "all",
-            ["!", ["has", "point_count"]],
-            ["==", ["get", "severity"], "critical"],
-          ],
-          paint: {
-            "circle-radius": [
-              "interpolate",
-              ["linear"],
-              ["get", "size"],
-              6,
-              12,
-              12,
-              20,
-            ],
-            "circle-color": ["get", "color"],
-            "circle-opacity": 0.3,
-            "circle-stroke-width": 0,
-          },
-        });
-
-        map.current.on("click", "clusters", async (e) => {
-          const mapInstance = map.current;
-          if (!mapInstance) return;
-
-          const features = mapInstance.queryRenderedFeatures(e.point, {
-            layers: ["clusters"],
-          });
-          const feature = features[0];
-          if (!feature) return;
-
-          const clusterId = feature.properties?.cluster_id as
-            | number
-            | undefined;
-          if (clusterId === undefined) return;
-
-          const source = mapInstance.getSource("events") as
-            | GeoJSONSource
-            | undefined;
-          if (!source) return;
-
-          const zoom = await source.getClusterExpansionZoom(clusterId);
-          const coordinates = (feature.geometry as GeoJSON.Point)
-            .coordinates as [number, number];
-
-          mapInstance.easeTo({
-            center: coordinates,
-            zoom: zoom,
-          });
-        });
-
-        map.current.on("click", "events-layer", (e) => {
-          const feature = e.features?.[0];
-          if (!feature) return;
-
-          const eventId = feature.properties?.id;
-          const clickedEvent = eventsRef.current.find(
-            (ev) => ev.id === eventId,
-          );
-
-          if (clickedEvent) {
+        addEventLayers(map.current, {
+          getEvents: () => eventsRef.current,
+          onSelect: (clickedEvent) => {
             setSelectedEvent(clickedEvent);
             onEventClickRef.current?.(clickedEvent);
-          }
-        });
-
-        map.current.on("mouseenter", "clusters", () => {
-          if (map.current) {
-            map.current.getCanvas().style.cursor = "pointer";
-          }
-        });
-
-        map.current.on("mouseleave", "clusters", () => {
-          if (map.current) {
-            map.current.getCanvas().style.cursor = "";
-          }
-        });
-
-        map.current.on("mouseenter", "events-layer", () => {
-          if (map.current) {
-            map.current.getCanvas().style.cursor = "pointer";
-          }
-        });
-
-        map.current.on("mouseleave", "events-layer", () => {
-          if (map.current) {
-            map.current.getCanvas().style.cursor = "";
-          }
+          },
         });
 
         if (process.env.NODE_ENV !== "production") {
@@ -518,25 +307,8 @@ export default function GlobeViewer({
     }
   }, [layers, mapReady]);
 
-  // Only list types actually on the map, in the canonical order
   useMapOverlays(map, mapReady);
 
-  const legendTypes = useMemo(() => {
-    const present = new Set(events.map((e) => e.type as EventType));
-    return EVENT_TYPES.filter((type) => present.has(type));
-  }, [events]);
-
-  // The URL already carries camera/basemap/filters (useMapUrlState)
-  const [linkCopied, setLinkCopied] = useState(false);
-  const copyViewLink = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setLinkCopied(true);
-      setTimeout(() => setLinkCopied(false), 2000);
-    } catch {
-      // Clipboard blocked (insecure context/permissions): the address bar has it
-    }
-  }, []);
 
   const toggleProjection = useCallback(() => {
     if (!map.current) return;
@@ -578,82 +350,9 @@ export default function GlobeViewer({
         />
       )}
 
-      <div className="absolute left-4 top-4 flex flex-col gap-2">
-        <button
-          onClick={toggleProjection}
-          className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 transition-colors"
-        >
-          {is3D ? t.map.view2d : t.map.globe3d}
-        </button>
-        <button
-          onClick={toggleBasemap}
-          className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 transition-colors"
-        >
-          {basemap === "dark" ? t.map.satellite : t.map.dark}
-        </button>
-        <button
-          onClick={copyViewLink}
-          className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 transition-colors"
-        >
-          <span aria-live="polite">{linkCopied ? t.map.linkCopied : t.map.share}</span>
-        </button>
-        <button
-          onClick={() => setEngine("cesium")}
-          className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 transition-colors"
-        >
-          {t.map.engine3d}
-        </button>
-        <label className="sr-only" htmlFor="view-mode">
-          {t.map.viewMode}
-        </label>
-        <select
-          id="view-mode"
-          value={viewMode}
-          onChange={(e) => isViewMode(e.target.value) && setViewMode(e.target.value)}
-          className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          title={t.map.viewMode}
-        >
-          {VIEW_MODES.map((mode) => (
-            <option key={mode} value={mode}>
-              {t.map.viewModes[mode]}
-            </option>
-          ))}
-        </select>
-      </div>
+      <MapControls is3D={is3D} onToggleProjection={toggleProjection} />
 
-      <div className="absolute bottom-4 left-4 rounded-lg bg-gray-900/90 p-3 text-xs text-gray-300 shadow-lg backdrop-blur">
-        <div className="mb-2 font-medium text-white">
-          {t.map.activeEvents}: {events.length}
-        </div>
-        {/* Markers: colour = event type, size = severity (see eventsToGeoJSON) */}
-        <div className="mb-2 flex max-w-xs flex-wrap gap-x-3 gap-y-1">
-          {legendTypes.map((type) => (
-            <div key={type} className="flex items-center gap-1">
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: EVENT_TYPE_COLORS[type] }}
-              />
-              <span>{EVENT_TYPE_LABELS[type]}</span>
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-3">
-          {(["low", "medium", "high", "critical"] as SeverityLevel[]).map(
-            (severity) => (
-              <div key={severity} className="flex items-center gap-1">
-                <span
-                  className="rounded-full bg-gray-400"
-                  style={{
-                    width: getMarkerSize(severity),
-                    height: getMarkerSize(severity),
-                  }}
-                />
-                <span className="capitalize">{severity}</span>
-              </div>
-            ),
-          )}
-        </div>
-      </div>
+      <MapLegend events={events} />
 
       {selectedEvent && (
         <EventInfoPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
