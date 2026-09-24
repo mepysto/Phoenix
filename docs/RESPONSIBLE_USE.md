@@ -46,6 +46,12 @@ to support recovery. They are not for targeting.
   people.
 - **Camera feeds** show only the location and public stream of cameras that
   their operators publish. Phoenix does not identify the people they show.
+  Snapshots pass through the API proxy (so viewers' addresses are not sent to
+  camera operators) and are held in memory for about a minute. They are
+  never recorded or archived, and no face or licence-plate recognition is
+  run on them.
+- **Aircraft** from aircraft whose operators joined the FAA privacy
+  programmes (PIA, LADD) are never shown.
 
 ## 4. Licences and attribution
 
