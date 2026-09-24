@@ -230,3 +230,41 @@ GEV는 CesiumJS, Google Photorealistic 3D Tiles, 19개 공개 데이터 레이�
   - 위성 통과 예측을 CelesTrak과 외부 도구(예: Heavens-Above)의 결과와 대조.
 - 브라우저 확인은 `run` 스킬 또는 chrome-devtools로 지도 렌더와 콘솔 오류를 점검.
 
+
+---
+
+## 진행 현황 (2026-09-24)
+
+M0–M7 로드맵을 PR #1–#31로 구현했다. 모든 PR은 CI(API·Web·타입 계약)를 통과했고 브라우저에서 실제 데이터로 확인한 뒤 병합했다.
+
+### 완료
+
+| 항목 | 내용 | PR |
+|---|---|---|
+| M0 | P0·P1 결함 수정, CI, 공간 쿼리 성능, 스케줄러 락 | #1, #2 |
+| M1 | WebSocket 실시간 갱신, 소스 상태 패널(G-1), 딥링크(G-4) | #3, #4 |
+| M2 | 레이어 레지스트리(G-1), 레이더·적외 구름·야간광, 사이클론·ShakeMap, 발전소·댐·병원(G-2), FIRMS 화재, DATA_SOURCES / RESPONSIBLE_USE / doctor(G-7·G-8) | #5–#9 |
+| M3 | 타임라인 스크러버(E-1), 화면 요약 HUD와 주변 이벤트(G-5), Disaster Brief(G-3) | #10–#12 |
+| M4 | 지도 조작 AI 에이전트(도구 호출, 토큰 하드캡), 채팅 패널 | #13, #14 |
+| M5 | 지구관측 위성과 통과 예측(G-13), 항공기 ADS-B(G-11, PIA/LADD 제외), 선박 AIS(G-12, 키 필요) | #15–#17 |
+| M6 | 공개 CCTV와 SSRF 방어 프록시(G-10), 텔레메트리 카드(G-15), 센서 보기 모드(G-14), 현지 라디오(G-18), 위험 인지 경로(G-19), 해저 케이블·우주 발사(G-20) | #18–#25 |
+| M7 | 분쟁 지역 정책(§7), 운영 콘솔·단축키·추적 모드(G-9·G-16), Cesium 3D 부활(G-6), 3D 실고도 트랙(G-16), 카메라 커버리지(G-10), 음성·모니터링 도구 에이전트 | #26–#31 |
+
+### 남은 작업과 선행 조건
+
+| 항목 | 상태 | 필요한 것 |
+|---|---|---|
+| AI 에이전트 실모델 검증 | 스크립트 모델과 SDK 와이어 테스트로만 검증 | `ANTHROPIC_API_KEY` |
+| 선박 실데이터 | 프로토콜만 검증(잘못된 키로 핸드셰이크) | `AISSTREAM_API_KEY`(무료) |
+| 위험 구역 회피 경로 | 공개 Valhalla가 회피 면적을 둘레 10 km로 제한하여 경고만 제공 | 자체 호스팅 Valhalla(`VALHALLA_URL`), 공개 배포 전 Valhalla Discussions 공지 |
+| 감시 인프라 지도(G-17), 군사 시설(G-20) | 미구현 | 자체 호스팅 Overpass(공개 Overpass는 웹사이트 백엔드 사용 금지) |
+| 데이터센터, 낙뢰(G-20) | 채택 안 함 | PeeringDB AUP와 Blitzortung 약관이 재배포 금지. 다른 소스 필요 |
+| CCTV 실시간 영상(HLS) | 스냅샷만 제공 | 스트림 가용성 확인(샘플 재생목록이 404), 세션 상한이 있는 HLS 프록시 |
+| 3D 지형·건물, 3D Hangar(glTF), CCTV 3D 투영 | 키 없는 3D 지구본만 제공 | Cesium ion 토큰(`NEXT_PUBLIC_CESIUM_ION_TOKEN`), glTF 모델 라이선스 확인 |
+| 지연 표시(분쟁 정책의 delay 모드) | grid·hide만 구현 | 위치 이력 저장(`track_points` 하이퍼테이블) |
+
+### 결정이 필요한 사항
+
+1. 공개 배포 시 키 발급: Anthropic, AISStream, 필요 시 Cesium ion.
+2. 자체 호스팅 여부: Valhalla(경로 회피), Overpass(G-17 등).
+3. 라이선스가 확인되지 않은 소스의 상업 배포 여부: CelesTrak, AISStream, Launch Library 2. 현재는 비상업으로 표시되어 있다.
