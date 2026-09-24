@@ -42,6 +42,9 @@ pnpm install
 # Copy environment variables
 cp .env.example .env.local
 
+# Check toolchain, database, migrations and upstream feeds
+pnpm doctor
+
 # Start database and services
 pnpm docker:up
 
@@ -82,13 +85,13 @@ phoenix/
 - [PRD.md](./PRD.md) - Product Requirements Document
 - [docs/SPEC.md](./docs/SPEC.md) - Technical Specification
 - [docs/PROGRESS.md](./docs/PROGRESS.md) - Development Progress Checklist
+- [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) - Every data source with licence, attribution and commercial-use status
+- [docs/RESPONSIBLE_USE.md](./docs/RESPONSIBLE_USE.md) - Limits on use: not for safety-critical decisions alone, no tracking of individuals
 
 ## Data Sources
 
-- **GDACS** - Global Disaster Alert and Coordination System
-- **Copernicus EMS** - Emergency Management Service
-- **HDX** - Humanitarian Data Exchange
-- **UNOSAT** - UN Satellite Centre
+Live event feeds: **GDACS**, **USGS**, **NASA EONET** and **Copernicus EMS**. Map layers: OpenFreeMap, EOxCloudless (Sentinel-2), NASA GIBS and RainViewer.
+Phoenix is operated non-commercially. See [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) for licences, and set `NEXT_PUBLIC_COMMERCIAL_DEPLOYMENT=1` for commercial deployments.
 
 ## License
 
