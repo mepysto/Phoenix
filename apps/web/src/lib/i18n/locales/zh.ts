@@ -134,4 +134,12 @@ export const zh: Translations = {
     backToLive: "返回实时",
     scrub: "时间",
   },
+  view: {
+    inView: "视图内",
+    affected: "{n} 人受影响",
+    updated: "{time}更新",
+    nearby: "附近",
+    noneNearby: "附近没有事件",
+    label: "当前视图摘要",
+  },
 };

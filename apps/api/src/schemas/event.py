@@ -181,3 +181,25 @@ class TimelineResponse(BaseModel):
     start: datetime
     end: datetime
     buckets: list[TimelineBucket]
+
+
+class ViewSummary(BaseModel):
+    """Aggregate of the events matching a map view (bbox and filters)."""
+
+    total: int
+    by_severity: dict[str, int]
+    by_type: dict[str, int]
+    affected_population: int
+    last_updated: datetime | None
+
+
+class NearbyEvent(BaseModel):
+    event: EventResponse
+    distance_km: float
+
+
+class NearbyResponse(BaseModel):
+    center_lat: float
+    center_lng: float
+    radius_km: float
+    data: list[NearbyEvent]

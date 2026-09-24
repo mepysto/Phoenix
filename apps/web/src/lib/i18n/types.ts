@@ -136,4 +136,15 @@ export interface Translations {
     backToLive: string;
     scrub: string;
   };
+  view: {
+    inView: string;
+    /** "{n} affected" */
+    affected: string;
+    /** "Updated {time}" */
+    updated: string;
+    nearby: string;
+    noneNearby: string;
+    /** Accessible name of the summary region */
+    label: string;
+  };
 }

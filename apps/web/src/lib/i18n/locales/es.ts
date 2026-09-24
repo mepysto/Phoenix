@@ -137,4 +137,12 @@ export const es: Translations = {
     backToLive: "Volver a en vivo",
     scrub: "Tiempo",
   },
+  view: {
+    inView: "En vista",
+    affected: "{n} afectados",
+    updated: "Actualizado {time}",
+    nearby: "Cercanos",
+    noneNearby: "No hay eventos cercanos",
+    label: "Resumen de la vista actual",
+  },
 };

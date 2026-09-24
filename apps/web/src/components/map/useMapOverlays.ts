@@ -11,8 +11,8 @@ import {
   LAYER_DEFINITIONS,
   type GeoJsonLayerDefinition,
   type LayerDefinition,
-  type Viewport,
 } from "@/lib/layers/registry";
+import { currentViewport } from "@/lib/map/viewport";
 import { useMapStore } from "@/store/mapStore";
 
 /** Overlays sit above the basemap but below event markers */
@@ -120,27 +120,6 @@ export function useMapOverlays(mapRef: RefObject<MapLibreMap | null>, mapReady: 
 
 const VIEWPORT_DEBOUNCE_MS = 400;
 const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
-
-function currentViewport(map: MapLibreMap): Viewport {
-  const bounds = map.getBounds();
-  let west = bounds.getWest();
-  let east = bounds.getEast();
-  // Zoomed out past a full world width (or a wrapped globe): query everything
-  if (east - west >= 360) {
-    west = -180;
-    east = 180;
-  }
-  const wrap = (lng: number) => ((((lng + 180) % 360) + 360) % 360) - 180;
-  return {
-    bbox: [
-      west === -180 ? -180 : wrap(west),
-      Math.max(bounds.getSouth(), -90),
-      east === 180 ? 180 : wrap(east),
-      Math.min(bounds.getNorth(), 90),
-    ],
-    zoom: map.getZoom(),
-  };
-}
 
 /** Viewport data for a GeoJSON layer; empty below its minimum zoom */
 async function loadGeoJson(map: MapLibreMap, definition: GeoJsonLayerDefinition) {

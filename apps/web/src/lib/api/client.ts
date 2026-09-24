@@ -264,6 +264,62 @@ export const timelineAPI = {
   },
 };
 
+export type ApiViewSummary = CamelCaseKeys<components["schemas"]["ViewSummary"]>;
+export type ApiNearby = CamelCaseKeys<components["schemas"]["NearbyResponse"]>;
+type ViewFilter = Pick<EventFilter, "types" | "severities" | "at">;
+
+/** What the current map view contains (G-5) */
+export const viewAPI = {
+  /** bbox is [west, south, east, north]; west > east crosses the antimeridian */
+  summary: async (
+    bbox: [number, number, number, number],
+    filter?: ViewFilter,
+    signal?: AbortSignal,
+  ): Promise<ApiViewSummary> => {
+    const [minLng, minLat, maxLng, maxLat] = bbox;
+    const { data, response } = await client.GET("/api/v1/geodata/summary", {
+      params: {
+        query: {
+          min_lng: minLng,
+          min_lat: minLat,
+          max_lng: maxLng,
+          max_lat: maxLat,
+          types: filter?.types,
+          severities: filter?.severities,
+          at: filter?.at,
+        },
+      },
+      signal,
+    });
+    if (!response.ok) throw new APIError(response.status, "Failed to fetch view summary");
+    return data as unknown as ApiViewSummary;
+  },
+
+  nearby: async (
+    lat: number,
+    lng: number,
+    radiusKm: number,
+    filter?: ViewFilter,
+    signal?: AbortSignal,
+  ): Promise<ApiNearby> => {
+    const { data, response } = await client.GET("/api/v1/geodata/nearby", {
+      params: {
+        query: {
+          lat,
+          lng,
+          radius_km: radiusKm,
+          types: filter?.types,
+          severities: filter?.severities,
+          at: filter?.at,
+        },
+      },
+      signal,
+    });
+    if (!response.ok) throw new APIError(response.status, "Failed to fetch nearby events");
+    return data as unknown as ApiNearby;
+  },
+};
+
 export const healthAPI = {
   check: async (): Promise<{ status: string }> => {
     const { data, error } = await client.GET("/health");

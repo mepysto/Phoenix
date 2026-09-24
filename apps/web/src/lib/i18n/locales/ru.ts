@@ -137,4 +137,12 @@ export const ru: Translations = {
     backToLive: "Вернуться к текущему",
     scrub: "Время",
   },
+  view: {
+    inView: "В обзоре",
+    affected: "{n} пострадавших",
+    updated: "Обновлено {time}",
+    nearby: "Поблизости",
+    noneNearby: "Рядом нет событий",
+    label: "Сводка текущего вида",
+  },
 };

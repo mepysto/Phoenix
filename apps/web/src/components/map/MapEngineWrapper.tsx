@@ -47,7 +47,8 @@ export default function MapEngineWrapper({
   initialProjection,
   onViewChange,
 }: MapEngineWrapperProps) {
-  const { engine, viewerConfig } = useMapStore();
+  const engine = useMapStore((s) => s.engine);
+  const viewerConfig = useMapStore((s) => s.viewerConfig);
 
   if (engine === "cesium") {
     return (

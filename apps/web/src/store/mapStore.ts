@@ -2,6 +2,7 @@ import { create, StateCreator } from "zustand";
 import { devtools, DevtoolsOptions } from "zustand/middleware";
 import type { ViewerConfig, LayerConfig } from "@phoenix/shared/types";
 import { LAYER_DEFINITIONS } from "@/lib/layers/registry";
+import type { MapViewport } from "@/lib/map/viewport";
 
 interface MapState {
   viewerConfig: ViewerConfig;
@@ -11,6 +12,8 @@ interface MapState {
   zoom: number;
   engine: "maplibre" | "cesium";
   basemap: "dark" | "satellite";
+  /** Visible area after the last move; null until the map has loaded */
+  viewport: MapViewport | null;
 }
 
 interface MapActions {
@@ -27,6 +30,7 @@ interface MapActions {
   toggleEngine: () => void;
   setBasemap: (basemap: "dark" | "satellite") => void;
   toggleBasemap: () => void;
+  setViewport: (viewport: MapViewport) => void;
 }
 
 type MapStore = MapState & MapActions;
@@ -71,6 +75,7 @@ const initialState: MapState = {
   layers: defaultLayers,
   is3D: true,
   center: { lng: 0, lat: 20 },
+  viewport: null,
   zoom: 2,
   engine: "maplibre",
   basemap: "dark",
@@ -128,6 +133,10 @@ const storeImpl: StateCreator<MapStore, [], []> = (set) => ({
 
   setCenter: (lng, lat) => {
     set({ center: { lng, lat } });
+  },
+
+  setViewport: (viewport) => {
+    set({ viewport });
   },
 
   setZoom: (zoom) => {

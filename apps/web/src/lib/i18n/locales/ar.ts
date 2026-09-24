@@ -134,4 +134,12 @@ export const ar: Translations = {
     backToLive: "العودة إلى المباشر",
     scrub: "الوقت",
   },
+  view: {
+    inView: "في العرض",
+    affected: "{n} متضرر",
+    updated: "تم التحديث {time}",
+    nearby: "بالقرب",
+    noneNearby: "لا توجد أحداث قريبة",
+    label: "ملخص العرض الحالي",
+  },
 };
