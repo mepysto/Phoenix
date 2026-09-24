@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
-import { createBasemapStyle } from "@/lib/map/basemaps";
+import { DARK_STYLE_URL } from "@/lib/map/basemaps";
 
 interface MiniMapProps {
   lat: number;
@@ -20,7 +20,7 @@ export default function MiniMap({ lat, lng, zoom = 8 }: MiniMapProps) {
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: createBasemapStyle("dark"),
+      style: DARK_STYLE_URL,
       center: [lng, lat],
       zoom: zoom,
       interactive: true,

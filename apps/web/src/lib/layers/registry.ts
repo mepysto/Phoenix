@@ -7,6 +7,8 @@
  * the data-source attribution are all driven from this list.
  */
 
+import { COMMERCIAL_DEPLOYMENT } from "@/lib/map/basemaps";
+
 export type LayerCategory = "weather" | "satellite" | "hazards" | "infrastructure";
 
 /** keyless: works for everyone; free_key/metered: needs a server-side key */
@@ -16,7 +18,9 @@ export interface LayerSourceInfo {
   name: string;
   url: string;
   license: string;
-  /** Shown in the map's attribution control (may contain HTML entities) */
+  /** May a commercial deployment use it? (verified from the provider's terms) */
+  commercialUse: boolean;
+  /** Shown in the map's attribution control (may contain HTML) */
   attribution: string;
 }
 
@@ -46,6 +50,7 @@ const GIBS_SOURCE = {
   name: "NASA GIBS",
   url: "https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api",
   license: "NASA open data (no restrictions)",
+  commercialUse: true,
   attribution: "Imagery &copy; NASA GIBS / ESDIS",
 };
 
@@ -54,7 +59,7 @@ const bucket = (now: Date, ms: number) => Math.floor(now.getTime() / ms);
 
 const TEN_MINUTES = 10 * 60_000;
 
-export const LAYER_DEFINITIONS: LayerDefinition[] = [
+const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
   {
     id: "radar",
     kind: "raster",
@@ -63,8 +68,11 @@ export const LAYER_DEFINITIONS: LayerDefinition[] = [
     source: {
       name: "RainViewer",
       url: "https://www.rainviewer.com/api.html",
-      license: "Free with attribution",
-      attribution: "Radar &copy; RainViewer",
+      // "This API is available for personal and educational use only" and
+      // asks for a link to rainviewer.com as the data source
+      license: "Personal and educational use only; link attribution required",
+      commercialUse: false,
+      attribution: 'Radar &copy; <a href="https://www.rainviewer.com/">RainViewer</a>',
     },
     defaultOpacity: 0.7,
     refreshMs: TEN_MINUTES,
@@ -116,5 +124,21 @@ export const LAYER_DEFINITIONS: LayerDefinition[] = [
     }),
   },
 ];
+
+/** Layers this deployment may show (commercial deployments drop NC-only sources) */
+export const LAYER_DEFINITIONS: LayerDefinition[] = availableLayers(
+  ALL_LAYER_DEFINITIONS,
+  COMMERCIAL_DEPLOYMENT,
+);
+
+export function availableLayers(
+  definitions: LayerDefinition[],
+  commercial: boolean,
+): LayerDefinition[] {
+  return commercial ? definitions.filter((d) => d.source.commercialUse) : definitions;
+}
+
+/** Every registered layer regardless of deployment (for docs/tests) */
+export { ALL_LAYER_DEFINITIONS };
 
 export const LAYER_DEFINITIONS_BY_ID = new Map(LAYER_DEFINITIONS.map((d) => [d.id, d]));

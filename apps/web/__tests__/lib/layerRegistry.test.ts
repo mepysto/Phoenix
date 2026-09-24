@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { LAYER_DEFINITIONS, LAYER_DEFINITIONS_BY_ID } from "@/lib/layers/registry";
+import {
+  ALL_LAYER_DEFINITIONS,
+  availableLayers,
+  LAYER_DEFINITIONS,
+  LAYER_DEFINITIONS_BY_ID,
+} from "@/lib/layers/registry";
 
 const radar = LAYER_DEFINITIONS_BY_ID.get("radar")!;
 const clouds = LAYER_DEFINITIONS_BY_ID.get("clouds-infrared")!;
@@ -12,9 +17,22 @@ describe("layer registry", () => {
       expect(layer.source.name, layer.id).toBeTruthy();
       expect(layer.source.license, layer.id).toBeTruthy();
       expect(layer.source.attribution, layer.id).toBeTruthy();
+      expect(typeof layer.source.commercialUse, layer.id).toBe("boolean");
       expect(layer.auth, layer.id).toBe("keyless");
     }
     expect(new Set(LAYER_DEFINITIONS.map((l) => l.id)).size).toBe(LAYER_DEFINITIONS.length);
+  });
+
+  it("commercial deployments drop non-commercial-only sources (RainViewer)", () => {
+    const ids = (commercial: boolean) =>
+      availableLayers(ALL_LAYER_DEFINITIONS, commercial).map((d) => d.id);
+    expect(ids(false)).toContain("radar");
+    expect(ids(true)).not.toContain("radar");
+    expect(ids(true)).toContain("clouds-infrared");
+  });
+
+  it("radar attribution links to RainViewer as its terms require", () => {
+    expect(radar.source.attribution).toContain('href="https://www.rainviewer.com/"');
   });
 
   it("radar uses the newest RainViewer frame", async () => {
