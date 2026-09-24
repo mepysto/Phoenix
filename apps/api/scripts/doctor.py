@@ -36,12 +36,12 @@ UPSTREAMS = [
     ("EOX Sentinel-2 cloudless", "https://tiles.maps.eox.at/wmts/1.0.0/WMTSCapabilities.xml"),
     ("NASA GIBS", "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml"),
     ("RainViewer radar", "https://api.rainviewer.com/public/weather-maps.json"),
+    ("NASA FIRMS", "https://firms.modaps.eosdis.nasa.gov/data/active_fire/noaa-20-viirs-c2/csv/"),
+    ("NOAA NHC tropical", "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer?f=json"),
 ]
 
 # Server-side keys: which optional layers they unlock
-OPTIONAL_KEYS = {
-    "FIRMS_MAP_KEY": "NASA FIRMS active fires (planned)",
-}
+OPTIONAL_KEYS: dict[str, str] = {}
 
 
 @dataclass
@@ -137,6 +137,8 @@ async def check_upstreams() -> list[Result]:
 
 
 def check_keys() -> list[Result]:
+    if not OPTIONAL_KEYS:
+        return [Result(OK, "No server keys required", "every current layer is keyless")]
     return [
         Result(OK if os.getenv(key) else WARN, key, f"{'set' if os.getenv(key) else 'not set'} — unlocks {what}")
         for key, what in OPTIONAL_KEYS.items()

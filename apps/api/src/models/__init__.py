@@ -1,4 +1,5 @@
 from src.models.admin_area import AdminArea
+from src.models.fire import FireDetection
 from src.models.infrastructure import InfrastructureAsset
 from src.models.event import (
     DataSource,
@@ -14,6 +15,7 @@ from src.models.event import (
 )
 
 __all__ = [
+    "FireDetection",
     "InfrastructureAsset",
     "AdminArea",
     "DataSource",

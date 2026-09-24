@@ -3,32 +3,17 @@
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Query, Response
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import get_db
 from src.models.infrastructure import InfrastructureAsset
+from src.utils.geo import envelope_filter
 
 router = APIRouter()
 
 AssetKind = Literal["dam", "power_plant"]
 MAX_FEATURES = 5000
-
-
-def _envelope(min_lng: float, min_lat: float, max_lng: float, max_lat: float) -> Any:
-    return func.ST_MakeEnvelope(min_lng, min_lat, max_lng, max_lat, 4326)
-
-
-def viewport_filter(min_lng: float, min_lat: float, max_lng: float, max_lat: float) -> Any:
-    """Bounding-box test on the GiST-indexed point; a box crossing the
-    antimeridian (min_lng > max_lng) is split into its two halves."""
-    location = InfrastructureAsset.location
-    if min_lng <= max_lng:
-        return location.op("&&")(_envelope(min_lng, min_lat, max_lng, max_lat))
-    return or_(
-        location.op("&&")(_envelope(min_lng, min_lat, 180, max_lat)),
-        location.op("&&")(_envelope(-180, min_lat, max_lng, max_lat)),
-    )
 
 
 @router.get("")
@@ -54,7 +39,7 @@ async def infrastructure_in_view(
             func.ST_X(InfrastructureAsset.location).label("lng"),
             func.ST_Y(InfrastructureAsset.location).label("lat"),
         )
-        .where(viewport_filter(min_lng, min_lat, max_lng, max_lat))
+        .where(envelope_filter(InfrastructureAsset.location, min_lng, min_lat, max_lng, max_lat))
         .order_by(InfrastructureAsset.importance.desc().nulls_last())
         .limit(limit + 1)  # one extra row tells us whether we truncated
     )
