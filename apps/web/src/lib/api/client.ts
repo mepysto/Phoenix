@@ -132,6 +132,8 @@ export interface EventFilter {
     maxLat: number;
   };
   isActive?: boolean;
+  /** ISO time: only events ongoing at that instant (timeline) */
+  at?: string;
 }
 
 export const eventsAPI = {
@@ -153,6 +155,7 @@ export const eventsAPI = {
           max_lng: filter?.boundingBox?.maxLng,
           max_lat: filter?.boundingBox?.maxLat,
           is_active: filter?.isActive,
+          at: filter?.at,
           limit,
           offset,
         },
@@ -238,6 +241,26 @@ export const sourcesAPI = {
       throw new APIError(response.status, "Failed to fetch source status");
     }
     return data as unknown as ApiSourceStatus[];
+  },
+};
+
+export type ApiTimeline = CamelCaseKeys<components["schemas"]["TimelineResponse"]>;
+export type TimelineBucketSize = "hour" | "day" | "week";
+
+export const timelineAPI = {
+  get: async (
+    start: string,
+    end: string,
+    bucket: TimelineBucketSize,
+    filter?: Pick<EventFilter, "types" | "severities">,
+  ): Promise<ApiTimeline> => {
+    const { data, response } = await client.GET("/api/v1/events/timeline", {
+      params: {
+        query: { start, end, bucket, types: filter?.types, severities: filter?.severities },
+      },
+    });
+    if (!response.ok) throw new APIError(response.status, "Failed to fetch timeline");
+    return data as unknown as ApiTimeline;
   },
 };
 

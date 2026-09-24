@@ -8,6 +8,7 @@ import { DEMO_EVENTS, DEMO_MODE } from "@/lib/demo/demoEvents";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useLiveEvents } from "@/hooks/useLiveEvents";
 import { useMapUrlState } from "@/hooks/useMapUrlState";
+import { Timeline } from "@/components/map/Timeline";
 
 const MapEngineWrapper = dynamic(
   () => import("@/components/map/MapEngineWrapper"),
@@ -93,6 +94,10 @@ function MapPageContent() {
           {liveStatus === "live" ? t.map.live : t.map.reconnecting}
         </div>
       )}
+      {/* Between the legend (bottom-left, max ~22rem) and the scale bar (bottom-right); stacked above the legend on mobile */}
+      <div className="pointer-events-none absolute bottom-40 left-4 right-4 z-30 md:bottom-9 md:left-[23rem] md:right-32">
+        <Timeline />
+      </div>
       {showEmptyState && (
         <div
           role="status"

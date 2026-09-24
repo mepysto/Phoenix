@@ -131,4 +131,12 @@ export const fr: Translations = {
     never: "Pas encore de données",
     summary: "{name} : {status}",
   },
+  timeline: {
+    live: "En direct",
+    play: "Lecture",
+    pause: "Pause",
+    speed: "Vitesse",
+    backToLive: "Revenir au direct",
+    scrub: "Temps",
+  },
 };

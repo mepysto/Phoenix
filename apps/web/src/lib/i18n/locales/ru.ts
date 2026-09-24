@@ -129,4 +129,12 @@ export const ru: Translations = {
     never: "Данных пока нет",
     summary: "{name}: {status}",
   },
+  timeline: {
+    live: "Сейчас",
+    play: "Воспроизвести",
+    pause: "Пауза",
+    speed: "Скорость",
+    backToLive: "Вернуться к текущему",
+    scrub: "Время",
+  },
 };

@@ -11,6 +11,7 @@ import {
 import { useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
 import { useSettingsStore } from "@/store/settingsStore";
+import { useTimelineStore } from "@/store/timelineStore";
 
 const WRITE_DEBOUNCE_MS = 400;
 
@@ -44,6 +45,7 @@ export function useMapUrlState(): {
         types: [...visibleTypes],
         severities: [...visibleSeverities],
         event: initial.event,
+        at: useTimelineStore.getState().at ?? undefined,
       },
       new URLSearchParams(window.location.search),
     );
@@ -64,8 +66,9 @@ export function useMapUrlState(): {
     useMapStore.getState().setBasemap(initial.basemap ?? defaultBasemap);
     const events = useEventStore.getState();
     events.setVisibility(initial.types, initial.severities);
+    useTimelineStore.getState().setAt(initial.at ?? null);
     // Also clears a text search carried over from /events (and fetches)
-    events.setFilter({ q: undefined });
+    events.setFilter({ q: undefined, at: initial.at });
   }, [initial]);
 
   useEffect(() => {
@@ -80,9 +83,13 @@ export function useMapUrlState(): {
     const unsubscribeMap = useMapStore.subscribe((state, prev) => {
       if (state.basemap !== prev.basemap) scheduleWrite();
     });
+    const unsubscribeTimeline = useTimelineStore.subscribe((state, prev) => {
+      if (state.at !== prev.at) scheduleWrite();
+    });
     return () => {
       unsubscribeEvents();
       unsubscribeMap();
+      unsubscribeTimeline();
       if (timer.current) clearTimeout(timer.current);
     };
   }, [scheduleWrite]);

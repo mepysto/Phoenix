@@ -5,7 +5,8 @@ import type { BasemapId } from "./basemaps";
 /**
  * Shareable map state in the query string (G-4 deep links).
  *
- *   ?v=lng,lat,zoom,bearing,pitch&p=2d&b=satellite&t=flood,storm&s=high&event=<id>
+ *   ?v=lng,lat,zoom,bearing,pitch&p=2d&b=satellite&t=flood,storm&s=high&event=<id>&time=2026-09-01T06:00Z
+ *   (t = event types, time = timeline instant)
  *
  * Only non-default values are written, and anything invalid in an incoming
  * URL is dropped rather than breaking the page.
@@ -28,6 +29,8 @@ export interface MapUrlState {
   severities?: SeverityLevel[];
   /** Event to focus (open its card) */
   event?: string;
+  /** Timeline instant (ISO); absent = live */
+  at?: string;
 }
 
 export const ALL_SEVERITY_LEVELS: SeverityLevel[] = ["low", "medium", "high", "critical"];
@@ -66,6 +69,8 @@ export function parseMapUrlState(params: URLSearchParams): MapUrlState {
   if (severities) state.severities = severities;
   const event = params.get("event");
   if (event && EVENT_ID.test(event)) state.event = event;
+  const at = params.get("time");
+  if (at && !Number.isNaN(Date.parse(at))) state.at = new Date(at).toISOString();
   return state;
 }
 
@@ -95,6 +100,8 @@ export function serializeMapUrlState(state: MapUrlState, base = new URLSearchPar
   const allSeverities = !state.severities || state.severities.length === ALL_SEVERITY_LEVELS.length;
   set("s", allSeverities ? undefined : state.severities!.join(","));
   set("event", state.event);
+  // Hour precision is enough for a timeline position
+  set("time", state.at?.slice(0, 13).concat(":00Z"));
   // Commas are legal in a query string; keep shared links readable
-  return params.toString().replace(/%2C/gi, ",");
+  return params.toString().replace(/%2C/gi, ",").replace(/%3A/gi, ":");
 }

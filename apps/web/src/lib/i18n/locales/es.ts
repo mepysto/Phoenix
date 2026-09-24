@@ -129,4 +129,12 @@ export const es: Translations = {
     never: "Sin datos aún",
     summary: "{name}: {status}",
   },
+  timeline: {
+    live: "En vivo",
+    play: "Reproducir",
+    pause: "Pausa",
+    speed: "Velocidad",
+    backToLive: "Volver a en vivo",
+    scrub: "Tiempo",
+  },
 };
