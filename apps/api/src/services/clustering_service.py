@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.event import Event, EventSource, EventType, SeverityLevel
+from src.repositories.event_repository import event_filter_conditions
 from src.schemas.event import (
     ClusterBBox,
     ClusterResponse,
@@ -159,40 +160,9 @@ class ClusteringService:
         )
 
     def _apply_filters(self, stmt: Any, filters: EventFilter) -> Any:
-        conditions = []
-
-        if filters.types:
-            type_enums = [EventType(t) for t in filters.types]
-            conditions.append(Event.type.in_(type_enums))
-
-        if filters.severities:
-            severity_enums = [SeverityLevel(s) for s in filters.severities]
-            conditions.append(Event.severity.in_(severity_enums))
-
-        if filters.is_active is not None:
-            conditions.append(Event.is_active == filters.is_active)
-
-        if not filters.include_merged:
-            conditions.append(Event.is_canonical.is_(True))
-
-        if filters.start_date:
-            conditions.append(Event.start_date >= filters.start_date)
-
-        if filters.end_date:
-            conditions.append(Event.start_date <= filters.end_date)
-
-        if all(
-            v is not None
-            for v in [filters.min_lng, filters.min_lat, filters.max_lng, filters.max_lat]
-        ):
-            conditions.append(Event.longitude >= filters.min_lng)
-            conditions.append(Event.longitude <= filters.max_lng)
-            conditions.append(Event.latitude >= filters.min_lat)
-            conditions.append(Event.latitude <= filters.max_lat)
-
-        for condition in conditions:
+        # Same conditions as the event list, so clusters match what is listed
+        for condition in event_filter_conditions(filters):
             stmt = stmt.where(condition)
-
         return stmt
 
     def _count_event_types(self, event_types: list[EventType]) -> dict[str, int]:

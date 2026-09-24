@@ -20,6 +20,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -145,6 +146,14 @@ class Event(Base):
         Index("idx_events_glide", "glide_number"),
         Index("idx_events_merged_into", "merged_into_id"),
         Index("idx_events_is_canonical", "is_canonical"),
+        Index("idx_events_created_at", "created_at"),
+        # Radius search / dedup use ST_DWithin(geography(location), ...); the
+        # plain geometry GiST index cannot serve geography comparisons.
+        Index(
+            "idx_events_location_geog",
+            text("geography(location)"),
+            postgresql_using="gist",
+        ),
         CheckConstraint("id != merged_into_id", name="chk_events_no_self_merge"),
     )
 
@@ -193,6 +202,8 @@ class EventSource(Base):
 
     __table_args__ = (
         Index("idx_event_sources_source_external", "source_id", "external_id", unique=True),
+        # FK used by joins, selectinload(Event.sources) and merge relinking
+        Index("idx_event_sources_event_id", "event_id"),
     )
 
 
@@ -259,6 +270,8 @@ class Dataset(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
+
+    __table_args__ = (Index("idx_datasets_event_id", "event_id"),)
 
     event: Mapped["Event"] = relationship(back_populates="datasets")
 
