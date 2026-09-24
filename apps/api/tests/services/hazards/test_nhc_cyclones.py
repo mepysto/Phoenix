@@ -4,7 +4,6 @@ import httpx
 import pytest
 
 from src.core.exceptions import ExternalAPIError
-from src.services.hazards import nhc_cyclones
 from src.services.hazards.nhc_cyclones import NHCCycloneService
 
 LAYERS = [
@@ -78,10 +77,10 @@ async def test_result_is_cached(calls) -> None:
 
 
 @pytest.mark.asyncio
-async def test_serves_stale_data_when_noaa_goes_down(calls, monkeypatch) -> None:
+async def test_serves_stale_data_when_noaa_goes_down(calls) -> None:
     service = NHCCycloneService(httpx.AsyncClient(transport=make_transport(calls)))
     fresh = await service.get_cyclones()
-    monkeypatch.setattr(nhc_cyclones, "CACHE_TTL_SECONDS", 0)
+    service.results.ttl_seconds = 0  # force a refresh
     service._client = httpx.AsyncClient(transport=make_transport(calls, fail=True))
 
     stale = await service.get_cyclones()

@@ -15,7 +15,7 @@ from typing import Any
 
 import httpx
 
-from src.core.exceptions import ExternalAPIError
+from src.services.hazards.cache import StaleOnErrorCache, round_coords
 
 logger = logging.getLogger(__name__)
 
@@ -38,20 +38,9 @@ SLOT_LAYER = re.compile(r"^(?P<slot>(AT|EP|CP)[1-5]) (?P<suffix>.+)$")
 
 
 @dataclass
-class _Cache:
+class _LayerIdCache:
     layer_ids: dict[str, dict[str, int]] = field(default_factory=dict)  # slot -> kind -> id
     layer_ids_at: float = 0.0
-    collection: dict[str, Any] | None = None
-    collection_at: float = 0.0
-
-
-def _round_coords(value: Any, digits: int = 5) -> Any:
-    """Round nested GeoJSON coordinates (~1 m) to shrink the payload."""
-    if isinstance(value, float):
-        return round(value, digits)
-    if isinstance(value, list):
-        return [_round_coords(v, digits) for v in value]
-    return value
 
 
 def _normalise(kind: str, slot: str, props: dict[str, Any]) -> dict[str, Any]:
@@ -80,24 +69,12 @@ class NHCCycloneService:
 
     def __init__(self, client: httpx.AsyncClient | None = None) -> None:
         self._client = client
-        self._cache = _Cache()
-        self._lock = asyncio.Lock()
+        self._cache = _LayerIdCache()
+        self.results = StaleOnErrorCache("NHC", CACHE_TTL_SECONDS)
 
     async def get_cyclones(self) -> dict[str, Any]:
         """Current cyclones; serves stale data (flagged) if NOAA is down."""
-        async with self._lock:
-            now = time.monotonic()
-            if self._cache.collection and now - self._cache.collection_at < CACHE_TTL_SECONDS:
-                return self._cache.collection
-            try:
-                collection = await self._fetch()
-            except (httpx.HTTPError, ValueError, KeyError) as e:
-                if self._cache.collection:
-                    logger.warning("NHC unavailable, serving cached cyclones: %r", e)
-                    return {**self._cache.collection, "stale": True}
-                raise ExternalAPIError("NHC tropical service unavailable", service_name="NHC") from e
-            self._cache.collection, self._cache.collection_at = collection, now
-            return collection
+        return await self.results.get(self._fetch)
 
     async def _fetch(self) -> dict[str, Any]:
         async with self._http() as client:
@@ -121,7 +98,7 @@ class NHCCycloneService:
                 "type": "Feature",
                 "geometry": {
                     "type": feature["geometry"]["type"],
-                    "coordinates": _round_coords(feature["geometry"]["coordinates"]),
+                    "coordinates": round_coords(feature["geometry"]["coordinates"]),
                 },
                 "properties": _normalise(kind, slot, feature.get("properties") or {}),
             }
@@ -134,7 +111,6 @@ class NHCCycloneService:
             "features": features,
             "source": "NOAA National Hurricane Center",
             "active_storms": len(active),
-            "stale": False,
         }
 
     async def _layer_ids(self, client: httpx.AsyncClient) -> dict[str, dict[str, int]]:
