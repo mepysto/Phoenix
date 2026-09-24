@@ -22,7 +22,7 @@ import { useMapStore } from "@/store/mapStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
-import { applyBasemap, createBasemapStyle, LABEL_FONT } from "@/lib/map/basemaps";
+import { applyBasemap, loadBasemapStyle, LABEL_FONT } from "@/lib/map/basemaps";
 import type { MapView } from "@/lib/map/urlState";
 import { useRasterOverlays } from "./useRasterOverlays";
 
@@ -151,9 +151,11 @@ export default function GlobeViewer({
       if (cancelled || !mapContainer.current || map.current) return;
 
       const currentBasemap = useMapStore.getState().basemap;
+      const style = await loadBasemapStyle(currentBasemap);
+      if (cancelled || !mapContainer.current || map.current) return;
       map.current = new maplibregl.Map({
         container: mapContainer.current,
-        style: createBasemapStyle(currentBasemap),
+        style,
         center: initialViewRef.current
           ? [initialViewRef.current.lng, initialViewRef.current.lat]
           : [0, 20],
