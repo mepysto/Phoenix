@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import func, or_, select, update
+from sqlalchemy import ColumnElement, and_, func, or_, select, update
 from sqlalchemy.orm import selectinload
 
 from src.models.event import Event, EventSource, EventType, GeoPrecision, SeverityLevel
@@ -36,6 +36,71 @@ def _pop_coord(data: dict[str, Any], short: str, long: str) -> Any:
 
 # Fields that may legitimately be cleared to None by a source refresh
 NULLABLE_REFRESH_FIELDS = frozenset({"end_date"})
+
+
+def bbox_condition(
+    min_lng: float, min_lat: float, max_lng: float, max_lat: float
+) -> ColumnElement[bool]:
+    """Bounding-box filter on the indexed latitude/longitude columns.
+
+    A box whose min_lng > max_lng crosses the antimeridian (e.g. a Pacific
+    view from 170 to -170); it covers two longitude ranges, not zero.
+    """
+    lat_ok = and_(Event.latitude >= min_lat, Event.latitude <= max_lat)
+    if min_lng <= max_lng:
+        return and_(lat_ok, Event.longitude >= min_lng, Event.longitude <= max_lng)
+    return and_(lat_ok, or_(Event.longitude >= min_lng, Event.longitude <= max_lng))
+
+
+def event_filter_conditions(filters: EventFilter) -> list[ColumnElement[bool]]:
+    """WHERE conditions for an EventFilter.
+
+    Single source for every event query (list, GeoJSON, clusters) so filters
+    cannot drift apart between endpoints.
+    """
+    conditions: list[ColumnElement[bool]] = []
+
+    if filters.types:
+        conditions.append(Event.type.in_([EventType(t) for t in filters.types]))
+    if filters.severities:
+        conditions.append(Event.severity.in_([SeverityLevel(s) for s in filters.severities]))
+    if filters.is_active is not None:
+        conditions.append(Event.is_active == filters.is_active)
+    if not filters.include_merged:
+        conditions.append(Event.is_canonical.is_(True))
+    if filters.q:
+        pattern = f"%{_escape_like(filters.q.strip())}%"
+        conditions.append(
+            or_(
+                Event.title.ilike(pattern, escape="\\"),
+                Event.region.ilike(pattern, escape="\\"),
+            )
+        )
+    if filters.start_date:
+        conditions.append(Event.start_date >= filters.start_date)
+    if filters.end_date:
+        conditions.append(Event.start_date <= filters.end_date)
+
+    bbox = (filters.min_lng, filters.min_lat, filters.max_lng, filters.max_lat)
+    if all(v is not None for v in bbox):
+        conditions.append(bbox_condition(*bbox))
+
+    if (
+        filters.center_lat is not None
+        and filters.center_lng is not None
+        and filters.radius_km is not None
+    ):
+        conditions.append(Event.location.isnot(None))
+        conditions.append(
+            point_within_distance(
+                Event.location,
+                filters.center_lat,
+                filters.center_lng,
+                int(filters.radius_km * 1000),
+            )
+        )
+
+    return conditions
 
 
 class EventRepository(BaseRepository):
@@ -220,62 +285,7 @@ class EventRepository(BaseRepository):
                 selectinload(Event.sources).selectinload(EventSource.source)
             )
 
-        # Apply filters
-        conditions = []
-
-        if filters.types:
-            type_enums = [EventType(t) for t in filters.types]
-            conditions.append(Event.type.in_(type_enums))
-
-        if filters.severities:
-            severity_enums = [SeverityLevel(s) for s in filters.severities]
-            conditions.append(Event.severity.in_(severity_enums))
-
-        if filters.is_active is not None:
-            conditions.append(Event.is_active == filters.is_active)
-
-        if not filters.include_merged:
-            conditions.append(Event.is_canonical.is_(True))
-
-        if filters.q:
-            pattern = f"%{_escape_like(filters.q.strip())}%"
-            conditions.append(
-                or_(
-                    Event.title.ilike(pattern, escape="\\"),
-                    Event.region.ilike(pattern, escape="\\"),
-                )
-            )
-
-        if filters.start_date:
-            conditions.append(Event.start_date >= filters.start_date)
-
-        if filters.end_date:
-            conditions.append(Event.start_date <= filters.end_date)
-
-        # Bounding box filter
-        if all(
-            v is not None
-            for v in [filters.min_lng, filters.min_lat, filters.max_lng, filters.max_lat]
-        ):
-            conditions.append(Event.longitude >= filters.min_lng)
-            conditions.append(Event.longitude <= filters.max_lng)
-            conditions.append(Event.latitude >= filters.min_lat)
-            conditions.append(Event.latitude <= filters.max_lat)
-
-        center_lat = filters.center_lat
-        center_lng = filters.center_lng
-        radius_km = filters.radius_km
-        if center_lat is not None and center_lng is not None and radius_km is not None:
-            radius_meters = int(radius_km * 1000)
-            conditions.append(Event.location.isnot(None))
-            conditions.append(
-                point_within_distance(
-                    Event.location,
-                    center_lat,
-                    center_lng,
-                    radius_meters,
-                )
-            )
+        conditions = event_filter_conditions(filters)
 
         # Apply all conditions
         for condition in conditions:

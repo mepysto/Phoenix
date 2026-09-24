@@ -64,6 +64,8 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm --filter web lint --max-warnings 0
       - name: Typecheck
         run: pnpm --filter web typecheck
       - name: Unit tests

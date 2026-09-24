@@ -531,6 +531,7 @@ export default function GlobeViewer({
             <button
               onClick={() => setSelectedEvent(null)}
               className="text-gray-400 hover:text-white"
+              aria-label={t.common.close}
             >
               &times;
             </button>

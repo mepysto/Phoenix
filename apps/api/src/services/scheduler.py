@@ -1,8 +1,14 @@
 import logging
+import zlib
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.exceptions import DataSyncError, ExternalAPIError
 from src.db.database import async_session_maker
@@ -11,6 +17,11 @@ from src.services.gdacs_service import GDACSService
 from src.services.ingestion_service import IngestionService
 
 logger = logging.getLogger(__name__)
+
+
+def _job_lock_key(job: str) -> int:
+    """Stable advisory-lock key per job (crc32 fits PostgreSQL's bigint key)."""
+    return zlib.crc32(f"phoenix-sync:{job}".encode())
 
 
 class SchedulerService:
@@ -47,6 +58,28 @@ class SchedulerService:
             self._eonet_sync_count = 0
             self._eonet_consecutive_failures = 0
 
+    @asynccontextmanager
+    async def _exclusive_job(self, job: str) -> AsyncIterator[AsyncSession | None]:
+        """Yield a session holding the job's advisory lock, or None if taken.
+
+        Every API worker/replica runs its own scheduler; without this each one
+        would ingest the same feed concurrently. pg_try_advisory_xact_lock is
+        released automatically at commit/rollback, including if the process
+        dies, so a crashed worker can never leave a stale lock.
+        """
+        async with async_session_maker() as session:
+            acquired = (
+                await session.execute(
+                    text("SELECT pg_try_advisory_xact_lock(:key)"),
+                    {"key": _job_lock_key(job)},
+                )
+            ).scalar()
+            if not acquired:
+                logger.info("Skipping %s sync: another worker is running it", job)
+                yield None
+                return
+            yield session
+
     async def sync_gdacs(self) -> None:
         """
         Synchronize GDACS events with error handling and DB persistence.
@@ -62,11 +95,16 @@ class SchedulerService:
         try:
             logger.info("Starting GDACS sync...")
 
-            # 1. Fetch events from GDACS
-            events = await self._gdacs_service.fetch_rss_events()
+            # Only one worker/replica runs this job at a time; the lock is taken
+            # before fetching so losers skip the download too.
+            async with self._exclusive_job("gdacs") as session:
+                if session is None:
+                    return
 
-            # 2. Open DB session and ingest events
-            async with async_session_maker() as session:
+                # 1. Fetch events from GDACS
+                events = await self._gdacs_service.fetch_rss_events()
+
+                # 2. Ingest and commit (commit also releases the lock)
                 ingestion_service = IngestionService(session)
                 result = await ingestion_service.ingest_gdacs_events(events, atomic=False)
                 await session.commit()
@@ -127,11 +165,16 @@ class SchedulerService:
         try:
             logger.info("Starting Copernicus EMS sync...")
 
-            # 1. Fetch events from Copernicus
-            events = await self._copernicus_service.fetch_activations()
+            # Only one worker/replica runs this job at a time; the lock is taken
+            # before fetching so losers skip the download too.
+            async with self._exclusive_job("copernicus") as session:
+                if session is None:
+                    return
 
-            # 2. Open DB session and ingest events
-            async with async_session_maker() as session:
+                # 1. Fetch events from Copernicus
+                events = await self._copernicus_service.fetch_activations()
+
+                # 2. Ingest and commit (commit also releases the lock)
                 ingestion_service = IngestionService(session)
                 result = await ingestion_service.ingest_copernicus_events(events, atomic=False)
                 await session.commit()
@@ -194,12 +237,17 @@ class SchedulerService:
 
             logger.info("Starting USGS sync...")
 
-            # 1. Fetch events from USGS (M4.5+ past week)
-            connector = USGSConnector(feed="4.5_week")
-            events = await connector.fetch_events()
+            # Only one worker/replica runs this job at a time; the lock is taken
+            # before fetching so losers skip the download too.
+            async with self._exclusive_job("usgs") as session:
+                if session is None:
+                    return
 
-            # 2. Open DB session and ingest events
-            async with async_session_maker() as session:
+                # 1. Fetch events from USGS (M4.5+ past week)
+                connector = USGSConnector(feed="4.5_week")
+                events = await connector.fetch_events()
+
+                # 2. Ingest and commit (commit also releases the lock)
                 ingestion_service = IngestionService(session)
                 result = await ingestion_service.ingest_usgs_events(events, atomic=False)
                 await session.commit()
@@ -262,12 +310,17 @@ class SchedulerService:
 
             logger.info("Starting EONET sync...")
 
-            # 1. Fetch events from EONET (open events, past 30 days)
-            connector = EONETConnector(status="open", days=30)
-            events = await connector.fetch_events()
+            # Only one worker/replica runs this job at a time; the lock is taken
+            # before fetching so losers skip the download too.
+            async with self._exclusive_job("eonet") as session:
+                if session is None:
+                    return
 
-            # 2. Open DB session and ingest events
-            async with async_session_maker() as session:
+                # 1. Fetch events from EONET (open events, past 30 days)
+                connector = EONETConnector(status="open", days=30)
+                events = await connector.fetch_events()
+
+                # 2. Ingest and commit (commit also releases the lock)
                 ingestion_service = IngestionService(session)
                 result = await ingestion_service.ingest_eonet_events(events, atomic=False)
                 await session.commit()

@@ -2,8 +2,7 @@
 
 from typing import Any
 
-from geoalchemy2 import Geography
-from sqlalchemy import cast, func
+from sqlalchemy import func
 
 
 def make_point_expr(lat: float, lng: float) -> Any:
@@ -134,9 +133,12 @@ def point_within_distance(
         SQLAlchemy expression for ST_DWithin check
     """
     ref_point = make_point_expr(lat, lng)
+    # geography(x) must match the functional index expression exactly
+    # (idx_events_location_geog). CAST(x AS Geography) compiles to
+    # geography(GEOMETRY,-1), which the planner cannot match to the index.
     return func.ST_DWithin(
-        cast(location_column, Geography),
-        cast(ref_point, Geography),
+        func.geography(location_column),
+        func.geography(ref_point),
         distance_meters,
     )
 
@@ -160,6 +162,6 @@ def distance_meters(
     """
     ref_point = make_point_expr(lat, lng)
     return func.ST_Distance(
-        cast(location_column, Geography),
-        cast(ref_point, Geography),
+        func.geography(location_column),
+        func.geography(ref_point),
     )

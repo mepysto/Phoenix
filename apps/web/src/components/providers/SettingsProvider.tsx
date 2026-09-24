@@ -3,8 +3,19 @@
 import { useEffect } from "react";
 import { useSettingsStore } from "@/store/settingsStore";
 
+const RTL_LANGUAGES = new Set(["ar"]);
+
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const { theme, animationsEnabled } = useSettingsStore();
+  const { theme, animationsEnabled, language } = useSettingsStore();
+
+  // Screen readers, hyphenation and fonts follow <html lang>; Arabic needs RTL.
+  // The language lives in client storage, so the server renders "en" and this
+  // syncs it after hydration.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.lang = language;
+    root.dir = RTL_LANGUAGES.has(language) ? "rtl" : "ltr";
+  }, [language]);
 
   useEffect(() => {
     const root = document.documentElement;
