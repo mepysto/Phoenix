@@ -53,6 +53,7 @@ export const zh: Translations = {
     powerPlants: "发电厂 (WRI)",
     dams: "水坝 (Global Dam Watch)",
     hospitals: "医院 (OSM)",
+    submarineCables: "海底电缆",
     satellites: "对地观测卫星",
     aircraft: "飞机（ADS-B，缩放 5+）",
     vessels: "灾区附近船舶（AIS，缩放 4+）",

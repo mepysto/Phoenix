@@ -493,6 +493,66 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
     ],
   },
   {
+    id: "submarine-cables",
+    kind: "geojson",
+    category: "infrastructure",
+    auth: "keyless",
+    source: {
+      name: "TeleGeography Submarine Cable Map",
+      url: "https://www.submarinecablemap.com",
+      license: "CC BY-NC-SA 3.0",
+      commercialUse: false,
+      attribution:
+        'Submarine cables: <a href="https://www.submarinecablemap.com">TeleGeography</a> (CC BY-NC-SA 3.0)',
+    },
+    defaultOpacity: 0.85,
+    loadData: async () => {
+      const response = await fetch(`${API_URL}/api/v1/infrastructure/submarine-cables`);
+      if (!response.ok) throw new Error(`Submarine cables ${response.status}`);
+      return (await response.json()) as GeoJSON.FeatureCollection;
+    },
+    styleLayers: (sourceId) => [
+      {
+        id: `${sourceId}-lines`,
+        type: "line",
+        source: sourceId,
+        filter: ["==", ["get", "kind"], "cable"],
+        paint: {
+          "line-color": ["coalesce", ["get", "color"], "#94a3b8"],
+          "line-width": ["interpolate", ["linear"], ["zoom"], 1, 0.8, 8, 2.5],
+          "line-opacity": 0.85,
+        },
+      } as LayerSpecification,
+      {
+        id: `${sourceId}-landings`,
+        type: "circle",
+        source: sourceId,
+        filter: ["==", ["get", "kind"], "landing"],
+        minzoom: 3,
+        paint: {
+          "circle-color": "#e2e8f0",
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, 1.5, 8, 4],
+          "circle-stroke-color": "#0f172a",
+          "circle-stroke-width": 1,
+        },
+      } as LayerSpecification,
+      {
+        id: `${sourceId}-labels`,
+        type: "symbol",
+        source: sourceId,
+        filter: ["==", ["get", "kind"], "cable"],
+        minzoom: 4,
+        layout: {
+          "symbol-placement": "line",
+          "text-field": ["get", "name"],
+          "text-font": LABEL_FONT,
+          "text-size": 10,
+        },
+        paint: { "text-color": "#cbd5e1", "text-halo-color": "#0f172a", "text-halo-width": 1.2 },
+      } as LayerSpecification,
+    ],
+  },
+  {
     id: "hospitals",
     kind: "style",
     category: "infrastructure",

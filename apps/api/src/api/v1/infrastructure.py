@@ -1,4 +1,4 @@
-"""Critical infrastructure within a map viewport (dams, power plants)."""
+"""Critical infrastructure: dams and power plants per viewport, submarine cables."""
 
 from typing import Annotated, Any, Literal
 
@@ -8,6 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import get_db
 from src.models.infrastructure import InfrastructureAsset
+from src.services.submarine_cables import CACHE_TTL_SECONDS as CABLES_TTL
+from src.services.submarine_cables import submarine_cable_service
 from src.utils.geo import envelope_filter
 
 router = APIRouter()
@@ -67,3 +69,10 @@ async def infrastructure_in_view(
             for r in rows[:limit]
         ],
     }
+
+
+@router.get("/submarine-cables")
+async def submarine_cables(response: Response) -> dict[str, Any]:
+    """Submarine cables and landing stations worldwide (TeleGeography, CC BY-NC-SA 3.0)."""
+    response.headers["Cache-Control"] = f"public, max-age={CABLES_TTL // 4}"
+    return await submarine_cable_service.get()
