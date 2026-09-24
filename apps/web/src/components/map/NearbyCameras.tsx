@@ -41,7 +41,13 @@ export function NearbyCameras({ lat, lng }: { lat: number; lng: number }) {
               onClick={() =>
                 setInspected({
                   layerId: "cameras",
-                  properties: { id: camera.id, name: camera.name, direction: camera.direction, source: camera.source },
+                  properties: {
+                    id: camera.id,
+                    name: camera.name,
+                    direction: camera.direction,
+                    source: camera.source,
+                    stream_url: camera.streamUrl,
+                  },
                   lng,
                   lat,
                 })

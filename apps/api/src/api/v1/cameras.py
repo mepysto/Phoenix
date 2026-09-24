@@ -33,6 +33,7 @@ def _feature(camera: Camera) -> dict[str, Any]:
             "route": camera.route,
             "source": camera.source,
             "snapshot_minutes": camera.snapshot_minutes,
+            "stream_url": camera.stream_url,
         },
     }
 
@@ -67,6 +68,7 @@ class NearbyCamera(BaseModel):
     direction: str | None
     source: str
     distance_km: float
+    stream_url: str | None = None
 
 
 @router.get("/nearby", response_model=list[NearbyCamera])
@@ -78,7 +80,10 @@ async def cameras_nearby(
 ) -> list[NearbyCamera]:
     """Cameras closest to a point (e.g. an event), nearest first."""
     return [
-        NearbyCamera(id=c.id, name=c.name, direction=c.direction, source=c.source, distance_km=round(d, 1))
+        NearbyCamera(
+            id=c.id, name=c.name, direction=c.direction, source=c.source,
+            distance_km=round(d, 1), stream_url=c.stream_url,
+        )
         for c, d in await caltrans_cameras.nearest(lat, lng, radius_km, limit)
     ]
 

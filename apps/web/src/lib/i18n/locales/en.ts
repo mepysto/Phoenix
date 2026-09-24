@@ -216,6 +216,9 @@ export const en: Translations = {
     unavailable: "Image unavailable right now",
     notRecorded: "Public camera; images are not recorded",
     approxView: "Shaded wedge on the map: approximate view direction only",
+    liveVideo: "Live video",
+    streamOffline: "Stream offline; showing the latest image",
+    liveDirect: "live video comes straight from the camera operator, who sees your IP address",
   },
   telemetry: {
     altitude: "Altitude",

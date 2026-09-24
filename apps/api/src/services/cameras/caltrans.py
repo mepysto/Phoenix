@@ -21,6 +21,8 @@ DISTRICTS = range(1, 13)
 LIST_URL = "https://cwwp2.dot.ca.gov/data/d{d}/cctv/cctvStatusD{d:02d}.json"
 # Hosts the snapshot proxy may contact for this source
 SNAPSHOT_HOSTS = frozenset({"cwwp2.dot.ca.gov"})
+# Live HLS streams are played by the browser directly (Caltrans sends CORS *)
+STREAM_PREFIX = "https://wzmedia.dot.ca.gov/"
 CACHE_TTL_SECONDS = 3600  # camera lists change rarely
 RETRY_AFTER_ERROR_SECONDS = 600
 REQUEST_TIMEOUT = httpx.Timeout(30.0, connect=10.0)
@@ -37,6 +39,8 @@ class Camera:
     route: str | None
     snapshot_url: str
     snapshot_minutes: int | None  # how often the image refreshes upstream
+    # HLS playlist; many cameras have none, and listed streams can be offline
+    stream_url: str | None = None
     source: str = "Caltrans"
 
 
@@ -64,6 +68,9 @@ def parse_district(payload: dict[str, Any], district: int) -> list[Camera]:
         ):
             continue
         frequency = _float(static.get("currentImageUpdateFrequency"))
+        stream = str((cctv.get("imageData") or {}).get("streamingVideoURL") or "")
+        # Only Caltrans' own HLS host, and only playlists (never arbitrary URLs)
+        stream_url = stream if stream.startswith(STREAM_PREFIX) and stream.split("?")[0].endswith(".m3u8") else None
         cameras.append(
             Camera(
                 id=f"caltrans-d{district}-{cctv.get('index')}",
@@ -74,6 +81,7 @@ def parse_district(payload: dict[str, Any], district: int) -> list[Camera]:
                 route=(location.get("route") or None),
                 snapshot_url=url,
                 snapshot_minutes=int(frequency) if frequency else None,
+                stream_url=stream_url,
             )
         )
     return cameras

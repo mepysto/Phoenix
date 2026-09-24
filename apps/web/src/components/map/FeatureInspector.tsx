@@ -54,6 +54,7 @@ export function FeatureInspector() {
           direction={stringProp(p.direction)}
           source={stringProp(p.source)}
           snapshotMinutes={numberProp(p.snapshot_minutes)}
+          streamUrl={stringProp(p.stream_url)}
           onClose={close}
         />
       );

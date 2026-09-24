@@ -215,6 +215,9 @@ export const ko: Translations = {
     unavailable: "지금은 이미지를 불러올 수 없습니다",
     notRecorded: "공개 카메라이며 이미지는 기록되지 않습니다",
     approxView: "지도의 음영 부채꼴은 대략적인 촬영 방향일 뿐입니다",
+    liveVideo: "실시간 영상",
+    streamOffline: "스트림이 꺼져 있어 최신 이미지를 표시합니다",
+    liveDirect: "실시간 영상은 카메라 운영 기관에서 직접 받아오며, 운영 기관에 IP 주소가 전달됩니다",
   },
   telemetry: {
     altitude: "고도",
