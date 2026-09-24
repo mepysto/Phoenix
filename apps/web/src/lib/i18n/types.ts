@@ -1,3 +1,5 @@
+import type { ShipCategory } from "@/lib/telemetry";
+
 export interface Translations {
   common: {
     close: string;
@@ -205,5 +207,16 @@ export interface Translations {
     updates: string;
     unavailable: string;
     notRecorded: string;
+  };
+  telemetry: {
+    altitude: string;
+    onGround: string;
+    speed: string;
+    heading: string;
+    course: string;
+    lastSeen: string;
+    military: string;
+    position: string;
+    shipTypes: Record<ShipCategory, string>;
   };
 }

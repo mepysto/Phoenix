@@ -557,6 +557,7 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
     defaultOpacity: 1,
     // Positions are computed server-side from cached orbits; LEO moves ~230 km in 30 s
     refreshMs: 30_000,
+    inspectable: true,
     loadData: async () => {
       const response = await fetch(`${API_URL}/api/v1/tracks/satellites`);
       if (!response.ok) throw new Error(`Satellites ${response.status}`);
@@ -607,6 +608,7 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
     viewportDriven: true,
     // One upstream query covers at most 250 NM, about a zoom-5 view
     minZoom: 5,
+    inspectable: true,
     loadData: async ({ bbox }) => {
       const { lat, lng } = bboxCenter(bbox);
       const radiusNm = Math.min(250, Math.ceil(bboxRadiusKm(bbox) / 1.852));
@@ -674,6 +676,7 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
     refreshMs: 15_000,
     viewportDriven: true,
     minZoom: 4,
+    inspectable: true,
     loadData: async ({ bbox: [west, south, east, north] }) => {
       const params = new URLSearchParams({
         min_lng: String(west),
