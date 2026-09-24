@@ -36,12 +36,24 @@ UPSTREAMS = [
     ("EOX Sentinel-2 cloudless", "https://tiles.maps.eox.at/wmts/1.0.0/WMTSCapabilities.xml"),
     ("NASA GIBS", "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml"),
     ("RainViewer radar", "https://api.rainviewer.com/public/weather-maps.json"),
-    ("NASA FIRMS", "https://firms.modaps.eosdis.nasa.gov/data/active_fire/noaa-20-viirs-c2/csv/"),
+    # The file the ingester reads (probed with HEAD: it is several MB)
+    ("NASA FIRMS", "https://firms.modaps.eosdis.nasa.gov/data/active_fire/noaa-20-viirs-c2/csv/J1_VIIRS_C2_Global_24h.csv"),
     ("NOAA NHC tropical", "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer?f=json"),
+    ("CelesTrak orbits", "https://celestrak.org/NORAD/elements/gp.php?GROUP=resource&FORMAT=tle"),
+    ("adsb.lol aircraft", "https://api.adsb.lol/v2/point/0/0/1"),
+    ("Caltrans cameras", "https://cwwp2.dot.ca.gov/data/d4/cctv/cctvStatusD04.json"),
+    ("Radio Browser", "https://de1.api.radio-browser.info/json/stats"),
+    ("Valhalla routing", "https://valhalla1.openstreetmap.de/status"),
+    ("Submarine Cable Map", "https://www.submarinecablemap.com/api/v3/cable/cable-geo.json"),
+    # Launch Library 2 is not probed: its free tier allows 15 calls per hour
 ]
+USER_AGENT = "Phoenix-disaster-map/0.1 (+https://github.com/mepysto/Phoenix) doctor"
 
-# Server-side keys: which optional layers they unlock
-OPTIONAL_KEYS: dict[str, str] = {}
+# Server-side keys: what they unlock (keys are upgrades; everything else works without)
+OPTIONAL_KEYS: dict[str, str] = {
+    "ANTHROPIC_API_KEY": "the map assistant",
+    "AISSTREAM_API_KEY": "the ships layer (AISStream, free key)",
+}
 
 
 @dataclass
@@ -103,6 +115,14 @@ async def check_database() -> list[Result]:
                 if has_version_table
                 else None
             )
+            has_assets = (
+                await conn.execute(text("SELECT to_regclass('public.infrastructure_assets') IS NOT NULL"))
+            ).scalar()
+            asset_counts = (
+                dict((await conn.execute(text("SELECT kind, count(*) FROM infrastructure_assets GROUP BY kind"))).all())
+                if has_assets
+                else {}
+            )
     except Exception as e:  # noqa: BLE001 — report any connection problem
         return [Result(FAIL, "Database", f"cannot connect ({type(e).__name__}); is it running?")]
     finally:
@@ -119,6 +139,13 @@ async def check_database() -> list[Result]:
             "Migrations",
             "at head" if current == head else f"at {current or 'none'}, head is {head} — run `python -m scripts.migrate`",
         ),
+        Result(
+            OK if asset_counts else WARN,
+            "Infrastructure data",
+            ", ".join(f"{n:,} {kind.replace('_', ' ')}s" for kind, n in sorted(asset_counts.items()))
+            if asset_counts
+            else "dams and power plants not imported — run `python -m scripts.import_infrastructure`",
+        ),
     ]
 
 
@@ -127,7 +154,9 @@ async def check_upstreams() -> list[Result]:
 
         async def probe(name: str, url: str) -> Result:
             try:
-                response = await client.get(url, headers={"User-Agent": "phoenix-doctor"})
+                # HEAD for large files, GET otherwise (some APIs do not answer HEAD)
+                method = "HEAD" if url.endswith(".csv") else "GET"
+                response = await client.request(method, url, headers={"User-Agent": USER_AGENT})
             except httpx.HTTPError as e:
                 return Result(WARN, name, f"unreachable ({type(e).__name__})")
             status = OK if response.status_code < 400 else WARN
@@ -136,13 +165,26 @@ async def check_upstreams() -> list[Result]:
         return list(await asyncio.gather(*(probe(n, u) for n, u in UPSTREAMS)))
 
 
+def _key_is_set(key: str) -> bool:
+    """Environment or the API's .env (read through the app settings); never the value itself."""
+    if os.getenv(key):
+        return True
+    try:
+        from src.core.config import get_settings
+
+        return bool(getattr(get_settings(), key.lower(), None))
+    except Exception:  # noqa: BLE001 — settings may be incomplete on a fresh checkout
+        return False
+
+
 def check_keys() -> list[Result]:
     if not OPTIONAL_KEYS:
         return [Result(OK, "No server keys required", "every current layer is keyless")]
-    return [
-        Result(OK if os.getenv(key) else WARN, key, f"{'set' if os.getenv(key) else 'not set'} — unlocks {what}")
-        for key, what in OPTIONAL_KEYS.items()
-    ]
+    results = []
+    for key, what in OPTIONAL_KEYS.items():
+        present = _key_is_set(key)
+        results.append(Result(OK if present else WARN, key, f"{'set' if present else 'not set'} — unlocks {what}"))
+    return results
 
 
 async def run(offline: bool) -> int:

@@ -1,7 +1,11 @@
+"use client";
+
 import { AlertTriangle, Home } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function NotFound() {
+  const { t } = useTranslation();
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-950 px-4">
       <div className="text-center max-w-md">
@@ -13,10 +17,10 @@ export default function NotFound() {
 
         <h1 className="text-6xl font-bold text-white mb-2">404</h1>
         <h2 className="text-xl font-semibold text-white mb-2">
-          Page Not Found
+          {t.errors.notFoundTitle}
         </h2>
         <p className="text-gray-400 mb-6">
-          The page you&apos;re looking for doesn&apos;t exist or has been moved.
+          {t.errors.notFoundBody}
         </p>
 
         <Link
@@ -24,7 +28,7 @@ export default function NotFound() {
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
         >
           <Home className="h-4 w-4" />
-          Back to Home
+          {t.errors.home}
         </Link>
       </div>
     </div>

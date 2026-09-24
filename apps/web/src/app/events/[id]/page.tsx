@@ -21,18 +21,16 @@ import {
   Calendar,
   Globe,
 } from "lucide-react";
+import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
 import {
-  EVENT_TYPE_LABELS,
-  EVENT_TYPE_COLORS,
-  SEVERITY_COLORS,
-} from "@phoenix/shared/constants";
-import {
+  APIError,
   eventsAPI,
   type ApiDisasterEventDetail,
   type EventType,
   type SeverityLevel,
 } from "@/lib/api/client";
 import { Header } from "@/components/layout/Header";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const MiniMap = dynamic(() => import("@/components/map/MiniMap"), {
   ssr: false,
@@ -80,20 +78,22 @@ function InfoRow({
 export default function EventDetailPage() {
   const params = useParams();
   const eventId = params.id as string;
+  const { t, lang } = useTranslation();
 
   const [event, setEvent] = useState<ApiDisasterEventDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // HTTP status of a failed load (404 = no such event); the message is translated at render
+  const [errorStatus, setErrorStatus] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchEvent() {
       try {
         setIsLoading(true);
-        setError(null);
+        setErrorStatus(null);
         const data = await eventsAPI.get(eventId);
         setEvent(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load event");
+        setErrorStatus(err instanceof APIError ? err.statusCode : 0);
       } finally {
         setIsLoading(false);
       }
@@ -111,14 +111,14 @@ export default function EventDetailPage() {
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center">
             <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary-500 border-t-transparent mx-auto" />
-            <p className="text-gray-400">Loading event...</p>
+            <p className="text-gray-400">{t.detail.loading}</p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (error || !event) {
+  if (errorStatus !== null || !event) {
     return (
       <div className="flex min-h-screen flex-col bg-gray-950">
         <Header />
@@ -126,17 +126,17 @@ export default function EventDetailPage() {
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">
-              Event Not Found
+              {errorStatus === null || errorStatus === 404 ? t.detail.notFound : t.errors.errorTitle}
             </h2>
             <p className="text-gray-400 mb-4">
-              {error || "The requested event could not be found."}
+              {errorStatus === null || errorStatus === 404 ? t.detail.notFoundBody : t.errors.errorBody}
             </p>
             <Link
               href="/events"
               className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Events
+              {t.detail.back}
             </Link>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function EventDetailPage() {
             className="mb-6 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Events
+            {t.detail.back}
           </Link>
 
           <div className="grid gap-6 lg:grid-cols-3">
@@ -185,17 +185,17 @@ export default function EventDetailPage() {
                           color: typeColor,
                         }}
                       >
-                        {EVENT_TYPE_LABELS[event.type as EventType]}
+                        {t.sidebar[event.type as EventType] ?? event.type}
                       </span>
                       <span
                         className="rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
                         style={{ backgroundColor: severityColor }}
                       >
-                        {event.severity.toUpperCase()}
+                        {t.sidebar[event.severity as SeverityLevel] ?? event.severity}
                       </span>
                       {event.isActive && (
                         <span className="rounded-full bg-green-900/50 px-2.5 py-0.5 text-xs font-medium text-green-400">
-                          Active
+                          {t.detail.active}
                         </span>
                       )}
                     </div>
@@ -218,7 +218,7 @@ export default function EventDetailPage() {
                     <MiniMap lat={position.lat} lng={position.lng} />
                   ) : (
                     <div className="flex h-full items-center justify-center text-sm text-gray-500">
-                      Location unavailable
+                      {t.detail.locationUnavailable}
                     </div>
                   )}
                 </div>
@@ -227,7 +227,7 @@ export default function EventDetailPage() {
               {event.sources && event.sources.length > 0 && (
                 <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
                   <h2 className="text-lg font-semibold text-white mb-4">
-                    Data Sources
+                    {t.detail.dataSources}
                   </h2>
                   <div className="space-y-3">
                     {event.sources.map((source) => (
@@ -256,12 +256,12 @@ export default function EventDetailPage() {
             <div className="space-y-6">
               <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">
-                  Event Details
+                  {t.detail.details}
                 </h2>
                 <div>
                   <InfoRow
                     icon={<MapPin className="h-4 w-4" />}
-                    label="Location"
+                    label={t.detail.location}
                     value={
                       <>
                         {event.location.country && (
@@ -273,50 +273,36 @@ export default function EventDetailPage() {
                       </>
                     }
                   />
-                  {event.affectedPopulation && (
+                  {event.affectedPopulation != null && event.affectedPopulation > 0 && (
                     <InfoRow
                       icon={<Users className="h-4 w-4" />}
-                      label="Affected Population"
-                      value={event.affectedPopulation.toLocaleString()}
+                      label={t.detail.affectedPopulation}
+                      value={event.affectedPopulation.toLocaleString(lang)}
                     />
                   )}
                   <InfoRow
                     icon={<Calendar className="h-4 w-4" />}
-                    label="Start Date"
-                    value={new Date(event.startDate).toLocaleDateString(
-                      "en-US",
-                      {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      },
-                    )}
+                    label={t.detail.startDate}
+                    value={new Date(event.startDate).toLocaleDateString(lang, { year: "numeric", month: "long", day: "numeric" })}
                   />
                   {event.endDate && (
                     <InfoRow
                       icon={<Calendar className="h-4 w-4" />}
-                      label="End Date"
-                      value={new Date(event.endDate).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        },
-                      )}
+                      label={t.detail.endDate}
+                      value={new Date(event.endDate).toLocaleDateString(lang, { year: "numeric", month: "long", day: "numeric" })}
                     />
                   )}
                   <InfoRow
                     icon={<Clock className="h-4 w-4" />}
-                    label="Last Updated"
-                    value={new Date(event.updatedAt).toLocaleString()}
+                    label={t.detail.lastUpdated}
+                    value={new Date(event.updatedAt).toLocaleString(lang)}
                   />
                 </div>
               </div>
 
               <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">
-                  Actions
+                  {t.detail.actions}
                 </h2>
                 <div className="space-y-3">
                   <Link
@@ -324,7 +310,7 @@ export default function EventDetailPage() {
                     className="flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors w-full"
                   >
                     <Globe className="h-4 w-4" />
-                    View on Globe
+                    {t.common.viewOnMap}
                   </Link>
                 </div>
               </div>

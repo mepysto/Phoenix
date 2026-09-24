@@ -176,7 +176,10 @@ function applyDisplay(map: MapLibreMap, state: OverlayState, visible: boolean, o
     map.setLayoutProperty(layerId, "visibility", visible ? "visible" : "none");
     const property = OPACITY_PROPERTY[layer.type as LayerSpecification["type"]];
     if (property) {
-      map.setPaintProperty(layerId, property, (state.baseOpacity.get(layerId) ?? 1) * opacity);
+      const value = (state.baseOpacity.get(layerId) ?? 1) * opacity;
+      map.setPaintProperty(layerId, property, value);
+      // Outlines fade too (hollow markers such as dams are mostly outline)
+      if (layer.type === "circle") map.setPaintProperty(layerId, "circle-stroke-opacity", value);
     }
   }
 }
