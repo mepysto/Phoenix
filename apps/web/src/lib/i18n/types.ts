@@ -54,6 +54,7 @@ export interface Translations {
     powerPlants: string;
     dams: string;
     hospitals: string;
+    satellites: string;
     opacity: string;
     // Footer
     dataSource: string;
@@ -185,5 +186,11 @@ export interface Translations {
       quakes: string;
       brief: string;
     };
+  };
+  satellites: {
+    nextPasses: string;
+    none: string;
+    daylight: string;
+    night: string;
   };
 }

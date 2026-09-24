@@ -53,6 +53,7 @@ export const zh: Translations = {
     powerPlants: "发电厂 (WRI)",
     dams: "水坝 (Global Dam Watch)",
     hospitals: "医院 (OSM)",
+    satellites: "对地观测卫星",
     opacity: "透明度",
     dataSource: "数据来源: GDACS, Copernicus EMS",
     eventsCount: "个事件",
@@ -176,5 +177,11 @@ export const zh: Translations = {
       quakes: "显示过去一周的强烈地震",
       brief: "播放最严重事件的简报",
     },
+  },
+  satellites: {
+    nextPasses: "下次成像卫星过境（24 小时）",
+    none: "未来 24 小时内没有 30° 以上的过境",
+    daylight: "白天：可光学成像",
+    night: "夜间：仅雷达成像",
   },
 };

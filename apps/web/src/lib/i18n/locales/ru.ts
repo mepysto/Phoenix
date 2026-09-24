@@ -53,6 +53,7 @@ export const ru: Translations = {
     powerPlants: "Электростанции (WRI)",
     dams: "Плотины (Global Dam Watch)",
     hospitals: "Больницы (OSM)",
+    satellites: "Спутники наблюдения Земли",
     opacity: "Прозрачность",
     dataSource: "Данные: GDACS, Copernicus EMS",
     eventsCount: "событий",
@@ -179,5 +180,11 @@ export const ru: Translations = {
       quakes: "Покажи сильные землетрясения за последнюю неделю",
       brief: "Запусти сводку о самом серьёзном событии",
     },
+  },
+  satellites: {
+    nextPasses: "Ближайшие пролёты спутников съёмки (24 ч)",
+    none: "Нет пролётов выше 30° в ближайшие 24 часа",
+    daylight: "День: возможна оптическая съёмка",
+    night: "Ночь: только радарная съёмка",
   },
 };

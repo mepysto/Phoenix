@@ -25,6 +25,7 @@ certifi==2026.7.22
     #   httpx
     #   pyogrio
     #   pyproj
+    #   skyfield
 click==8.5.0
     # via uvicorn
 defusedxml==0.7.1
@@ -67,6 +68,8 @@ idna==3.20
     #   httpx2
 jiter==0.17.0
     # via anthropic
+jplephem==2.24
+    # via skyfield
 mako==1.4.3
     # via alembic
 markupsafe==3.0.3
@@ -74,9 +77,11 @@ markupsafe==3.0.3
 numpy==2.5.3
     # via
     #   geopandas
+    #   jplephem
     #   pandas
     #   pyogrio
     #   shapely
+    #   skyfield
 packaging==26.3
     # via
     #   geoalchemy2
@@ -112,12 +117,16 @@ pyyaml==6.0.3
     # via uvicorn
 redis==8.1.0
     # via phoenix-api (pyproject.toml)
+sgp4==2.27
+    # via skyfield
 shapely==2.1.2
     # via
     #   phoenix-api (pyproject.toml)
     #   geopandas
 six==1.17.0
     # via python-dateutil
+skyfield==1.55
+    # via phoenix-api (pyproject.toml)
 sniffio==1.3.1
     # via anthropic
 sqlalchemy==2.0.54

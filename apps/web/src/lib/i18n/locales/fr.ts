@@ -53,6 +53,7 @@ export const fr: Translations = {
     powerPlants: "Centrales électriques (WRI)",
     dams: "Barrages (Global Dam Watch)",
     hospitals: "Hôpitaux (OSM)",
+    satellites: "Satellites d'observation de la Terre",
     opacity: "Opacité",
     dataSource: "Données: GDACS, Copernicus EMS",
     eventsCount: "événements",
@@ -181,5 +182,11 @@ export const fr: Translations = {
       quakes: "Montre les forts séismes de la semaine passée",
       brief: "Lance le brief de l'événement le plus grave",
     },
+  },
+  satellites: {
+    nextPasses: "Prochains passages de satellites d'imagerie (24 h)",
+    none: "Aucun passage au-dessus de 30° dans les 24 prochaines heures",
+    daylight: "De jour : imagerie optique possible",
+    night: "De nuit : imagerie radar uniquement",
   },
 };
