@@ -107,5 +107,15 @@ export const ko: Translations = {
     dark: "다크",
     activeEvents: "활성 이벤트",
     initializingGlobe: "지구본 초기화 중...",
+    live: "실시간",
+    reconnecting: "재연결 중…",
+  },
+  sources: {
+    title: "데이터 소스",
+    fresh: "최신",
+    stale: "지연됨",
+    failing: "오류",
+    never: "데이터 없음",
+    summary: "{name}: {status}",
   },
 };

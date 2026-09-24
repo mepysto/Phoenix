@@ -109,5 +109,15 @@ export const es: Translations = {
     dark: "Oscuro",
     activeEvents: "Eventos activos",
     initializingGlobe: "Inicializando globo...",
+    live: "En vivo",
+    reconnecting: "Reconectando…",
+  },
+  sources: {
+    title: "Fuentes de datos",
+    fresh: "Actualizado",
+    stale: "Retrasado",
+    failing: "Con fallos",
+    never: "Sin datos aún",
+    summary: "{name}: {status}",
   },
 };

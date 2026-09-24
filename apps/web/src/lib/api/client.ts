@@ -1,7 +1,7 @@
 import createClient, { type Middleware } from "openapi-fetch";
 import type { paths, components } from "./schema.d.ts";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:28000";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:28000";
 
 type SnakeToCamel<S extends string> = S extends `${infer T}_${infer U}`
   ? `${T}${Capitalize<SnakeToCamel<U>>}`
@@ -225,6 +225,19 @@ export const geodataAPI = {
     }
 
     return data as unknown as ApiGeoJSONFeatureCollection;
+  },
+};
+
+export type ApiSourceStatus = CamelCaseKeys<components["schemas"]["SourceStatus"]>;
+
+export const sourcesAPI = {
+  list: async (): Promise<ApiSourceStatus[]> => {
+    const { data, response } = await client.GET("/api/v1/sources");
+    // No error responses are declared for this endpoint, so check the status
+    if (!response.ok) {
+      throw new APIError(response.status, "Failed to fetch source status");
+    }
+    return data as unknown as ApiSourceStatus[];
   },
 };
 

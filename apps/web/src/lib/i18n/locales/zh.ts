@@ -106,5 +106,15 @@ export const zh: Translations = {
     dark: "暗色",
     activeEvents: "活动事件",
     initializingGlobe: "正在初始化地球...",
+    live: "实时",
+    reconnecting: "正在重新连接…",
+  },
+  sources: {
+    title: "数据来源",
+    fresh: "最新",
+    stale: "延迟",
+    failing: "故障",
+    never: "暂无数据",
+    summary: "{name}：{status}",
   },
 };

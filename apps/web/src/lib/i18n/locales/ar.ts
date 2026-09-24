@@ -106,5 +106,15 @@ export const ar: Translations = {
     dark: "داكن",
     activeEvents: "الأحداث النشطة",
     initializingGlobe: "جاري تهيئة الكرة الأرضية...",
+    live: "مباشر",
+    reconnecting: "جارٍ إعادة الاتصال…",
+  },
+  sources: {
+    title: "مصادر البيانات",
+    fresh: "محدّث",
+    stale: "متأخر",
+    failing: "متعطل",
+    never: "لا توجد بيانات بعد",
+    summary: "{name}: {status}",
   },
 };

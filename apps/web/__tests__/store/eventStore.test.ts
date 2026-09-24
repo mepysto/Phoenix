@@ -3,7 +3,16 @@ import { act } from "@testing-library/react";
 
 // Mock the API client before importing the store
 vi.mock("@/lib/api/client", () => ({
+  APIError: class APIError extends Error {
+    constructor(
+      public statusCode: number,
+      message: string,
+    ) {
+      super(message);
+    }
+  },
   eventsAPI: {
+    get: vi.fn(),
     list: vi.fn().mockResolvedValue({
       data: [
         {
@@ -30,7 +39,7 @@ vi.mock("@/lib/api/client", () => ({
 }));
 
 // Import the store after mocking
-import { eventsAPI } from "@/lib/api/client";
+import { APIError, eventsAPI } from "@/lib/api/client";
 import {
   ALL_EVENT_TYPES,
   ALL_SEVERITIES,
@@ -264,6 +273,73 @@ describe("eventStore", () => {
       });
 
       expect(useEventStore.getState().events.map((e) => e.id)).toEqual(["new"]);
+    });
+  });
+
+  describe("applyEventChanges (live updates)", () => {
+    const ev = (id: string, over: Record<string, unknown> = {}) => ({
+      id,
+      type: "flood",
+      severity: "low",
+      isActive: true,
+      startDate: "2026-09-01T00:00:00Z",
+      title: id,
+      ...over,
+    });
+
+    it("inserts new events, updates changed ones and keeps newest first", async () => {
+      useEventStore.setState({ events: [ev("old", { title: "before" })] as never });
+      vi.mocked(eventsAPI.get).mockImplementation(async (id: string) =>
+        (id === "old"
+          ? ev("old", { title: "after" })
+          : ev("new", { startDate: "2026-09-02T00:00:00Z" })) as never,
+      );
+
+      await act(async () => {
+        await useEventStore.getState().applyEventChanges(["old", "new"]);
+      });
+
+      const events = useEventStore.getState().events;
+      expect(events.map((e) => e.id)).toEqual(["new", "old"]);
+      expect(events[1]!.title).toBe("after");
+      expect(eventsAPI.list).not.toHaveBeenCalled();
+    });
+
+    it("removes events that no longer match the visible filters or were deleted", async () => {
+      useEventStore.setState({
+        events: [ev("a"), ev("gone")] as never,
+        visibleSeverities: new Set(["low"]) as never,
+      });
+      vi.mocked(eventsAPI.get).mockImplementation(async (id: string) => {
+        if (id === "gone") throw new APIError(404, "not found");
+        return ev("a", { severity: "critical" }) as never; // now filtered out
+      });
+
+      await act(async () => {
+        await useEventStore.getState().applyEventChanges(["a", "gone"]);
+      });
+
+      expect(useEventStore.getState().events).toEqual([]);
+    });
+
+    it("keeps an event when fetching it fails for reasons other than 404", async () => {
+      useEventStore.setState({ events: [ev("a")] as never });
+      vi.mocked(eventsAPI.get).mockRejectedValue(new APIError(503, "unavailable"));
+
+      await act(async () => {
+        await useEventStore.getState().applyEventChanges(["a"]);
+      });
+
+      expect(useEventStore.getState().events.map((e) => e.id)).toEqual(["a"]);
+    });
+
+    it("refetches the list for large batches instead of one request per event", async () => {
+      const ids = Array.from({ length: 21 }, (_, i) => `e${i}`);
+      await act(async () => {
+        await useEventStore.getState().applyEventChanges(ids);
+      });
+      expect(eventsAPI.get).not.toHaveBeenCalled();
+      expect(eventsAPI.list).toHaveBeenCalled();
     });
   });
 });

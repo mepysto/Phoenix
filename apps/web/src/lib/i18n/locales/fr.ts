@@ -111,5 +111,15 @@ export const fr: Translations = {
     dark: "Sombre",
     activeEvents: "Événements actifs",
     initializingGlobe: "Initialisation du globe...",
+    live: "En direct",
+    reconnecting: "Reconnexion…",
+  },
+  sources: {
+    title: "Sources de données",
+    fresh: "À jour",
+    stale: "En retard",
+    failing: "En échec",
+    never: "Pas encore de données",
+    summary: "{name} : {status}",
   },
 };

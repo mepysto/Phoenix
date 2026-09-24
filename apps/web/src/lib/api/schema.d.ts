@@ -270,6 +270,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Source Status
+         * @description Freshness of every active data source, alphabetically.
+         */
+        get: operations["list_source_status_api_v1_sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/status": {
         parameters: {
             query?: never;
@@ -751,6 +771,28 @@ export interface components {
          * @enum {string}
          */
         SeverityLevel: "low" | "medium" | "high" | "critical";
+        /** SourceStatus */
+        SourceStatus: {
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /** Is Realtime */
+            is_realtime: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "fresh" | "stale" | "failing" | "never";
+            /** Last Sync */
+            last_sync: string | null;
+            /** Sync Interval Minutes */
+            sync_interval_minutes: number | null;
+            /** Consecutive Failures */
+            consecutive_failures: number;
+            /** Last Error */
+            last_error: string | null;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -1131,6 +1173,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_source_status_api_v1_sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceStatus"][];
                 };
             };
         };

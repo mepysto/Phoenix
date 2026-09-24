@@ -2,6 +2,7 @@ import { create, StateCreator } from "zustand";
 import { devtools, DevtoolsOptions } from "zustand/middleware";
 import { EVENT_TYPES } from "@phoenix/shared/constants";
 import {
+  APIError,
   eventsAPI,
   type ApiDisasterEvent,
   type EventFilter,
@@ -42,6 +43,8 @@ interface EventActions {
   toggleEventType: (type: EventType) => void;
   toggleSeverity: (severity: SeverityLevel) => void;
   clearFilters: () => void;
+  /** Apply live change notifications (ids from the WebSocket stream) */
+  applyEventChanges: (eventIds: string[]) => Promise<void>;
 }
 
 type EventStore = EventState & EventActions;
@@ -51,6 +54,20 @@ const PAGE_SIZE = 200;
 /** Safety cap on events held in memory for the map */
 export const MAX_EVENTS = 2000;
 let latestRequestId = 0;
+/** Above this many changed ids, refetch the list instead of each event */
+const MAX_INDIVIDUAL_FETCHES = 20;
+
+function matchesVisibleFilters(
+  event: ApiDisasterEvent,
+  state: Pick<EventState, "visibleTypes" | "visibleSeverities" | "filter">,
+): boolean {
+  if (!state.visibleTypes.has(event.type as EventType)) return false;
+  if (!state.visibleSeverities.has(event.severity as SeverityLevel)) return false;
+  if (state.filter.isActive !== undefined && event.isActive !== state.filter.isActive) {
+    return false;
+  }
+  return true;
+}
 
 const initialState: EventState = {
   events: [],
@@ -159,6 +176,35 @@ const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
       return { visibleSeverities: newVisibleSeverities };
     });
     get().fetchEvents();
+  },
+
+  applyEventChanges: async (eventIds) => {
+    const { filter } = get();
+    // Large batches (a full sync) or an active text search: one refresh is
+    // cheaper and keeps server-side filtering authoritative.
+    if (eventIds.length > MAX_INDIVIDUAL_FETCHES || filter.q) {
+      await get().fetchEvents();
+      return;
+    }
+    const results = await Promise.allSettled(eventIds.map((id) => eventsAPI.get(id)));
+    set((state) => {
+      const byId = new Map(state.events.map((e) => [e.id, e]));
+      results.forEach((result, i) => {
+        const id = eventIds[i]!;
+        if (result.status === "rejected") {
+          // 404: deleted upstream; other errors: keep what we have
+          if (result.reason instanceof APIError && result.reason.statusCode === 404) byId.delete(id);
+          return;
+        }
+        const event = result.value;
+        if (matchesVisibleFilters(event, state)) byId.set(id, event);
+        else byId.delete(id); // e.g. severity changed out of the visible set
+      });
+      const events = [...byId.values()].sort(
+        (a, b) => Date.parse(b.startDate) - Date.parse(a.startDate),
+      );
+      return { events };
+    });
   },
 
   clearFilters: () => {
