@@ -53,6 +53,7 @@ export const ko: Translations = {
     powerPlants: "발전소 (WRI)",
     dams: "댐 (Global Dam Watch)",
     hospitals: "병원 (OSM)",
+    satellites: "지구관측 위성",
     opacity: "투명도",
     dataSource: "데이터: GDACS, Copernicus EMS",
     eventsCount: "개 이벤트",
@@ -177,5 +178,11 @@ export const ko: Translations = {
       quakes: "지난 일주일간의 강한 지진을 보여줘",
       brief: "가장 심각한 재난의 브리프를 재생해줘",
     },
+  },
+  satellites: {
+    nextPasses: "다음 관측 위성 통과 (24시간)",
+    none: "향후 24시간 내 30° 이상 통과 없음",
+    daylight: "주간: 광학 촬영 가능",
+    night: "야간: 레이더 촬영만 가능",
   },
 };

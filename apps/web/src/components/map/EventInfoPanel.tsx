@@ -7,6 +7,7 @@ import { briefFromEvent } from "@/lib/brief";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useBriefStore } from "@/store/briefStore";
+import { SatellitePasses } from "./SatellitePasses";
 
 interface EventInfoPanelProps {
   event: ApiDisasterEvent;
@@ -19,6 +20,7 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
   const startBrief = useBriefStore((s) => s.start);
   const severity = event.severity as SeverityLevel;
   const brief = briefFromEvent(event, t.brief.captions);
+  const position = getEventPosition(event);
 
   return (
     // right-14 keeps the zoom/compass controls (top-right) clickable
@@ -34,7 +36,7 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
         <div className="flex justify-between">
           <span className="text-gray-500">{t.events.location}</span>
           <span className="text-gray-300">
-            {event.location.country || formatPosition(getEventPosition(event))}
+            {event.location.country || formatPosition(position)}
           </span>
         </div>
         <div className="flex justify-between">
@@ -53,6 +55,7 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
           </div>
         )}
       </div>
+      {position && <SatellitePasses lat={position.lat} lng={position.lng} />}
       {brief && (
         <button
           type="button"

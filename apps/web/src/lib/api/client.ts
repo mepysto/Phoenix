@@ -343,6 +343,21 @@ export const agentAPI = {
   },
 };
 
+export type ApiSatellitePass = CamelCaseKeys<components["schemas"]["SatellitePass"]>;
+
+/** Moving things worth watching (M5) */
+export const tracksAPI = {
+  /** Earth-observation satellite passes over a place, soonest first */
+  satellitePasses: async (lat: number, lng: number, hours = 24, signal?: AbortSignal): Promise<ApiSatellitePass[]> => {
+    const { data, response } = await client.GET("/api/v1/tracks/satellites/passes", {
+      params: { query: { lat, lng, hours } },
+      signal,
+    });
+    if (!response.ok) throw new APIError(response.status, "Failed to fetch satellite passes");
+    return (data as unknown as { passes: ApiSatellitePass[] }).passes;
+  },
+};
+
 export const healthAPI = {
   check: async (): Promise<{ status: string }> => {
     const { data, error } = await client.GET("/health");

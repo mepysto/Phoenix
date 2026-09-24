@@ -11,7 +11,7 @@ import type { ExpressionSpecification, LayerSpecification } from "maplibre-gl";
 import { API_URL } from "@/lib/api/client";
 import { COMMERCIAL_DEPLOYMENT, LABEL_FONT } from "@/lib/map/basemaps";
 
-export type LayerCategory = "weather" | "satellite" | "hazards" | "infrastructure";
+export type LayerCategory = "weather" | "satellite" | "hazards" | "infrastructure" | "monitoring";
 
 /** keyless: works for everyone; free_key/metered: needs a server-side key */
 export type LayerAuth = "keyless" | "free_key" | "metered";
@@ -535,6 +535,55 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
           "text-anchor": "top",
         },
         paint: { "text-color": "#fecaca", "text-halo-color": "#111827", "text-halo-width": 1.2 },
+      } as LayerSpecification,
+    ],
+  },
+  {
+    id: "satellites",
+    kind: "geojson",
+    category: "monitoring",
+    auth: "keyless",
+    source: {
+      name: "CelesTrak",
+      url: "https://celestrak.org/NORAD/elements/",
+      // No published licence; GP data originates from the US Space Force
+      license: "No explicit licence (CelesTrak usage policy)",
+      commercialUse: false,
+      attribution: 'Satellite orbits: <a href="https://celestrak.org">CelesTrak</a>',
+    },
+    defaultOpacity: 1,
+    // Positions are computed server-side from cached orbits; LEO moves ~230 km in 30 s
+    refreshMs: 30_000,
+    loadData: async () => {
+      const response = await fetch(`${API_URL}/api/v1/tracks/satellites`);
+      if (!response.ok) throw new Error(`Satellites ${response.status}`);
+      return (await response.json()) as GeoJSON.FeatureCollection;
+    },
+    styleLayers: (sourceId) => [
+      {
+        id: `${sourceId}-points`,
+        type: "circle",
+        source: sourceId,
+        paint: {
+          "circle-color": "#38bdf8",
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 2.5, 6, 5],
+          "circle-stroke-color": "#0c4a6e",
+          "circle-stroke-width": 1,
+        },
+      } as LayerSpecification,
+      {
+        id: `${sourceId}-labels`,
+        type: "symbol",
+        source: sourceId,
+        minzoom: 3,
+        layout: {
+          "text-field": ["get", "name"],
+          "text-font": LABEL_FONT,
+          "text-size": 10,
+          "text-offset": [0, 1],
+          "text-anchor": "top",
+        },
+        paint: { "text-color": "#bae6fd", "text-halo-color": "#0f172a", "text-halo-width": 1.2 },
       } as LayerSpecification,
     ],
   },

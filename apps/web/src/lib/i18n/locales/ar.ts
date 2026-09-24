@@ -53,6 +53,7 @@ export const ar: Translations = {
     powerPlants: "محطات الطاقة (WRI)",
     dams: "السدود (Global Dam Watch)",
     hospitals: "المستشفيات (OSM)",
+    satellites: "أقمار رصد الأرض",
     opacity: "الشفافية",
     dataSource: "البيانات: GDACS, Copernicus EMS",
     eventsCount: "أحداث",
@@ -176,5 +177,11 @@ export const ar: Translations = {
       quakes: "اعرض الزلازل القوية خلال الأسبوع الماضي",
       brief: "شغّل موجز الحدث الأشد خطورة",
     },
+  },
+  satellites: {
+    nextPasses: "مرور أقمار التصوير القادمة (24 ساعة)",
+    none: "لا يوجد مرور فوق 30° خلال 24 ساعة القادمة",
+    daylight: "نهارًا: التصوير البصري ممكن",
+    night: "ليلًا: التصوير الراداري فقط",
   },
 };
