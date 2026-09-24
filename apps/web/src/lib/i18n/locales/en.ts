@@ -47,6 +47,8 @@ export const en: Translations = {
     radar: "Precipitation Radar",
     cloudsInfrared: "Infrared Clouds (GOES-East)",
     nightLights: "Night Lights (VIIRS)",
+    cyclones: "Tropical Cyclones (NHC)",
+    shakemaps: "Earthquake Shaking (USGS ShakeMap)",
     opacity: "Opacity",
     dataSource: "Data: GDACS, Copernicus EMS",
     eventsCount: "events",

@@ -4,10 +4,11 @@ import {
   availableLayers,
   LAYER_DEFINITIONS,
   LAYER_DEFINITIONS_BY_ID,
+  type RasterLayerDefinition,
 } from "@/lib/layers/registry";
 
-const radar = LAYER_DEFINITIONS_BY_ID.get("radar")!;
-const clouds = LAYER_DEFINITIONS_BY_ID.get("clouds-infrared")!;
+const radar = LAYER_DEFINITIONS_BY_ID.get("radar") as RasterLayerDefinition;
+const clouds = LAYER_DEFINITIONS_BY_ID.get("clouds-infrared") as RasterLayerDefinition;
 
 describe("layer registry", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -33,6 +34,25 @@ describe("layer registry", () => {
 
   it("radar attribution links to RainViewer as its terms require", () => {
     expect(radar.source.attribution).toContain('href="https://www.rainviewer.com/"');
+  });
+
+  it("cyclone layer draws cone, tracks, positions and a label for the current position", () => {
+    const cyclones = LAYER_DEFINITIONS_BY_ID.get("cyclones")!;
+    expect(cyclones.kind).toBe("geojson");
+    if (cyclones.kind !== "geojson") return;
+    const layers = cyclones.styleLayers("overlay-cyclones");
+    expect(layers.map((l) => l.type)).toEqual(["fill", "line", "line", "line", "circle", "symbol"]);
+    expect(layers.every((l) => "source" in l && l.source === "overlay-cyclones")).toBe(true);
+    expect(new Set(layers.map((l) => l.id)).size).toBe(layers.length);
+  });
+
+  it("ShakeMap labels only whole-intensity contours", () => {
+    const shakemaps = LAYER_DEFINITIONS_BY_ID.get("shakemaps")!;
+    if (shakemaps.kind !== "geojson") throw new Error("expected geojson layer");
+    const [lines, labels] = shakemaps.styleLayers("overlay-shakemaps");
+    expect(lines!.type).toBe("line");
+    expect(labels!.type).toBe("symbol");
+    expect((labels as { filter?: unknown }).filter).toEqual(["==", ["%", ["get", "mmi"], 1], 0]);
   });
 
   it("radar uses the newest RainViewer frame", async () => {
