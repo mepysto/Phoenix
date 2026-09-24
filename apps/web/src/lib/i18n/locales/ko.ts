@@ -47,6 +47,7 @@ export const ko: Translations = {
     radar: "강수 레이더",
     cloudsInfrared: "적외선 구름 (GOES-East)",
     nightLights: "야간 조명 (VIIRS)",
+    cyclones: "열대저기압 (NHC)",
     opacity: "투명도",
     dataSource: "데이터: GDACS, Copernicus EMS",
     eventsCount: "개 이벤트",

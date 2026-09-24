@@ -47,6 +47,7 @@ export const fr: Translations = {
     radar: "Radar de précipitations",
     cloudsInfrared: "Nuages infrarouges (GOES-East)",
     nightLights: "Lumières nocturnes (VIIRS)",
+    cyclones: "Cyclones tropicaux (NHC)",
     opacity: "Opacité",
     dataSource: "Données: GDACS, Copernicus EMS",
     eventsCount: "événements",

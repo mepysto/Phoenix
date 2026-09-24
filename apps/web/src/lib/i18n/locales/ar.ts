@@ -47,6 +47,7 @@ export const ar: Translations = {
     radar: "رادار الأمطار",
     cloudsInfrared: "السحب بالأشعة تحت الحمراء (GOES-East)",
     nightLights: "الأضواء الليلية (VIIRS)",
+    cyclones: "الأعاصير المدارية (NHC)",
     opacity: "الشفافية",
     dataSource: "البيانات: GDACS, Copernicus EMS",
     eventsCount: "أحداث",

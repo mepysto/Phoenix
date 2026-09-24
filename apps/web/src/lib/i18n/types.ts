@@ -48,6 +48,7 @@ export interface Translations {
     radar: string;
     cloudsInfrared: string;
     nightLights: string;
+    cyclones: string;
     opacity: string;
     // Footer
     dataSource: string;

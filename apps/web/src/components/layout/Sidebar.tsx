@@ -50,6 +50,7 @@ const LAYER_ID_TO_TRANSLATION_KEY: Record<string, string> = {
   radar: "radar",
   "clouds-infrared": "cloudsInfrared",
   "night-lights": "nightLights",
+  cyclones: "cyclones",
 };
 
 interface LayerItemProps {

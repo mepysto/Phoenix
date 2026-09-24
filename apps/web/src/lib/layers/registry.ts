@@ -7,7 +7,9 @@
  * the data-source attribution are all driven from this list.
  */
 
-import { COMMERCIAL_DEPLOYMENT } from "@/lib/map/basemaps";
+import type { LayerSpecification } from "maplibre-gl";
+import { API_URL } from "@/lib/api/client";
+import { COMMERCIAL_DEPLOYMENT, LABEL_FONT } from "@/lib/map/basemaps";
 
 export type LayerCategory = "weather" | "satellite" | "hazards" | "infrastructure";
 
@@ -43,7 +45,103 @@ export interface RasterLayerDefinition {
   resolveTiles: (now: Date) => Promise<ResolvedTiles>;
 }
 
-export type LayerDefinition = RasterLayerDefinition;
+export interface GeoJsonLayerDefinition {
+  id: string;
+  kind: "geojson";
+  category: LayerCategory;
+  auth: LayerAuth;
+  source: LayerSourceInfo;
+  defaultOpacity: number;
+  refreshMs?: number;
+  loadData: () => Promise<GeoJSON.FeatureCollection>;
+  /** MapLibre layers drawing the source, bottom to top */
+  styleLayers: (sourceId: string) => LayerSpecification[];
+}
+
+export type LayerDefinition = RasterLayerDefinition | GeoJsonLayerDefinition;
+
+/** Saffir-Simpson colours (TD/TS, then categories 1-5) */
+const SSHS_COLOR: unknown[] = [
+  "match",
+  ["coalesce", ["get", "saffir_simpson"], 0],
+  1, "#ffffcc",
+  2, "#ffe775",
+  3, "#ffc140",
+  4, "#ff8f20",
+  5, "#ff6060",
+  /* TS/TD */ "#5ebaff",
+];
+const kind = (value: string) => ["==", ["get", "kind"], value];
+const currentPosition = ["all", kind("position"), ["==", ["coalesce", ["get", "tau_hours"], 0], 0]];
+
+function cycloneStyleLayers(sourceId: string): LayerSpecification[] {
+  return [
+    {
+      id: `${sourceId}-cone`,
+      type: "fill",
+      source: sourceId,
+      filter: kind("cone"),
+      paint: { "fill-color": "#ffffff", "fill-opacity": 0.12 },
+    },
+    {
+      id: `${sourceId}-cone-outline`,
+      type: "line",
+      source: sourceId,
+      filter: kind("cone"),
+      paint: { "line-color": "#ffffff", "line-opacity": 0.6, "line-width": 1 },
+    },
+    {
+      id: `${sourceId}-past`,
+      type: "line",
+      source: sourceId,
+      filter: kind("past_track"),
+      paint: { "line-color": "#9ca3af", "line-width": 1.5, "line-dasharray": [2, 2] },
+    },
+    {
+      id: `${sourceId}-track`,
+      type: "line",
+      source: sourceId,
+      filter: kind("track"),
+      paint: { "line-color": "#ffffff", "line-width": 2 },
+    },
+    {
+      id: `${sourceId}-points`,
+      type: "circle",
+      source: sourceId,
+      filter: kind("position"),
+      paint: {
+        "circle-color": SSHS_COLOR,
+        "circle-radius": ["case", currentPosition, 8, 4],
+        "circle-stroke-color": "#111827",
+        "circle-stroke-width": 1,
+      },
+    },
+    {
+      id: `${sourceId}-label`,
+      type: "symbol",
+      source: sourceId,
+      filter: currentPosition,
+      layout: {
+        "text-field": [
+          "concat",
+          ["get", "storm_name"],
+          [
+            "case",
+            [">", ["coalesce", ["get", "saffir_simpson"], 0], 0],
+            ["concat", " · Cat ", ["to-string", ["get", "saffir_simpson"]]],
+            "",
+          ],
+          ["case", ["has", "max_wind_kt"], ["concat", " · ", ["to-string", ["get", "max_wind_kt"]], " kt"], ""],
+        ],
+        "text-font": LABEL_FONT,
+        "text-size": 12,
+        "text-offset": [0, 1.4],
+        "text-anchor": "top",
+      },
+      paint: { "text-color": "#ffffff", "text-halo-color": "#111827", "text-halo-width": 1.5 },
+    },
+  ] as LayerSpecification[];
+}
 
 const GIBS = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best";
 const GIBS_SOURCE = {
@@ -122,6 +220,28 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
       ],
       maxzoom: 8,
     }),
+  },
+  {
+    id: "cyclones",
+    kind: "geojson",
+    category: "hazards",
+    auth: "keyless",
+    source: {
+      name: "NOAA National Hurricane Center",
+      url: "https://www.nhc.noaa.gov/gis/",
+      license: "U.S. Government public domain",
+      commercialUse: true,
+      attribution: "Tropical cyclones: NOAA NHC",
+    },
+    defaultOpacity: 1,
+    refreshMs: TEN_MINUTES,
+    loadData: async () => {
+      // Aggregated and cached by the API (NHC splits storms across 15 layers)
+      const response = await fetch(`${API_URL}/api/v1/hazards/cyclones`);
+      if (!response.ok) throw new Error(`Cyclones ${response.status}`);
+      return (await response.json()) as GeoJSON.FeatureCollection;
+    },
+    styleLayers: cycloneStyleLayers,
   },
 ];
 

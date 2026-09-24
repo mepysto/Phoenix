@@ -4,10 +4,11 @@ import {
   availableLayers,
   LAYER_DEFINITIONS,
   LAYER_DEFINITIONS_BY_ID,
+  type RasterLayerDefinition,
 } from "@/lib/layers/registry";
 
-const radar = LAYER_DEFINITIONS_BY_ID.get("radar")!;
-const clouds = LAYER_DEFINITIONS_BY_ID.get("clouds-infrared")!;
+const radar = LAYER_DEFINITIONS_BY_ID.get("radar") as RasterLayerDefinition;
+const clouds = LAYER_DEFINITIONS_BY_ID.get("clouds-infrared") as RasterLayerDefinition;
 
 describe("layer registry", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -33,6 +34,16 @@ describe("layer registry", () => {
 
   it("radar attribution links to RainViewer as its terms require", () => {
     expect(radar.source.attribution).toContain('href="https://www.rainviewer.com/"');
+  });
+
+  it("cyclone layer draws cone, tracks, positions and a label for the current position", () => {
+    const cyclones = LAYER_DEFINITIONS_BY_ID.get("cyclones")!;
+    expect(cyclones.kind).toBe("geojson");
+    if (cyclones.kind !== "geojson") return;
+    const layers = cyclones.styleLayers("overlay-cyclones");
+    expect(layers.map((l) => l.type)).toEqual(["fill", "line", "line", "line", "circle", "symbol"]);
+    expect(layers.every((l) => "source" in l && l.source === "overlay-cyclones")).toBe(true);
+    expect(new Set(layers.map((l) => l.id)).size).toBe(layers.length);
   });
 
   it("radar uses the newest RainViewer frame", async () => {

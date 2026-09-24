@@ -47,6 +47,7 @@ export const ru: Translations = {
     radar: "Радар осадков",
     cloudsInfrared: "Инфракрасная облачность (GOES-East)",
     nightLights: "Ночные огни (VIIRS)",
+    cyclones: "Тропические циклоны (NHC)",
     opacity: "Прозрачность",
     dataSource: "Данные: GDACS, Copernicus EMS",
     eventsCount: "событий",
