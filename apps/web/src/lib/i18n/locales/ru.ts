@@ -111,6 +111,8 @@ export const ru: Translations = {
     initializingGlobe: "Инициализация глобуса...",
     live: "В реальном времени",
     reconnecting: "Переподключение…",
+    share: "Поделиться видом",
+    linkCopied: "Ссылка скопирована",
   },
   sources: {
     title: "Источники данных",

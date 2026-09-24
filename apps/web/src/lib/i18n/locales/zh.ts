@@ -108,6 +108,8 @@ export const zh: Translations = {
     initializingGlobe: "正在初始化地球...",
     live: "实时",
     reconnecting: "正在重新连接…",
+    share: "分享视图",
+    linkCopied: "链接已复制",
   },
   sources: {
     title: "数据来源",

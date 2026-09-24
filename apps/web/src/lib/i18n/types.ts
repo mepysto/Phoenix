@@ -109,6 +109,8 @@ export interface Translations {
     initializingGlobe: string;
     live: string;
     reconnecting: string;
+    share: string;
+    linkCopied: string;
   };
   sources: {
     title: string;

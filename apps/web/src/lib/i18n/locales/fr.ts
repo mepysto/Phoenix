@@ -113,6 +113,8 @@ export const fr: Translations = {
     initializingGlobe: "Initialisation du globe...",
     live: "En direct",
     reconnecting: "Reconnexion…",
+    share: "Partager la vue",
+    linkCopied: "Lien copié",
   },
   sources: {
     title: "Sources de données",

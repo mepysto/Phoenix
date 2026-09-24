@@ -2,12 +2,12 @@
 
 import dynamic from "next/dynamic";
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { eventsAPI, type ApiDisasterEvent } from "@/lib/api/client";
 import { useEventStore } from "@/store/eventStore";
 import { DEMO_EVENTS, DEMO_MODE } from "@/lib/demo/demoEvents";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useLiveEvents } from "@/hooks/useLiveEvents";
+import { useMapUrlState } from "@/hooks/useMapUrlState";
 
 const MapEngineWrapper = dynamic(
   () => import("@/components/map/MapEngineWrapper"),
@@ -28,7 +28,6 @@ function MapPageContent() {
   const events = useEventStore((s) => s.events);
   const isLoading = useEventStore((s) => s.isLoading);
   const error = useEventStore((s) => s.error);
-  const setFilter = useEventStore((s) => s.setFilter);
   const selectEvent = useEventStore((s) => s.selectEvent);
   const { t } = useTranslation();
   const liveStatus = useLiveEvents();
@@ -38,13 +37,11 @@ function MapPageContent() {
   const displayedEvents = useDemo ? DEMO_EVENTS : events;
   const showEmptyState = !useDemo && !isLoading && !error && events.length === 0;
 
-  useEffect(() => {
-    // A text search from /events must not silently filter the map
-    setFilter({ q: undefined });
-  }, [setFilter]);
+  // URL state (camera, basemap, filters) is applied before the first fetch
+  const { initial, onViewChange } = useMapUrlState();
 
   // "View on Globe" links to /?event=<id>: load it even if outside the current filter
-  const focusId = useSearchParams().get("event");
+  const focusId = initial.event;
   const [focusEvent, setFocusEvent] = useState<ApiDisasterEvent | null>(null);
   useEffect(() => {
     if (!focusId) return;
@@ -78,11 +75,14 @@ function MapPageContent() {
         events={displayedEvents}
         onEventClick={selectEvent}
         focusEvent={focusEvent}
+        initialView={initial.view}
+        initialProjection={initial.projection}
+        onViewChange={onViewChange}
       />
       {liveStatus !== "stopped" && (
         <div
           role="status"
-          className="pointer-events-none absolute left-4 top-28 z-40 flex items-center gap-2 rounded-full bg-gray-900/90 px-3 py-1 text-xs text-gray-300"
+          className="pointer-events-none absolute left-4 top-40 z-40 flex items-center gap-2 rounded-full bg-gray-900/90 px-3 py-1 text-xs text-gray-300"
         >
           <span
             aria-hidden="true"

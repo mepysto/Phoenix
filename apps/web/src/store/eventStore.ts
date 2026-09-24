@@ -42,6 +42,8 @@ interface EventActions {
   setFilter: (filter: Partial<EventFilter>) => void;
   toggleEventType: (type: EventType) => void;
   toggleSeverity: (severity: SeverityLevel) => void;
+  /** Set visible types/severities at once (undefined = all); does not fetch */
+  setVisibility: (types?: EventType[], severities?: SeverityLevel[]) => void;
   clearFilters: () => void;
   /** Apply live change notifications (ids from the WebSocket stream) */
   applyEventChanges: (eventIds: string[]) => Promise<void>;
@@ -163,6 +165,13 @@ const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
       return { visibleTypes: newVisibleTypes };
     });
     get().fetchEvents();
+  },
+
+  setVisibility: (types, severities) => {
+    set({
+      visibleTypes: new Set(types ?? ALL_EVENT_TYPES),
+      visibleSeverities: new Set(severities ?? ALL_SEVERITIES),
+    });
   },
 
   toggleSeverity: (severity) => {
