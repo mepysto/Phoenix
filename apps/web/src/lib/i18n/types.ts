@@ -217,6 +217,7 @@ export interface Translations {
     updates: string;
     unavailable: string;
     notRecorded: string;
+    approxView: string;
   };
   telemetry: {
     altitude: string;

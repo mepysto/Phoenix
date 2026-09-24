@@ -211,6 +211,7 @@ export const es: Translations = {
     updates: "Se actualiza cada {n} min",
     unavailable: "Imagen no disponible ahora",
     notRecorded: "Cámara pública; las imágenes no se graban",
+    approxView: "La cuña sombreada del mapa solo indica la dirección aproximada",
   },
   telemetry: {
     altitude: "Altitud",

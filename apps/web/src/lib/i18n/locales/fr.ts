@@ -213,6 +213,7 @@ export const fr: Translations = {
     updates: "Mise à jour toutes les {n} min",
     unavailable: "Image indisponible pour le moment",
     notRecorded: "Caméra publique ; les images ne sont pas enregistrées",
+    approxView: "Le secteur ombré sur la carte n'indique qu'une direction approximative",
   },
   telemetry: {
     altitude: "Altitude",

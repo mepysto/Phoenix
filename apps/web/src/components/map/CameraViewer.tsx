@@ -60,7 +60,10 @@ export function CameraViewer({ id, name, direction, source, snapshotMinutes, onC
           onError={() => setFailed(true)}
         />
       )}
-      <p className="px-3 py-1.5 text-[11px] text-gray-500">{t.cameras.notRecorded}</p>
+      <p className="px-3 py-1.5 text-[11px] text-gray-500">
+        {t.cameras.notRecorded}
+        {direction ? ` · ${t.cameras.approxView}` : ""}
+      </p>
     </section>
   );
 }

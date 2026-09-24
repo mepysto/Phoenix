@@ -209,6 +209,7 @@ export const ko: Translations = {
     updates: "{n}분마다 갱신",
     unavailable: "지금은 이미지를 불러올 수 없습니다",
     notRecorded: "공개 카메라이며 이미지는 기록되지 않습니다",
+    approxView: "지도의 음영 부채꼴은 대략적인 촬영 방향일 뿐입니다",
   },
   telemetry: {
     altitude: "고도",

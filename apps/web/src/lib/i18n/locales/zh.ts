@@ -208,6 +208,7 @@ export const zh: Translations = {
     updates: "每 {n} 分钟更新",
     unavailable: "暂时无法获取图像",
     notRecorded: "公共摄像头；图像不会被记录",
+    approxView: "地图上的阴影扇形仅表示大致拍摄方向",
   },
   telemetry: {
     altitude: "高度",

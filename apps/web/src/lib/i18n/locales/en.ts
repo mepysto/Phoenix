@@ -210,6 +210,7 @@ export const en: Translations = {
     updates: "Updates every {n} min",
     unavailable: "Image unavailable right now",
     notRecorded: "Public camera; images are not recorded",
+    approxView: "Shaded wedge on the map: approximate view direction only",
   },
   telemetry: {
     altitude: "Altitude",
