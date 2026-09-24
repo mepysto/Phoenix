@@ -4,6 +4,7 @@ import type { ViewerConfig, LayerConfig } from "@phoenix/shared/types";
 import { LAYER_DEFINITIONS } from "@/lib/layers/registry";
 import type { MapView } from "@/lib/map/urlState";
 import type { MapViewport } from "@/lib/map/viewport";
+import type { ViewMode } from "@/lib/map/viewModes";
 
 interface MapState {
   viewerConfig: ViewerConfig;
@@ -19,6 +20,8 @@ interface MapState {
   cameraRequest: { view: MapView; seq: number } | null;
   /** Feature of an inspectable overlay the user clicked (camera, aircraft, ...) */
   inspected: InspectedFeature | null;
+  /** Sensor view mode (colour treatment of the whole map) */
+  viewMode: ViewMode;
 }
 
 export interface InspectedFeature {
@@ -48,6 +51,7 @@ interface MapActions {
   showOnlyOverlays: (ids: string[]) => void;
   setOverlaysVisible: (show: string[], hide: string[]) => void;
   setInspected: (feature: InspectedFeature | null) => void;
+  setViewMode: (mode: ViewMode) => void;
 }
 
 type MapStore = MapState & MapActions;
@@ -97,6 +101,7 @@ const initialState: MapState = {
   viewport: null,
   cameraRequest: null,
   inspected: null,
+  viewMode: "normal",
   zoom: 2,
   engine: "maplibre",
   basemap: "dark",
@@ -166,6 +171,10 @@ const storeImpl: StateCreator<MapStore, [], []> = (set) => ({
 
   setInspected: (inspected) => {
     set({ inspected });
+  },
+
+  setViewMode: (viewMode) => {
+    set({ viewMode });
   },
 
   setOverlaysVisible: (show, hide) => {

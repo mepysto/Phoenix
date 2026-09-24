@@ -24,7 +24,9 @@ import { getEventPosition } from "@/lib/eventPosition";
 import { applyBasemap, loadBasemapStyle, LABEL_FONT } from "@/lib/map/basemaps";
 import type { MapView } from "@/lib/map/urlState";
 import { currentViewport } from "@/lib/map/viewport";
+import { VIEW_MODES, isViewMode, viewModeFilter } from "@/lib/map/viewModes";
 import { EventInfoPanel } from "./EventInfoPanel";
+import { ViewModeFilters } from "./ViewModeFilters";
 import { useMapOverlays } from "./useMapOverlays";
 
 type DisasterEvent = ApiDisasterEvent;
@@ -120,6 +122,8 @@ export default function GlobeViewer({
   const basemap = useMapStore((s) => s.basemap);
   const toggleBasemap = useMapStore((s) => s.toggleBasemap);
   const layers = useMapStore((s) => s.layers);
+  const viewMode = useMapStore((s) => s.viewMode);
+  const setViewMode = useMapStore((s) => s.setViewMode);
 
   const eventsRef = useRef<DisasterEvent[]>(events);
   useEffect(() => {
@@ -396,6 +400,12 @@ export default function GlobeViewer({
     };
   }, []);
 
+  // Sensor view mode: filter only the map image, not MapLibre's controls
+  useEffect(() => {
+    if (!map.current || !mapReady) return;
+    map.current.getCanvasContainer().style.filter = viewModeFilter(viewMode) ?? "";
+  }, [viewMode, mapReady]);
+
   // Camera moves requested from outside the map (Disaster Brief scenes)
   const cameraRequest = useMapStore((s) => s.cameraRequest);
   useEffect(() => {
@@ -546,7 +556,18 @@ export default function GlobeViewer({
         </div>
       )}
 
+      <ViewModeFilters />
       <div ref={mapContainer} className="h-full w-full" />
+      {viewMode === "crt" && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "repeating-linear-gradient(0deg, rgba(0,0,0,0.25) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.45) 100%)",
+          }}
+        />
+      )}
 
       <div className="absolute left-4 top-4 flex flex-col gap-2">
         <button
@@ -567,6 +588,22 @@ export default function GlobeViewer({
         >
           <span aria-live="polite">{linkCopied ? t.map.linkCopied : t.map.share}</span>
         </button>
+        <label className="sr-only" htmlFor="view-mode">
+          {t.map.viewMode}
+        </label>
+        <select
+          id="view-mode"
+          value={viewMode}
+          onChange={(e) => isViewMode(e.target.value) && setViewMode(e.target.value)}
+          className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-primary-500"
+          title={t.map.viewMode}
+        >
+          {VIEW_MODES.map((mode) => (
+            <option key={mode} value={mode}>
+              {t.map.viewModes[mode]}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="absolute bottom-4 left-4 rounded-lg bg-gray-900/90 p-3 text-xs text-gray-300 shadow-lg backdrop-blur">

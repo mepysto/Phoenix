@@ -122,6 +122,15 @@ export const ar: Translations = {
     reconnecting: "جارٍ إعادة الاتصال…",
     share: "مشاركة العرض",
     linkCopied: "تم نسخ الرابط",
+    viewMode: "وضع العرض",
+    viewModes: {
+      normal: "عرض عادي",
+      nvg: "رؤية ليلية",
+      flir: "حراري (FLIR)",
+      crt: "وحدة تحكم (CRT)",
+      noir: "أبيض وأسود",
+      contrast: "تباين عالٍ",
+    },
   },
   sources: {
     title: "مصادر البيانات",
