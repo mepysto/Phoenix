@@ -148,7 +148,9 @@ export function Sidebar() {
     events,
     isLoading,
   } = useEventStore();
-  const { layers, toggleLayer, setLayerOpacity } = useMapStore();
+  const layers = useMapStore((s) => s.layers);
+  const toggleLayer = useMapStore((s) => s.toggleLayer);
+  const setLayerOpacity = useMapStore((s) => s.setLayerOpacity);
   const { t } = useTranslation();
 
   return (

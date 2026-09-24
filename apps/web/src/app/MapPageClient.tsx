@@ -9,6 +9,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useLiveEvents } from "@/hooks/useLiveEvents";
 import { useMapUrlState } from "@/hooks/useMapUrlState";
 import { Timeline } from "@/components/map/Timeline";
+import { ViewSummary } from "@/components/map/ViewSummary";
 
 const MapEngineWrapper = dynamic(
   () => import("@/components/map/MapEngineWrapper"),
@@ -94,6 +95,10 @@ function MapPageContent() {
           {liveStatus === "live" ? t.map.live : t.map.reconnecting}
         </div>
       )}
+      <div className="pointer-events-none absolute left-4 top-[12.5rem] z-30">
+        {/* A fresh object so picking the same event again flies there again */}
+        <ViewSummary onSelect={(event) => setFocusEvent({ ...event })} />
+      </div>
       {/* Between the legend (bottom-left, max ~22rem) and the scale bar (bottom-right); stacked above the legend on mobile */}
       <div className="pointer-events-none absolute bottom-40 left-4 right-4 z-30 md:bottom-9 md:left-[23rem] md:right-32">
         <Timeline />

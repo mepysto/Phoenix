@@ -24,6 +24,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import { applyBasemap, loadBasemapStyle, LABEL_FONT } from "@/lib/map/basemaps";
 import type { MapView } from "@/lib/map/urlState";
+import { currentViewport } from "@/lib/map/viewport";
 import { useMapOverlays } from "./useMapOverlays";
 
 type DisasterEvent = ApiDisasterEvent;
@@ -115,7 +116,10 @@ export default function GlobeViewer({
     (initialProjection ?? defaultProjection) === "globe",
   );
   const [mapReady, setMapReady] = useState(false);
-  const { basemap, toggleBasemap, layers } = useMapStore();
+  // Per-field selectors: the store also carries the viewport, which changes on every move
+  const basemap = useMapStore((s) => s.basemap);
+  const toggleBasemap = useMapStore((s) => s.toggleBasemap);
+  const layers = useMapStore((s) => s.layers);
 
   const eventsRef = useRef<DisasterEvent[]>(events);
   useEffect(() => {
@@ -166,6 +170,7 @@ export default function GlobeViewer({
 
       map.current.on("moveend", () => {
         if (!map.current) return;
+        useMapStore.getState().setViewport(currentViewport(map.current));
         onViewChangeRef.current?.(
           readView(map.current),
           is3DRef.current ? "globe" : "mercator",
@@ -174,6 +179,7 @@ export default function GlobeViewer({
 
       map.current.on("load", () => {
         if (!map.current) return;
+        useMapStore.getState().setViewport(currentViewport(map.current));
 
         if ("setProjection" in map.current) {
           (

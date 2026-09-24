@@ -135,4 +135,12 @@ export const ko: Translations = {
     backToLive: "실시간으로",
     scrub: "시간",
   },
+  view: {
+    inView: "현재 화면",
+    affected: "{n}명 영향",
+    updated: "{time} 갱신",
+    nearby: "주변",
+    noneNearby: "주변에 이벤트 없음",
+    label: "현재 화면 요약",
+  },
 };

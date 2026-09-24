@@ -174,6 +174,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/geodata/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get View Summary
+         * @description Totals for the current map view (omit the bbox for the whole world).
+         */
+        get: operations["get_view_summary_api_v1_geodata_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/geodata/nearby": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Nearby Events
+         * @description Events around a point, nearest first.
+         */
+        get: operations["get_nearby_events_api_v1_geodata_nearby_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sync/gdacs": {
         parameters: {
             query?: never;
@@ -864,6 +904,23 @@ export interface components {
             /** Job Id */
             job_id?: string | null;
         };
+        /** NearbyEvent */
+        NearbyEvent: {
+            event: components["schemas"]["EventResponse"];
+            /** Distance Km */
+            distance_km: number;
+        };
+        /** NearbyResponse */
+        NearbyResponse: {
+            /** Center Lat */
+            center_lat: number;
+            /** Center Lng */
+            center_lng: number;
+            /** Radius Km */
+            radius_km: number;
+            /** Data */
+            data: components["schemas"]["NearbyEvent"][];
+        };
         /** Pagination */
         Pagination: {
             /** Total */
@@ -948,6 +1005,26 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * ViewSummary
+         * @description Aggregate of the events matching a map view (bbox and filters).
+         */
+        ViewSummary: {
+            /** Total */
+            total: number;
+            /** By Severity */
+            by_severity: {
+                [key: string]: number;
+            };
+            /** By Type */
+            by_type: {
+                [key: string]: number;
+            };
+            /** Affected Population */
+            affected_population: number;
+            /** Last Updated */
+            last_updated: string | null;
         };
     };
     responses: never;
@@ -1204,6 +1281,82 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GeoJSONFeatureCollection"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_view_summary_api_v1_geodata_summary_get: {
+        parameters: {
+            query?: {
+                min_lng?: number | null;
+                min_lat?: number | null;
+                max_lng?: number | null;
+                max_lat?: number | null;
+                types?: components["schemas"]["EventType"][] | null;
+                severities?: components["schemas"]["SeverityLevel"][] | null;
+                /** @description Events ongoing at this time */
+                at?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_nearby_events_api_v1_geodata_nearby_get: {
+        parameters: {
+            query: {
+                lat: number;
+                lng: number;
+                radius_km?: number;
+                limit?: number;
+                types?: components["schemas"]["EventType"][] | null;
+                severities?: components["schemas"]["SeverityLevel"][] | null;
+                /** @description Events ongoing at this time */
+                at?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NearbyResponse"];
                 };
             };
             /** @description Validation Error */
