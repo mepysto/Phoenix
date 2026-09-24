@@ -5,6 +5,8 @@ import type {
   GeoJSONSource,
   LayerSpecification,
   Map as MapLibreMap,
+  MapMouseEvent,
+  PointLike,
   RasterTileSource,
 } from "maplibre-gl";
 import {
@@ -62,22 +64,16 @@ export function useMapOverlays(mapRef: RefObject<MapLibreMap | null>, mapReady: 
       }
       const current = state;
 
-      const added =
-        definition.kind === "style" ? current.layerIds.length > 0 : !!map.getSource(sourceIdFor(definition.id));
-      if (visible && !added && !current.loading) {
-        current.loading = true;
-        void addOverlay(map, definition, current)
-          .then(() => applyDisplay(map, current, true, opacity))
-          .finally(() => {
-            current.loading = false;
-          });
-      }
+      if (visible) ensureAdded(map, definition, current, opacity);
 
       applyDisplay(map, current, visible, opacity);
 
       const refreshMs = "refreshMs" in definition ? definition.refreshMs : undefined;
       if (visible && refreshMs && !current.timer) {
-        current.timer = setInterval(() => void refreshOverlay(map, definition), refreshMs);
+        current.timer = setInterval(() => {
+          // Retry a failed first load, otherwise refresh the data
+          if (ensureAdded(map, definition, current, opacity)) void refreshOverlay(map, definition);
+        }, refreshMs);
       } else if (!visible && current.timer) {
         clearInterval(current.timer);
         current.timer = null;
@@ -93,11 +89,16 @@ export function useMapOverlays(mapRef: RefObject<MapLibreMap | null>, mapReady: 
     const onMoveEnd = () => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
-        const visibleIds = new Set(
-          useMapStore.getState().layers.filter((l) => l.visible).map((l) => l.id),
+        const visible = new Map(
+          useMapStore.getState().layers.filter((l) => l.visible).map((l) => [l.id, l.opacity]),
         );
         for (const definition of LAYER_DEFINITIONS) {
-          if (definition.kind === "geojson" && definition.viewportDriven && visibleIds.has(definition.id)) {
+          const opacity = visible.get(definition.id);
+          const state = states.current.get(definition.id);
+          if (opacity === undefined || !state) continue;
+          // Moving the map also retries overlays whose first load failed
+          const added = ensureAdded(map, definition, state, opacity);
+          if (added && definition.kind === "geojson" && definition.viewportDriven) {
             void refreshOverlay(map, definition);
           }
         }
@@ -107,6 +108,46 @@ export function useMapOverlays(mapRef: RefObject<MapLibreMap | null>, mapReady: 
     return () => {
       map.off("moveend", onMoveEnd);
       if (timer) clearTimeout(timer);
+    };
+  }, [mapReady, mapRef]);
+
+  // Inspectable overlays: a click opens the feature's card, hovering shows a pointer
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    const inspectableLayerIds = () =>
+      LAYER_DEFINITIONS.filter((d) => d.kind === "geojson" && d.inspectable)
+        .flatMap((d) => states.current.get(d.id)?.layerIds ?? [])
+        .filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
+    const featureAt = (point: PointLike) => {
+      const layers = inspectableLayerIds();
+      return layers.length ? map.queryRenderedFeatures(point, { layers })[0] : undefined;
+    };
+    const onClick = (e: MapMouseEvent) => {
+      const feature = featureAt(e.point);
+      if (!feature || feature.geometry.type !== "Point") return;
+      const [lng, lat] = feature.geometry.coordinates as [number, number];
+      useMapStore.getState().setInspected({
+        layerId: String(feature.source).replace(/^overlay-/, ""),
+        properties: feature.properties ?? {},
+        lng,
+        lat,
+      });
+    };
+    // Only undo a pointer we set (event markers manage their own cursor)
+    let pointing = false;
+    const onMove = (e: MapMouseEvent) => {
+      const over = !!featureAt(e.point);
+      if (over !== pointing) {
+        map.getCanvas().style.cursor = over ? "pointer" : "";
+        pointing = over;
+      }
+    };
+    map.on("click", onClick);
+    map.on("mousemove", onMove);
+    return () => {
+      map.off("click", onClick);
+      map.off("mousemove", onMove);
     };
   }, [mapReady, mapRef]);
 
@@ -138,6 +179,20 @@ function applyDisplay(map: MapLibreMap, state: OverlayState, visible: boolean, o
       map.setPaintProperty(layerId, property, (state.baseOpacity.get(layerId) ?? 1) * opacity);
     }
   }
+}
+
+/** Add the overlay if it is visible but missing (e.g. its first load failed) */
+function ensureAdded(map: MapLibreMap, definition: LayerDefinition, state: OverlayState, opacity: number): boolean {
+  const added =
+    definition.kind === "style" ? state.layerIds.length > 0 : !!map.getSource(sourceIdFor(definition.id));
+  if (added || state.loading) return added;
+  state.loading = true;
+  void addOverlay(map, definition, state)
+    .then(() => applyDisplay(map, state, true, opacity))
+    .finally(() => {
+      state.loading = false;
+    });
+  return false;
 }
 
 async function addOverlay(map: MapLibreMap, definition: LayerDefinition, state: OverlayState) {

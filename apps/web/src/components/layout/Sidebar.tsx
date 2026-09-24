@@ -61,6 +61,7 @@ const LAYER_ID_TO_TRANSLATION_KEY: Record<string, string> = {
   satellites: "satellites",
   aircraft: "aircraft",
   vessels: "vessels",
+  cameras: "cameras",
 };
 
 interface LayerItemProps {

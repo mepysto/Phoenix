@@ -56,6 +56,7 @@ export const ar: Translations = {
     satellites: "أقمار رصد الأرض",
     aircraft: "الطائرات (ADS-B، تكبير 5+)",
     vessels: "السفن قرب الكوارث (AIS، تكبير 4+)",
+    cameras: "كاميرات المرور (كاليفورنيا، تكبير 5+)",
     keyRequired: "يتطلب مفتاح API على الخادم",
     opacity: "الشفافية",
     dataSource: "البيانات: GDACS, Copernicus EMS",
@@ -186,5 +187,12 @@ export const ar: Translations = {
     none: "لا يوجد مرور فوق 30° خلال 24 ساعة القادمة",
     daylight: "نهارًا: التصوير البصري ممكن",
     night: "ليلًا: التصوير الراداري فقط",
+  },
+  cameras: {
+    nearby: "كاميرات قريبة",
+    live: "أحدث صورة",
+    updates: "تتحدث كل {n} دقيقة",
+    unavailable: "الصورة غير متاحة الآن",
+    notRecorded: "كاميرا عامة؛ لا يتم تسجيل الصور",
   },
 };

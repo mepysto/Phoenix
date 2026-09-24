@@ -10,6 +10,7 @@ import { useLiveEvents } from "@/hooks/useLiveEvents";
 import { useMapUrlState } from "@/hooks/useMapUrlState";
 import { AgentPanel } from "@/components/agent/AgentPanel";
 import { BriefPlayer } from "@/components/map/BriefPlayer";
+import { FeatureInspector } from "@/components/map/FeatureInspector";
 import { Timeline } from "@/components/map/Timeline";
 import { ViewSummary } from "@/components/map/ViewSummary";
 
@@ -99,6 +100,10 @@ function MapPageContent() {
       )}
       <div className="pointer-events-none absolute left-1/2 top-4 z-40 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2">
         <BriefPlayer />
+      </div>
+      {/* Left column, above the legend */}
+      <div className="pointer-events-none absolute bottom-44 left-4 z-30">
+        <FeatureInspector />
       </div>
       {/* Bottom-right, above the scale bar and clear of the timeline */}
       <div className="pointer-events-none absolute bottom-16 right-4 z-40 flex flex-col items-end md:bottom-36">

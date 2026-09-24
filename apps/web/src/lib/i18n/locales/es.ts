@@ -56,6 +56,7 @@ export const es: Translations = {
     satellites: "Satélites de observación terrestre",
     aircraft: "Aeronaves (ADS-B, zoom 5+)",
     vessels: "Barcos cerca de desastres (AIS, zoom 4+)",
+    cameras: "Cámaras de tráfico (California, zoom 5+)",
     keyRequired: "Requiere una clave de API en el servidor",
     opacity: "Opacidad",
     dataSource: "Datos: GDACS, Copernicus EMS",
@@ -189,5 +190,12 @@ export const es: Translations = {
     none: "Sin pasos por encima de 30° en las próximas 24 horas",
     daylight: "De día: imagen óptica posible",
     night: "De noche: solo imagen radar",
+  },
+  cameras: {
+    nearby: "Cámaras cercanas",
+    live: "Última imagen",
+    updates: "Se actualiza cada {n} min",
+    unavailable: "Imagen no disponible ahora",
+    notRecorded: "Cámara pública; las imágenes no se graban",
   },
 };

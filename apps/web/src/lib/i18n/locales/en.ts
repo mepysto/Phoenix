@@ -56,6 +56,7 @@ export const en: Translations = {
     satellites: "Earth-observation satellites",
     aircraft: "Aircraft (ADS-B, zoom 5+)",
     vessels: "Ships near disasters (AIS, zoom 4+)",
+    cameras: "Traffic cameras (California, zoom 5+)",
     keyRequired: "Needs an API key on the server",
     opacity: "Opacity",
     dataSource: "Data: GDACS, Copernicus EMS",
@@ -188,5 +189,12 @@ export const en: Translations = {
     none: "No passes above 30° in the next 24 hours",
     daylight: "Daylight: optical imaging possible",
     night: "Night: radar imaging only",
+  },
+  cameras: {
+    nearby: "Cameras nearby",
+    live: "Latest image",
+    updates: "Updates every {n} min",
+    unavailable: "Image unavailable right now",
+    notRecorded: "Public camera; images are not recorded",
   },
 };
