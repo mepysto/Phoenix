@@ -107,5 +107,7 @@ export const ko: Translations = {
     dark: "다크",
     activeEvents: "활성 이벤트",
     initializingGlobe: "지구본 초기화 중...",
+    live: "실시간",
+    reconnecting: "재연결 중…",
   },
 };

@@ -1,7 +1,7 @@
 import createClient, { type Middleware } from "openapi-fetch";
 import type { paths, components } from "./schema.d.ts";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:28000";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:28000";
 
 type SnakeToCamel<S extends string> = S extends `${infer T}_${infer U}`
   ? `${T}${Capitalize<SnakeToCamel<U>>}`

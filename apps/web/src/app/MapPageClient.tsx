@@ -7,6 +7,7 @@ import { eventsAPI, type ApiDisasterEvent } from "@/lib/api/client";
 import { useEventStore } from "@/store/eventStore";
 import { DEMO_EVENTS, DEMO_MODE } from "@/lib/demo/demoEvents";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useLiveEvents } from "@/hooks/useLiveEvents";
 
 const MapEngineWrapper = dynamic(
   () => import("@/components/map/MapEngineWrapper"),
@@ -30,6 +31,7 @@ function MapPageContent() {
   const setFilter = useEventStore((s) => s.setFilter);
   const selectEvent = useEventStore((s) => s.selectEvent);
   const { t } = useTranslation();
+  const liveStatus = useLiveEvents();
 
   // Demo data is opt-in only; an empty result or API error must stay visibly empty
   const useDemo = DEMO_MODE && events.length === 0 && !isLoading;
@@ -77,6 +79,20 @@ function MapPageContent() {
         onEventClick={selectEvent}
         focusEvent={focusEvent}
       />
+      {liveStatus !== "stopped" && (
+        <div
+          role="status"
+          className="pointer-events-none absolute left-4 top-28 z-40 flex items-center gap-2 rounded-full bg-gray-900/90 px-3 py-1 text-xs text-gray-300"
+        >
+          <span
+            aria-hidden="true"
+            className={`h-2 w-2 rounded-full ${
+              liveStatus === "live" ? "bg-green-500" : "animate-pulse bg-amber-500"
+            }`}
+          />
+          {liveStatus === "live" ? t.map.live : t.map.reconnecting}
+        </div>
+      )}
       {showEmptyState && (
         <div
           role="status"

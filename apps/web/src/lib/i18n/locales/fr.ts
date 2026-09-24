@@ -111,5 +111,7 @@ export const fr: Translations = {
     dark: "Sombre",
     activeEvents: "Événements actifs",
     initializingGlobe: "Initialisation du globe...",
+    live: "En direct",
+    reconnecting: "Reconnexion…",
   },
 };

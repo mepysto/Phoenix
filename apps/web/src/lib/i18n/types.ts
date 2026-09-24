@@ -107,5 +107,7 @@ export interface Translations {
     dark: string;
     activeEvents: string;
     initializingGlobe: string;
+    live: string;
+    reconnecting: string;
   };
 }

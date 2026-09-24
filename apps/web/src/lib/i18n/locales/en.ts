@@ -108,5 +108,7 @@ export const en: Translations = {
     dark: "Dark",
     activeEvents: "Active Events",
     initializingGlobe: "Initializing Globe...",
+    live: "Live",
+    reconnecting: "Reconnecting…",
   },
 };

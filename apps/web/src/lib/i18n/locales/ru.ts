@@ -109,5 +109,7 @@ export const ru: Translations = {
     dark: "Темная",
     activeEvents: "Активные события",
     initializingGlobe: "Инициализация глобуса...",
+    live: "В реальном времени",
+    reconnecting: "Переподключение…",
   },
 };

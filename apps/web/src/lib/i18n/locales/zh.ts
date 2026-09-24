@@ -106,5 +106,7 @@ export const zh: Translations = {
     dark: "暗色",
     activeEvents: "活动事件",
     initializingGlobe: "正在初始化地球...",
+    live: "实时",
+    reconnecting: "正在重新连接…",
   },
 };
