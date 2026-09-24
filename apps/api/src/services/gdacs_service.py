@@ -3,6 +3,7 @@ import logging
 import xml.etree.ElementTree as ET  # types only; parsing goes through defusedxml
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from typing import Any
 
 import httpx
@@ -91,6 +92,18 @@ def _parse_iso(value: str) -> datetime | None:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+def _parse_feed_date(value: str) -> datetime | None:
+    """RFC 2822 (RSS) or ISO 8601 date; None when absent or unparseable."""
+    value = (value or "").strip()
+    if not value:
+        return None
+    try:
+        parsed = parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return _parse_iso(value)
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
@@ -289,18 +302,12 @@ class GDACSService:
         pub_date_str = item.findtext("pubDate", "")
         from_date_str = item.findtext("gdacs:fromdate", "", ns)
 
-        start_date = datetime.now(timezone.utc)
-        if from_date_str:
-            try:
-                start_date = datetime.fromisoformat(from_date_str.replace("Z", "+00:00"))
-            except ValueError:
-                pass
-        elif pub_date_str:
-            try:
-                from email.utils import parsedate_to_datetime
-                start_date = parsedate_to_datetime(pub_date_str)
-            except Exception:
-                pass
+        # The feed sends RFC 2822 dates ("Mon, 05 Oct 2026 01:00:00 GMT")
+        start_date = (
+            _parse_feed_date(from_date_str)
+            or _parse_feed_date(pub_date_str)
+            or datetime.now(timezone.utc)
+        )
 
         end_date = None
         # GDACS keeps finished events in the feed with iscurrent=false

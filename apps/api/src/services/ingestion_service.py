@@ -366,6 +366,7 @@ class IngestionService:
                     "source_url": raw_event.source_url,
                     "geo_precision": geo_precision,
                     "geo_method": GeoMethod.source_provided,
+                    "start_date": raw_event.start_date,
                     "end_date": raw_event.end_date,
                     "is_active": raw_event.end_date is None,
                     "affected_population": raw_event.affected_population,

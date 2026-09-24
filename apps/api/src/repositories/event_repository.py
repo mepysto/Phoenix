@@ -201,7 +201,8 @@ class EventRepository(BaseRepository):
         Status/descriptive fields (title, severity, end_date, is_active, ...)
         are always applied so that source-side changes (e.g. an event closing)
         propagate. Location fields are applied only when the incoming
-        geo_precision is at least as good as the current one.
+        geo_precision is at least as good as the current one; start_date
+        only when it is earlier.
 
         Args:
             event_id: UUID of the event to update
@@ -233,6 +234,12 @@ class EventRepository(BaseRepository):
                 patch["geo_precision"] = new_precision
             if geo_method is not None:
                 patch["geo_method"] = geo_method
+
+        # Onset only moves earlier: repairs dates that fell back to ingestion
+        # time, while a later report can never push an onset forward
+        start_date = patch.pop("start_date", None)
+        if start_date is not None and (event.start_date is None or start_date < event.start_date):
+            patch["start_date"] = start_date
 
         if "type" in patch and isinstance(patch["type"], str):
             patch["type"] = EventType(patch["type"])

@@ -325,18 +325,14 @@ class EONETConnector:
             except ValueError as e:
                 logger.warning(f"Invalid closed date {closed_str} for event {event_id}: {e}")
 
-        # Parse geometry date (first geometry date or current time)
-        geometry_dates = props.get("geometryDates", [])
+        # The geojson endpoint emits one feature per geometry, each with its own date
         geometry_date = datetime.now(timezone.utc)
-        if geometry_dates:
+        date_str = props.get("date")
+        if date_str:
             try:
-                geometry_date = datetime.fromisoformat(
-                    geometry_dates[0].replace("Z", "+00:00")
-                )
+                geometry_date = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
             except ValueError as e:
-                logger.warning(
-                    f"Invalid geometry date {geometry_dates[0]} for event {event_id}: {e}"
-                )
+                logger.warning(f"Invalid geometry date {date_str} for event {event_id}: {e}")
 
         return EONETEvent(
             event_id=event_id,
@@ -404,8 +400,18 @@ class EONETConnector:
         """
         eonet_events = await self.fetch_eonet_events()
 
-        raw_events: list[RawEvent] = []
+        # One feature per geometry (e.g. every cyclone track point): collapse to
+        # one event per id, starting at its first geometry and located at its latest
+        onset: dict[str, datetime] = {}
+        latest: dict[str, EONETEvent] = {}
         for event in eonet_events:
+            key = event.event_id
+            onset[key] = min(onset.get(key, event.geometry_date), event.geometry_date)
+            if key not in latest or event.geometry_date >= latest[key].geometry_date:
+                latest[key] = event
+
+        raw_events: list[RawEvent] = []
+        for event in latest.values():
             # Map category to EventType
             event_type_raw = event.categories[0] if event.categories else "other"
             mapped_type = EONET_CATEGORY_MAP.get(event_type_raw, "other")
@@ -424,7 +430,7 @@ class EONETConnector:
                     external_id=event.event_id,
                     title=event.title,
                     description=" | ".join(desc_parts) if desc_parts else None,
-                    start_date=event.geometry_date,
+                    start_date=onset[event.event_id],
                     end_date=event.closed,
                     source_url=event.link,
                     lat=event.latitude,
