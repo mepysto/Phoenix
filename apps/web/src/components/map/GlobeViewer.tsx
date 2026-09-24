@@ -24,6 +24,7 @@ import { getEventPosition } from "@/lib/eventPosition";
 import { applyBasemap, loadBasemapStyle, LABEL_FONT } from "@/lib/map/basemaps";
 import type { MapView } from "@/lib/map/urlState";
 import { currentViewport } from "@/lib/map/viewport";
+import { setMapInstance } from "@/lib/map/mapInstance";
 import { VIEW_MODES, isViewMode, viewModeFilter } from "@/lib/map/viewModes";
 import { EventInfoPanel } from "./EventInfoPanel";
 import { ViewModeFilters } from "./ViewModeFilters";
@@ -399,6 +400,13 @@ export default function GlobeViewer({
       setMapReady(false);
     };
   }, []);
+
+  // Share the ready map with tools that draw their own layers (route planner)
+  useEffect(() => {
+    if (!mapReady || !map.current) return;
+    setMapInstance(map.current);
+    return () => setMapInstance(null);
+  }, [mapReady]);
 
   // Sensor view mode: filter only the map image, not MapLibre's controls
   useEffect(() => {

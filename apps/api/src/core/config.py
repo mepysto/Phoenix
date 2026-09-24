@@ -52,6 +52,14 @@ class Settings(BaseSettings):
     ais_max_boxes: int = 20
     ais_box_degrees: float = 3.0
 
+    # Routing (M6, Valhalla). The FOSSGIS demo server allows fair use only,
+    # asks apps to identify themselves (X-Client-Id) and caps the total
+    # circumference of avoided areas at 10 km, which is too small to route
+    # around disaster zones: self-host Valhalla and raise the cap for that.
+    valhalla_url: str = "https://valhalla1.openstreetmap.de"
+    valhalla_client_id: str = "phoenix-disaster-map"
+    valhalla_max_exclude_circumference_m: float = 10_000
+
     @model_validator(mode="after")
     def reject_insecure_production(self) -> "Settings":
         if self.environment == "production":

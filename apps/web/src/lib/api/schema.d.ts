@@ -631,6 +631,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/routing/route": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Route
+         * @description Route between two points with the active hazards it passes (and a detour when possible).
+         */
+        post: operations["route_api_v1_routing_route_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/infrastructure": {
         parameters: {
             query?: never;
@@ -1261,6 +1281,13 @@ export interface components {
              */
             event_id: string;
         };
+        /** Point */
+        Point: {
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+        };
         /** RadioNearbyResponse */
         RadioNearbyResponse: {
             /** Stations */
@@ -1296,6 +1323,62 @@ export interface components {
             on_air: boolean;
             /** Last Checked */
             last_checked: string | null;
+        };
+        /** RouteGeometry */
+        RouteGeometry: {
+            /**
+             * Type
+             * @default LineString
+             * @constant
+             */
+            type: "LineString";
+            /** Coordinates */
+            coordinates: number[][];
+        };
+        /** RouteHazard */
+        RouteHazard: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Severity */
+            severity: string;
+            /** Zone Km */
+            zone_km: number;
+            /** Distance Km */
+            distance_km: number;
+        };
+        /** RouteRequest */
+        RouteRequest: {
+            start: components["schemas"]["Point"];
+            end: components["schemas"]["Point"];
+            /**
+             * Mode
+             * @default auto
+             * @enum {string}
+             */
+            mode: "auto" | "truck" | "pedestrian" | "bicycle";
+            /**
+             * Avoid Hazards
+             * @default true
+             */
+            avoid_hazards: boolean;
+        };
+        /** RouteResponse */
+        RouteResponse: {
+            geometry: components["schemas"]["RouteGeometry"];
+            /** Distance Km */
+            distance_km: number | null;
+            /** Duration Min */
+            duration_min: number | null;
+            /** Hazards */
+            hazards: components["schemas"]["RouteHazard"][];
+            /** Fires Near Route */
+            fires_near_route: number;
+            /** Avoided */
+            avoided: boolean;
+            /** Avoidance Note */
+            avoidance_note: ("router_limit" | "no_detour") | null;
         };
         /** SatellitePass */
         SatellitePass: {
@@ -2441,6 +2524,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RadioNearbyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    route_api_v1_routing_route_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RouteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteResponse"];
                 };
             };
             /** @description Validation Error */

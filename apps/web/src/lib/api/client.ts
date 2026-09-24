@@ -388,6 +388,21 @@ export const radioAPI = {
   },
 };
 
+export type ApiRoute = CamelCaseKeys<components["schemas"]["RouteResponse"]>;
+export type RouteBody = components["schemas"]["RouteRequest"];
+
+/** Hazard-aware routes (M6) */
+export const routingAPI = {
+  route: async (body: RouteBody, signal?: AbortSignal): Promise<ApiRoute> => {
+    const { data, error, response } = await client.POST("/api/v1/routing/route", { body, signal });
+    if (!response.ok) {
+      const detail = (error as { detail?: unknown } | undefined)?.detail;
+      throw new APIError(response.status, typeof detail === "string" ? detail : "Routing failed");
+    }
+    return data as unknown as ApiRoute;
+  },
+};
+
 export const healthAPI = {
   check: async (): Promise<{ status: string }> => {
     const { data, error } = await client.GET("/health");
