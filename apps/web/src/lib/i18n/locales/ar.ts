@@ -214,6 +214,7 @@ export const ar: Translations = {
     course: "المسار",
     lastSeen: "آخر تقرير",
     military: "عسكري",
+    generalised: "عسكري · الموقع معمم (منطقة نزاع)",
     position: "الموقع",
     launchTime: "موعد الإطلاق (NET)",
     status: "الحالة",

@@ -214,6 +214,7 @@ export const zh: Translations = {
     course: "航迹向",
     lastSeen: "最后报告",
     military: "军用",
+    generalised: "军用 · 位置已概化（冲突地区）",
     position: "位置",
     launchTime: "发射时间 (NET)",
     status: "状态",

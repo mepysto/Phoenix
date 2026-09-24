@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -59,6 +60,16 @@ class Settings(BaseSettings):
     valhalla_url: str = "https://valhalla1.openstreetmap.de"
     valhalla_client_id: str = "phoenix-disaster-map"
     valhalla_max_exclude_circumference_m: float = 10_000
+
+    # Conflict zones (M7, RESPONSIBLE_USE §3). Near active war/complex
+    # emergency events (and operator-defined boxes), military aircraft and
+    # ships are generalised to a ~100 km grid without identity ("grid") or
+    # removed ("hide"). Off by default; turn on for any deployment where
+    # near-real-time military positions could endanger people.
+    conflict_zone_policy: Literal["off", "grid", "hide"] = "off"
+    conflict_zone_radius_km: float = 150
+    # Extra zones as [west, south, east, north] boxes, e.g. '[[22,44,40,53]]'
+    conflict_zone_bboxes: list[list[float]] = []
 
     @model_validator(mode="after")
     def reject_insecure_production(self) -> "Settings":

@@ -222,6 +222,8 @@ export interface Translations {
     course: string;
     lastSeen: string;
     military: string;
+    /** Military position generalised in a conflict zone */
+    generalised: string;
     position: string;
     launchTime: string;
     status: string;

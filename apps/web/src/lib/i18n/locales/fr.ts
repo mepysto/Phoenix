@@ -219,6 +219,7 @@ export const fr: Translations = {
     course: "Route",
     lastSeen: "Dernier rapport",
     military: "Militaire",
+    generalised: "Militaire · position généralisée (zone de conflit)",
     position: "Position",
     launchTime: "Heure de lancement (NET)",
     status: "Statut",

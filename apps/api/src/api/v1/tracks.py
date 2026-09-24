@@ -1,5 +1,6 @@
 """Moving things worth watching during a response (M5): satellites, aircraft, ships, launches."""
 
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
@@ -9,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import get_settings
 from src.db.database import get_db
-
 from src.services.tracks.aircraft import MAX_RADIUS_NM, aircraft_service
+from src.services.tracks.conflict_policy import apply_policy, conflict_zone_cache
 from src.services.tracks.launches import launch_service
 from src.services.tracks.satellites import CACHE_TTL_SECONDS, satellite_service
 from src.services.tracks.vessels import vessels_geojson
@@ -82,10 +83,12 @@ async def aircraft_around(
     lat: float = Query(..., ge=-90, le=90),
     lng: float = Query(..., ge=-180, le=180),
     radius_nm: float = Query(default=100, gt=0, le=MAX_RADIUS_NM, description="Nautical miles"),
+    session: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     """Aircraft (ADS-B, adsb.lol) around a point; privacy-programme aircraft are excluded."""
     response.headers["Cache-Control"] = "public, max-age=10"
-    return await aircraft_service.around(lat, lng, radius_nm)
+    collection = await aircraft_service.around(lat, lng, radius_nm)
+    return await _conflict_policy(collection, session, lambda p: p.get("military") is True)
 
 
 VESSEL_MAX_AGE = timedelta(minutes=30)
@@ -110,6 +113,7 @@ async def vessels_in_view(
     collection = await vessels_geojson(
         session, (min_lng, min_lat, max_lng, max_lat), VESSEL_MAX_AGE, VESSEL_LIMIT
     )
+    collection = await _conflict_policy(collection, session, lambda p: p.get("ship_type") == AIS_MILITARY)
     return {**collection, "enabled": enabled}
 
 
@@ -118,3 +122,20 @@ async def upcoming_launches(response: Response) -> dict[str, Any]:
     """Upcoming (and just-flown) space launches at their pads (Launch Library 2, The Space Devs)."""
     response.headers["Cache-Control"] = "public, max-age=1800"
     return await launch_service.upcoming()
+
+
+AIS_MILITARY = 35  # AIS ship type "military operations"
+
+
+async def _conflict_policy(
+    collection: dict[str, Any], session: AsyncSession, is_military: Callable[[dict[str, Any]], bool]
+) -> dict[str, Any]:
+    """Apply the deployment's conflict-zone policy to military positions (RESPONSIBLE_USE §3)."""
+    settings = get_settings()
+    if settings.conflict_zone_policy == "off":
+        return collection
+    zones = await conflict_zone_cache.zones(
+        session, settings.conflict_zone_radius_km, settings.conflict_zone_bboxes
+    )
+    features = apply_policy(collection.get("features") or [], settings.conflict_zone_policy, zones, is_military)
+    return {**collection, "features": features}

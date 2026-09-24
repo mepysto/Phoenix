@@ -40,10 +40,13 @@ to support recovery. They are not for targeting.
 - **Public data only.** Every layer uses documented public sources
   ([DATA_SOURCES.md](./DATA_SOURCES.md)). Phoenix does no private scraping and
   holds no leaked or access-restricted data.
-- **Conflict zones.** Deployments can delay or aggregate (grid) the positions
-  of military assets and armed-conflict events in active conflict areas. Use
-  this for any deployment where near-real-time positions could endanger
-  people.
+- **Conflict zones.** Deployments can generalise or hide the positions of
+  military aircraft and ships near active armed-conflict events. Set
+  `CONFLICT_ZONE_POLICY=grid` (snap to a ~100 km grid and drop identity,
+  course and speed) or `hide`, with `CONFLICT_ZONE_RADIUS_KM` (default 150)
+  and optional `CONFLICT_ZONE_BBOXES` for areas the operator knows about.
+  The default is `off`; turn it on for any deployment where near-real-time
+  positions could endanger people.
 - **Camera feeds** show only the location and public stream of cameras that
   their operators publish. Phoenix does not identify the people they show.
   Snapshots pass through the API proxy (so viewers' addresses are not sent to
