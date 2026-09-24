@@ -611,6 +611,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/radio/nearby": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Radio Nearby
+         * @description Stations near a point from the Radio Browser directory, most listened first.
+         */
+        get: operations["radio_nearby_api_v1_radio_nearby_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/infrastructure": {
         parameters: {
             query?: never;
@@ -1240,6 +1260,42 @@ export interface components {
              * Format: uuid
              */
             event_id: string;
+        };
+        /** RadioNearbyResponse */
+        RadioNearbyResponse: {
+            /** Stations */
+            stations: components["schemas"]["RadioStation"][];
+        };
+        /** RadioStation */
+        RadioStation: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Stream Url */
+            stream_url: string | null;
+            /** Listen Url */
+            listen_url: string | null;
+            /** Homepage */
+            homepage: string | null;
+            /** Codec */
+            codec: string | null;
+            /** Bitrate */
+            bitrate: number | null;
+            /** Country Code */
+            country_code: string | null;
+            /** Language */
+            language: string | null;
+            /** Latitude */
+            latitude: number;
+            /** Longitude */
+            longitude: number;
+            /** Distance Km */
+            distance_km: number;
+            /** On Air */
+            on_air: boolean;
+            /** Last Checked */
+            last_checked: string | null;
         };
         /** SatellitePass */
         SatellitePass: {
@@ -2361,6 +2417,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    radio_nearby_api_v1_radio_nearby_get: {
+        parameters: {
+            query: {
+                lat: number;
+                lng: number;
+                radius_km?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RadioNearbyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

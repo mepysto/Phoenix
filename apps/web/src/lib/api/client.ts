@@ -374,6 +374,20 @@ export const camerasAPI = {
     `${API_URL}/api/v1/cameras/${encodeURIComponent(id)}/snapshot${bust ? `?t=${bust}` : ""}`,
 };
 
+export type ApiRadioStation = CamelCaseKeys<components["schemas"]["RadioStation"]>;
+
+/** Local radio near a place (M6) */
+export const radioAPI = {
+  nearby: async (lat: number, lng: number, radiusKm = 100, signal?: AbortSignal): Promise<ApiRadioStation[]> => {
+    const { data, response } = await client.GET("/api/v1/radio/nearby", {
+      params: { query: { lat, lng, radius_km: radiusKm, limit: 10 } },
+      signal,
+    });
+    if (!response.ok) throw new APIError(response.status, "Failed to fetch radio stations");
+    return (data as unknown as { stations: ApiRadioStation[] }).stations;
+  },
+};
+
 export const healthAPI = {
   check: async (): Promise<{ status: string }> => {
     const { data, error } = await client.GET("/health");

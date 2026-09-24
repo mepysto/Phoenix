@@ -7,6 +7,7 @@ import { briefFromEvent } from "@/lib/brief";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useBriefStore } from "@/store/briefStore";
+import { LocalRadio } from "./LocalRadio";
 import { NearbyCameras } from "./NearbyCameras";
 import { SatellitePasses } from "./SatellitePasses";
 
@@ -25,7 +26,7 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
 
   return (
     // right-14 keeps the zoom/compass controls (top-right) clickable
-    <div className="absolute right-14 top-4 w-80 rounded-lg bg-gray-900/95 p-4 shadow-xl backdrop-blur">
+    <div className="absolute right-14 top-4 max-h-[calc(100%-2rem)] w-80 overflow-y-auto rounded-lg bg-gray-900/95 p-4 shadow-xl backdrop-blur">
       <div className="mb-2 flex items-start justify-between">
         <h3 className="font-semibold text-white">{event.title}</h3>
         <button onClick={onClose} className="text-gray-400 hover:text-white" aria-label={t.common.close}>
@@ -58,6 +59,7 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
       </div>
       {position && <SatellitePasses lat={position.lat} lng={position.lng} />}
       {position && <NearbyCameras lat={position.lat} lng={position.lng} />}
+      {position && <LocalRadio lat={position.lat} lng={position.lng} />}
       {brief && (
         <button
           type="button"

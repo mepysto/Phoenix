@@ -234,4 +234,12 @@ export const ru: Translations = {
       other: "Другое",
     },
   },
+  radio: {
+    title: "Местное радио",
+    play: "Слушать",
+    stop: "Стоп",
+    offAir: "Не в эфире при последней проверке",
+    open: "Открыть поток",
+    source: "Каталог Radio Browser",
+  },
 };

@@ -231,4 +231,12 @@ export const zh: Translations = {
       other: "其他",
     },
   },
+  radio: {
+    title: "当地电台",
+    play: "收听",
+    stop: "停止",
+    offAir: "上次检查时停播",
+    open: "打开流",
+    source: "Radio Browser 目录",
+  },
 };

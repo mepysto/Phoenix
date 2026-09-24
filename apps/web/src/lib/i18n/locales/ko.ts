@@ -232,4 +232,12 @@ export const ko: Translations = {
       other: "기타",
     },
   },
+  radio: {
+    title: "현지 라디오",
+    play: "듣기",
+    stop: "정지",
+    offAir: "마지막 점검 시 방송 중단",
+    open: "스트림 열기",
+    source: "Radio Browser 목록",
+  },
 };

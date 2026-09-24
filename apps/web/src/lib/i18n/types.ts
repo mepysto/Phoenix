@@ -222,4 +222,12 @@ export interface Translations {
     position: string;
     shipTypes: Record<ShipCategory, string>;
   };
+  radio: {
+    title: string;
+    play: string;
+    stop: string;
+    offAir: string;
+    open: string;
+    source: string;
+  };
 }

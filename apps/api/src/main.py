@@ -13,6 +13,7 @@ from src.api.v1 import (
     admin,
     agent,
     cameras,
+    radio,
     events,
     geodata,
     hazards,
@@ -114,6 +115,7 @@ app.include_router(hazards.router, prefix="/api/v1/hazards", tags=["Hazards"])
 app.include_router(agent.router, prefix="/api/v1/agent", tags=["Agent"])
 app.include_router(tracks.router, prefix="/api/v1/tracks", tags=["Tracks"])
 app.include_router(cameras.router, prefix="/api/v1/cameras", tags=["Cameras"])
+app.include_router(radio.router, prefix="/api/v1/radio", tags=["Radio"])
 app.include_router(
     infrastructure.router, prefix="/api/v1/infrastructure", tags=["Infrastructure"]
 )
