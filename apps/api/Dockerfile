@@ -10,9 +10,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends libpq-dev gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Dependencies first so code changes don't invalidate this layer
-COPY apps/api/pyproject.toml ./
-RUN mkdir -p src && touch src/__init__.py && pip install . && rm -rf src
+# Locked dependencies first so code changes don't invalidate this layer
+COPY apps/api/requirements.lock ./
+RUN pip install -r requirements.lock
 
 COPY apps/api/ ./
 RUN useradd --system --uid 10001 phoenix && chown -R phoenix /app
