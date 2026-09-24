@@ -28,6 +28,7 @@
     "db:migrate": "cd apps/api && alembic upgrade head",
     "db:seed": "./scripts/seed-data.sh",
     "docker:up": "docker compose -f infrastructure/docker/docker-compose.yml up -d",
+    "doctor": "cd apps/api && if [ -x .venv/bin/python ]; then .venv/bin/python -m scripts.doctor; else python3 -m scripts.doctor; fi",
     "docker:dev": "docker compose -f infrastructure/docker/docker-compose.yml -f infrastructure/docker/docker-compose.dev.yml up -d",
     "docker:down": "docker compose -f infrastructure/docker/docker-compose.yml down",
     "docker:logs": "docker compose -f infrastructure/docker/docker-compose.yml logs -f",
