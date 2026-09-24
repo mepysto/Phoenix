@@ -70,8 +70,11 @@ describe("Sidebar", () => {
     render(<Sidebar />);
 
     expect(screen.getByText("Satellite Imagery")).toBeInTheDocument();
-    expect(screen.getByText("3D Buildings")).toBeInTheDocument();
-    expect(screen.getByText("Population Density")).toBeInTheDocument();
+    expect(screen.getByText("Precipitation Radar")).toBeInTheDocument();
+    expect(screen.getByText("Infrared Clouds (GOES-East)")).toBeInTheDocument();
+    expect(screen.getByText("Night Lights (VIIRS)")).toBeInTheDocument();
+    // Placeholders that never rendered anything are gone
+    expect(screen.queryByText("3D Buildings")).not.toBeInTheDocument();
   });
 
   it("displays event count in footer", () => {

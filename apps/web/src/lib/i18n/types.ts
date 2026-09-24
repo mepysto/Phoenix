@@ -45,8 +45,9 @@ export interface Translations {
     // Layer names
     disasterEvents: string;
     satelliteImagery: string;
-    buildings3d: string;
-    populationDensity: string;
+    radar: string;
+    cloudsInfrared: string;
+    nightLights: string;
     opacity: string;
     // Footer
     dataSource: string;

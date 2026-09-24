@@ -47,8 +47,9 @@ const SEVERITY_LEVELS: SeverityLevel[] = ["low", "medium", "high", "critical"];
 const LAYER_ID_TO_TRANSLATION_KEY: Record<string, string> = {
   events: "disasterEvents",
   satellite: "satelliteImagery",
-  buildings: "buildings3d",
-  population: "populationDensity",
+  radar: "radar",
+  "clouds-infrared": "cloudsInfrared",
+  "night-lights": "nightLights",
 };
 
 interface LayerItemProps {
