@@ -124,6 +124,9 @@ export const zh: Translations = {
     reconnecting: "正在重新连接…",
     share: "分享视图",
     linkCopied: "链接已复制",
+    engine3d: "3D 引擎",
+    engine2d: "2D 地图",
+    engine3dKeyless: "无密钥 3D：平滑地球上的卫星影像。添加 Cesium ion 令牌可显示地形和建筑。",
     viewMode: "视图模式",
     viewModes: {
       normal: "普通视图",

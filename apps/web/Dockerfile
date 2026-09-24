@@ -24,7 +24,13 @@ FROM deps AS build
 COPY apps/web/ ./apps/web/
 # NEXT_PUBLIC_* values are inlined at build time, not read at runtime
 ARG NEXT_PUBLIC_API_URL=http://localhost:28000
+# "1" drops non-commercial-only layers (see docs/DATA_SOURCES.md)
+ARG NEXT_PUBLIC_COMMERCIAL_DEPLOYMENT=""
+# Optional Cesium ion token (public by design; restrict it to your domain in ion)
+ARG NEXT_PUBLIC_CESIUM_ION_TOKEN=""
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_COMMERCIAL_DEPLOYMENT=$NEXT_PUBLIC_COMMERCIAL_DEPLOYMENT \
+    NEXT_PUBLIC_CESIUM_ION_TOKEN=$NEXT_PUBLIC_CESIUM_ION_TOKEN \
     NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app/apps/web
 RUN mkdir -p public && pnpm build

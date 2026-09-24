@@ -24,6 +24,8 @@ interface ViewSummaryProps {
 export function ViewSummary({ onSelect }: ViewSummaryProps) {
   const { t, lang } = useTranslation();
   const viewport = useMapStore((s) => s.viewport);
+  // The viewport comes from the 2D map; in the 3D engine it would be stale
+  const engine = useMapStore((s) => s.engine);
   const visibleTypes = useEventStore((s) => s.visibleTypes);
   const visibleSeverities = useEventStore((s) => s.visibleSeverities);
   const at = useEventStore((s) => s.filter.at);
@@ -78,7 +80,7 @@ export function ViewSummary({ onSelect }: ViewSummaryProps) {
     };
   }, [viewport, filter, nearbyOpen, eventCount]);
 
-  if (!summary) return null;
+  if (!summary || engine === "cesium") return null;
   const critical = summary.bySeverity.critical ?? 0;
   const high = summary.bySeverity.high ?? 0;
   const updated = formatAge(summary.lastUpdated, lang);

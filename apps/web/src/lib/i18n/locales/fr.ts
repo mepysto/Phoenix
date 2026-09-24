@@ -129,6 +129,9 @@ export const fr: Translations = {
     reconnecting: "Reconnexion…",
     share: "Partager la vue",
     linkCopied: "Lien copié",
+    engine3d: "Moteur 3D",
+    engine2d: "Carte 2D",
+    engine3dKeyless: "3D sans clé : imagerie satellite sur un globe lisse. Un jeton Cesium ion ajoute le relief et les bâtiments.",
     viewMode: "Mode d'affichage",
     viewModes: {
       normal: "Vue normale",

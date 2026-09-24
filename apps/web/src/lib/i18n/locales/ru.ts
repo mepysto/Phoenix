@@ -127,6 +127,9 @@ export const ru: Translations = {
     reconnecting: "Переподключение…",
     share: "Поделиться видом",
     linkCopied: "Ссылка скопирована",
+    engine3d: "3D-движок",
+    engine2d: "2D-карта",
+    engine3dKeyless: "3D без ключа: спутниковые снимки на гладком глобусе. Токен Cesium ion добавляет рельеф и здания.",
     viewMode: "Режим просмотра",
     viewModes: {
       normal: "Обычный вид",

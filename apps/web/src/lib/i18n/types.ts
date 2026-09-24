@@ -131,6 +131,9 @@ export interface Translations {
     reconnecting: string;
     share: string;
     linkCopied: string;
+    engine3d: string;
+    engine2d: string;
+    engine3dKeyless: string;
     viewMode: string;
     viewModes: Record<ViewMode, string>;
   };

@@ -124,6 +124,7 @@ export default function GlobeViewer({
   const toggleBasemap = useMapStore((s) => s.toggleBasemap);
   const layers = useMapStore((s) => s.layers);
   const viewMode = useMapStore((s) => s.viewMode);
+  const setEngine = useMapStore((s) => s.setEngine);
   const setViewMode = useMapStore((s) => s.setViewMode);
 
   const eventsRef = useRef<DisasterEvent[]>(events);
@@ -595,6 +596,12 @@ export default function GlobeViewer({
           className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 transition-colors"
         >
           <span aria-live="polite">{linkCopied ? t.map.linkCopied : t.map.share}</span>
+        </button>
+        <button
+          onClick={() => setEngine("cesium")}
+          className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 transition-colors"
+        >
+          {t.map.engine3d}
         </button>
         <label className="sr-only" htmlFor="view-mode">
           {t.map.viewMode}
