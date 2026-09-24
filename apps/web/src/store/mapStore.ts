@@ -17,6 +17,15 @@ interface MapState {
   viewport: MapViewport | null;
   /** Camera move asked for by something other than the map (e.g. a brief); seq makes repeats distinct */
   cameraRequest: { view: MapView; seq: number } | null;
+  /** Feature of an inspectable overlay the user clicked (camera, aircraft, ...) */
+  inspected: InspectedFeature | null;
+}
+
+export interface InspectedFeature {
+  layerId: string;
+  properties: Record<string, unknown>;
+  lng: number;
+  lat: number;
 }
 
 interface MapActions {
@@ -38,6 +47,7 @@ interface MapActions {
   /** Show exactly these overlay layers (registry layers only; base layers are untouched) */
   showOnlyOverlays: (ids: string[]) => void;
   setOverlaysVisible: (show: string[], hide: string[]) => void;
+  setInspected: (feature: InspectedFeature | null) => void;
 }
 
 type MapStore = MapState & MapActions;
@@ -86,6 +96,7 @@ const initialState: MapState = {
   center: { lng: 0, lat: 20 },
   viewport: null,
   cameraRequest: null,
+  inspected: null,
   zoom: 2,
   engine: "maplibre",
   basemap: "dark",
@@ -151,6 +162,10 @@ const storeImpl: StateCreator<MapStore, [], []> = (set) => ({
 
   requestCamera: (view) => {
     set((state) => ({ cameraRequest: { view, seq: (state.cameraRequest?.seq ?? 0) + 1 } }));
+  },
+
+  setInspected: (inspected) => {
+    set({ inspected });
   },
 
   setOverlaysVisible: (show, hide) => {

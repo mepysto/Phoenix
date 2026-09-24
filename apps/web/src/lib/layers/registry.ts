@@ -65,6 +65,8 @@ export interface GeoJsonLayerDefinition {
   viewportDriven?: boolean;
   /** Below this zoom the layer shows nothing (too many features) */
   minZoom?: number;
+  /** Clicking a feature opens its details card (see FeatureInspector) */
+  inspectable?: boolean;
   loadData: (viewport: Viewport) => Promise<GeoJSON.FeatureCollection>;
   /** MapLibre layers drawing the source, bottom to top */
   styleLayers: (sourceId: string) => LayerSpecification[];
@@ -713,6 +715,47 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
           "text-anchor": "top",
         },
         paint: { "text-color": "#99f6e4", "text-halo-color": "#042f2e", "text-halo-width": 1.2 },
+      } as LayerSpecification,
+    ],
+  },
+  {
+    id: "cameras",
+    kind: "geojson",
+    category: "monitoring",
+    auth: "keyless",
+    source: {
+      name: "Caltrans",
+      url: "https://cwwp2.dot.ca.gov/documentation/cctv/cctv.htm",
+      license: "Public domain",
+      commercialUse: true,
+      attribution: 'Cameras: <a href="https://cwwp2.dot.ca.gov">Caltrans</a>',
+    },
+    defaultOpacity: 1,
+    viewportDriven: true,
+    minZoom: 5,
+    inspectable: true,
+    loadData: async ({ bbox: [west, south, east, north] }) => {
+      const params = new URLSearchParams({
+        min_lng: String(west),
+        min_lat: String(south),
+        max_lng: String(east),
+        max_lat: String(north),
+      });
+      const response = await fetch(`${API_URL}/api/v1/cameras?${params}`);
+      if (!response.ok) throw new Error(`Cameras ${response.status}`);
+      return (await response.json()) as GeoJSON.FeatureCollection;
+    },
+    styleLayers: (sourceId) => [
+      {
+        id: `${sourceId}-points`,
+        type: "circle",
+        source: sourceId,
+        paint: {
+          "circle-color": "#a78bfa",
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 2.5, 12, 6],
+          "circle-stroke-color": "#1e1b4b",
+          "circle-stroke-width": 1,
+        },
       } as LayerSpecification,
     ],
   },

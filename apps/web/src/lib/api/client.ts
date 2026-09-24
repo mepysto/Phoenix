@@ -358,6 +358,22 @@ export const tracksAPI = {
   },
 };
 
+export type ApiNearbyCamera = CamelCaseKeys<components["schemas"]["NearbyCamera"]>;
+
+/** Public cameras (M6); images always come through the API proxy */
+export const camerasAPI = {
+  nearby: async (lat: number, lng: number, radiusKm = 25, signal?: AbortSignal): Promise<ApiNearbyCamera[]> => {
+    const { data, response } = await client.GET("/api/v1/cameras/nearby", {
+      params: { query: { lat, lng, radius_km: radiusKm, limit: 5 } },
+      signal,
+    });
+    if (!response.ok) throw new APIError(response.status, "Failed to fetch nearby cameras");
+    return data as unknown as ApiNearbyCamera[];
+  },
+  snapshotUrl: (id: string, bust?: number) =>
+    `${API_URL}/api/v1/cameras/${encodeURIComponent(id)}/snapshot${bust ? `?t=${bust}` : ""}`,
+};
+
 export const healthAPI = {
   check: async (): Promise<{ status: string }> => {
     const { data, error } = await client.GET("/health");

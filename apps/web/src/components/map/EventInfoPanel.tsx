@@ -7,6 +7,7 @@ import { briefFromEvent } from "@/lib/brief";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useBriefStore } from "@/store/briefStore";
+import { NearbyCameras } from "./NearbyCameras";
 import { SatellitePasses } from "./SatellitePasses";
 
 interface EventInfoPanelProps {
@@ -56,6 +57,7 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
         )}
       </div>
       {position && <SatellitePasses lat={position.lat} lng={position.lng} />}
+      {position && <NearbyCameras lat={position.lat} lng={position.lng} />}
       {brief && (
         <button
           type="button"

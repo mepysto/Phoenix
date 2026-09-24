@@ -57,6 +57,7 @@ export interface Translations {
     satellites: string;
     aircraft: string;
     vessels: string;
+    cameras: string;
     /** Tooltip on layers that need an API key on the server */
     keyRequired: string;
     opacity: string;
@@ -196,5 +197,13 @@ export interface Translations {
     none: string;
     daylight: string;
     night: string;
+  };
+  cameras: {
+    nearby: string;
+    live: string;
+    /** "Updates every {n} min" */
+    updates: string;
+    unavailable: string;
+    notRecorded: string;
   };
 }

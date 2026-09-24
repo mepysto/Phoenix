@@ -56,6 +56,7 @@ export const ko: Translations = {
     satellites: "지구관측 위성",
     aircraft: "항공기 (ADS-B, 줌 5+)",
     vessels: "재난 인근 선박 (AIS, 줌 4+)",
+    cameras: "교통 CCTV (캘리포니아, 줌 5+)",
     keyRequired: "서버에 API 키가 필요합니다",
     opacity: "투명도",
     dataSource: "데이터: GDACS, Copernicus EMS",
@@ -187,5 +188,12 @@ export const ko: Translations = {
     none: "향후 24시간 내 30° 이상 통과 없음",
     daylight: "주간: 광학 촬영 가능",
     night: "야간: 레이더 촬영만 가능",
+  },
+  cameras: {
+    nearby: "주변 카메라",
+    live: "최신 이미지",
+    updates: "{n}분마다 갱신",
+    unavailable: "지금은 이미지를 불러올 수 없습니다",
+    notRecorded: "공개 카메라이며 이미지는 기록되지 않습니다",
   },
 };

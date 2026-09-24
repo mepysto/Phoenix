@@ -56,6 +56,7 @@ export const zh: Translations = {
     satellites: "对地观测卫星",
     aircraft: "飞机（ADS-B，缩放 5+）",
     vessels: "灾区附近船舶（AIS，缩放 4+）",
+    cameras: "交通摄像头（加州，缩放 5+）",
     keyRequired: "需要在服务器上配置 API 密钥",
     opacity: "透明度",
     dataSource: "数据来源: GDACS, Copernicus EMS",
@@ -186,5 +187,12 @@ export const zh: Translations = {
     none: "未来 24 小时内没有 30° 以上的过境",
     daylight: "白天：可光学成像",
     night: "夜间：仅雷达成像",
+  },
+  cameras: {
+    nearby: "附近摄像头",
+    live: "最新图像",
+    updates: "每 {n} 分钟更新",
+    unavailable: "暂时无法获取图像",
+    notRecorded: "公共摄像头；图像不会被记录",
   },
 };
