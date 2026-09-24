@@ -19,6 +19,7 @@ import type {
 } from "@/lib/api/client";
 import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
 import { escapeHtml } from "@/lib/escapeHtml";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 
 if (typeof window !== "undefined") {
@@ -94,6 +95,7 @@ export default function CesiumViewer({
   showTerrain = true,
   showBuildings = false,
 }: CesiumViewerProps) {
+  const { t } = useTranslation();
   const [selectedEvent, setSelectedEvent] = useState<DisasterEvent | null>(
     null,
   );
@@ -196,6 +198,7 @@ export default function CesiumViewer({
             <button
               onClick={() => setSelectedEvent(null)}
               className="text-gray-400 hover:text-white"
+              aria-label={t.common.close}
             >
               &times;
             </button>

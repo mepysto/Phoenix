@@ -29,6 +29,8 @@ export function Header() {
           <button
             className="lg:hidden p-2 hover:bg-gray-800 rounded"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={t.common.menu}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? (
               <X className="h-5 w-5" />
@@ -76,8 +78,9 @@ export function Header() {
           <Link
             href="/settings"
             className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+            aria-label={t.common.settings}
           >
-            <Settings className="h-5 w-5 text-gray-400" />
+            <Settings className="h-5 w-5 text-gray-400" aria-hidden="true" />
           </Link>
         </div>
       </header>

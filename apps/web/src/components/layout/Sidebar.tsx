@@ -20,7 +20,6 @@ import {
 import type { EventType, SeverityLevel } from "@phoenix/shared/types";
 import {
   EVENT_TYPE_COLORS,
-  EVENT_TYPE_LABELS,
   EVENT_TYPES,
   SEVERITY_COLORS,
 } from "@phoenix/shared/constants";
@@ -212,10 +211,7 @@ export function Sidebar() {
                 <span style={{ color: EVENT_TYPE_COLORS[type] }}>
                   {EVENT_ICONS[type] ?? EVENT_ICONS.other}
                 </span>
-                <span className="text-sm text-gray-300">
-                  {/* Newer types have no translations yet: fall back to English */}
-                  {(t.sidebar as Record<string, string>)[type] ?? EVENT_TYPE_LABELS[type]}
-                </span>
+                <span className="text-sm text-gray-300">{t.sidebar[type]}</span>
               </label>
             ))}
           </div>
