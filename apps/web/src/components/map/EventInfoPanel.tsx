@@ -1,12 +1,13 @@
 "use client";
 
-import { Clapperboard } from "lucide-react";
+import { Clapperboard, Navigation } from "lucide-react";
 import { SEVERITY_COLORS } from "@phoenix/shared/constants";
 import type { ApiDisasterEvent, SeverityLevel } from "@/lib/api/client";
 import { briefFromEvent } from "@/lib/brief";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useBriefStore } from "@/store/briefStore";
+import { useRouteStore } from "@/store/routeStore";
 import { LocalRadio } from "./LocalRadio";
 import { NearbyCameras } from "./NearbyCameras";
 import { SatellitePasses } from "./SatellitePasses";
@@ -20,6 +21,7 @@ interface EventInfoPanelProps {
 export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
   const { t } = useTranslation();
   const startBrief = useBriefStore((s) => s.start);
+  const routeTo = useRouteStore((s) => s.routeTo);
   const severity = event.severity as SeverityLevel;
   const brief = briefFromEvent(event, t.brief.captions);
   const position = getEventPosition(event);
@@ -60,6 +62,16 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
       {position && <SatellitePasses lat={position.lat} lng={position.lng} />}
       {position && <NearbyCameras lat={position.lat} lng={position.lng} />}
       {position && <LocalRadio lat={position.lat} lng={position.lng} />}
+      {position && (
+        <button
+          type="button"
+          onClick={() => routeTo({ lat: position.lat, lng: position.lng, label: event.title })}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-cyan-700 px-3 py-1.5 text-sm font-medium text-cyan-200 hover:bg-cyan-900/40"
+        >
+          <Navigation className="h-4 w-4" aria-hidden="true" />
+          {t.routing.routeHere}
+        </button>
+      )}
       {brief && (
         <button
           type="button"

@@ -1,5 +1,6 @@
 import type { ViewMode } from "@/lib/map/viewModes";
 import type { ShipCategory } from "@/lib/telemetry";
+import type { RouteMode } from "@/store/routeStore";
 
 export interface Translations {
   common: {
@@ -229,5 +230,22 @@ export interface Translations {
     offAir: string;
     open: string;
     source: string;
+  };
+  routing: {
+    title: string;
+    routeHere: string;
+    mode: string;
+    pickStart: string;
+    planning: string;
+    avoided: string;
+    clear: string;
+    /** "{km} km from route" */
+    within: string;
+    /** "{n} satellite fire detections ..." */
+    fires: string;
+    routerLimit: string;
+    noDetour: string;
+    disclaimer: string;
+    modes: Record<RouteMode, string>;
   };
 }
