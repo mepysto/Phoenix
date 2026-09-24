@@ -62,6 +62,7 @@ export interface Translations {
     satellites: string;
     aircraft: string;
     vessels: string;
+    launches: string;
     cameras: string;
     /** Tooltip on layers that need an API key on the server */
     keyRequired: string;
@@ -222,6 +223,12 @@ export interface Translations {
     lastSeen: string;
     military: string;
     position: string;
+    launchTime: string;
+    status: string;
+    provider: string;
+    mission: string;
+    orbit: string;
+    pad: string;
     shipTypes: Record<ShipCategory, string>;
   };
   radio: {

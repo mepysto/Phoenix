@@ -1,4 +1,4 @@
-"""Moving things worth watching during a response (M5): satellites, aircraft, ships."""
+"""Moving things worth watching during a response (M5): satellites, aircraft, ships, launches."""
 
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
@@ -11,6 +11,7 @@ from src.core.config import get_settings
 from src.db.database import get_db
 
 from src.services.tracks.aircraft import MAX_RADIUS_NM, aircraft_service
+from src.services.tracks.launches import launch_service
 from src.services.tracks.satellites import CACHE_TTL_SECONDS, satellite_service
 from src.services.tracks.vessels import vessels_geojson
 
@@ -110,3 +111,10 @@ async def vessels_in_view(
         session, (min_lng, min_lat, max_lng, max_lat), VESSEL_MAX_AGE, VESSEL_LIMIT
     )
     return {**collection, "enabled": enabled}
+
+
+@router.get("/launches")
+async def upcoming_launches(response: Response) -> dict[str, Any]:
+    """Upcoming (and just-flown) space launches at their pads (Launch Library 2, The Space Devs)."""
+    response.headers["Cache-Control"] = "public, max-age=1800"
+    return await launch_service.upcoming()
