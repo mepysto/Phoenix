@@ -80,6 +80,10 @@ def event_filter_conditions(filters: EventFilter) -> list[ColumnElement[bool]]:
         conditions.append(Event.start_date >= filters.start_date)
     if filters.end_date:
         conditions.append(Event.start_date <= filters.end_date)
+    if filters.at:
+        # Ongoing at `at`: already started and not yet ended
+        conditions.append(Event.start_date <= filters.at)
+        conditions.append(or_(Event.end_date.is_(None), Event.end_date >= filters.at))
 
     bbox = (filters.min_lng, filters.min_lat, filters.max_lng, filters.max_lat)
     if all(v is not None for v in bbox):
@@ -455,3 +459,22 @@ class EventRepository(BaseRepository):
         result = await self.session.execute(stmt)
         # Legacy data may hold several events per GLIDE; take the oldest canonical one
         return result.scalars().first()
+
+    async def timeline(
+        self,
+        filters: EventFilter,
+        start: datetime,
+        end: datetime,
+        bucket: str,
+    ) -> list[tuple[datetime, str, int]]:
+        """(bucket start, event type, onsets) for events starting in [start, end)."""
+        bucket_start = func.date_trunc(bucket, Event.start_date).label("bucket")
+        conditions = event_filter_conditions(filters)
+        stmt = (
+            select(bucket_start, Event.type, func.count())
+            .where(Event.start_date >= start, Event.start_date < end, *conditions)
+            .group_by(bucket_start, Event.type)
+            .order_by(bucket_start)
+        )
+        rows = (await self.session.execute(stmt)).all()
+        return [(row[0], row[1].value, row[2]) for row in rows]
