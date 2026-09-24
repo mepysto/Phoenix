@@ -48,6 +48,7 @@ export const ko: Translations = {
     cloudsInfrared: "적외선 구름 (GOES-East)",
     nightLights: "야간 조명 (VIIRS)",
     cyclones: "열대저기압 (NHC)",
+    shakemaps: "지진동 강도 (USGS ShakeMap)",
     opacity: "투명도",
     dataSource: "데이터: GDACS, Copernicus EMS",
     eventsCount: "개 이벤트",

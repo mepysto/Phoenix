@@ -48,6 +48,7 @@ export const zh: Translations = {
     cloudsInfrared: "红外云图 (GOES-East)",
     nightLights: "夜间灯光 (VIIRS)",
     cyclones: "热带气旋 (NHC)",
+    shakemaps: "地震烈度 (USGS ShakeMap)",
     opacity: "透明度",
     dataSource: "数据来源: GDACS, Copernicus EMS",
     eventsCount: "个事件",

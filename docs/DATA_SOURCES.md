@@ -37,6 +37,7 @@ A unit test fails if a registry source is missing from this file.
 | **RainViewer** | Precipitation radar | "Personal and educational use only" | ❌ non-commercial only | Must link to https://www.rainviewer.com/ as the data source. Radar availability is not guaranteed. | 10 min |
 | **NASA GIBS** — GOES-East ABI Band 13 | Infrared clouds | NASA open data (no restrictions) | ✅ | "Imagery © NASA GIBS / ESDIS" | 10 min |
 | **NOAA National Hurricane Center** | Tropical cyclones: forecast cone, track, positions, past track (Atlantic, East & Central Pacific) | U.S. Government public domain | ✅ | "Tropical cyclones: NOAA NHC"; aggregated and cached by the API | 10 min |
+| **USGS ShakeMap** | Shaking-intensity contours (MMI IV+) of the past week's M4.5+ earthquakes | U.S. Government public domain | ✅ | "Shaking intensity: USGS ShakeMap"; aggregated and cached by the API | 10 min |
 | **NASA GIBS** — VIIRS SNPP Day/Night Band | Night lights (power-outage indicator) | NASA open data (no restrictions) | ✅ | "Imagery © NASA GIBS / ESDIS" | Daily |
 
 ## Removed sources

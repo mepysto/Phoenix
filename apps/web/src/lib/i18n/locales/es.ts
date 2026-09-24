@@ -48,6 +48,7 @@ export const es: Translations = {
     cloudsInfrared: "Nubes infrarrojas (GOES-East)",
     nightLights: "Luces nocturnas (VIIRS)",
     cyclones: "Ciclones tropicales (NHC)",
+    shakemaps: "Intensidad sísmica (USGS ShakeMap)",
     opacity: "Opacidad",
     dataSource: "Datos: GDACS, Copernicus EMS",
     eventsCount: "eventos",

@@ -48,6 +48,7 @@ export const ru: Translations = {
     cloudsInfrared: "Инфракрасная облачность (GOES-East)",
     nightLights: "Ночные огни (VIIRS)",
     cyclones: "Тропические циклоны (NHC)",
+    shakemaps: "Интенсивность сотрясений (USGS ShakeMap)",
     opacity: "Прозрачность",
     dataSource: "Данные: GDACS, Copernicus EMS",
     eventsCount: "событий",

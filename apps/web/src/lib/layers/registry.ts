@@ -143,6 +143,43 @@ function cycloneStyleLayers(sourceId: string): LayerSpecification[] {
   ] as LayerSpecification[];
 }
 
+const MMI_ROMAN: unknown[] = [
+  "match",
+  ["get", "mmi"],
+  4, "IV", 5, "V", 6, "VI", 7, "VII", 8, "VIII", 9, "IX", 10, "X",
+  "",
+];
+
+function shakemapStyleLayers(sourceId: string): LayerSpecification[] {
+  return [
+    {
+      id: `${sourceId}-contours`,
+      type: "line",
+      source: sourceId,
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: {
+        // USGS's own intensity palette, carried on each contour
+        "line-color": ["coalesce", ["get", "color"], "#ffff00"],
+        "line-width": ["interpolate", ["linear"], ["get", "mmi"], 4, 1, 8, 4],
+      },
+    },
+    {
+      id: `${sourceId}-labels`,
+      type: "symbol",
+      source: sourceId,
+      // Label whole-intensity contours only (4.5, 5.5 ... are unlabelled)
+      filter: ["==", ["%", ["get", "mmi"], 1], 0],
+      layout: {
+        "symbol-placement": "line",
+        "text-field": ["concat", "MMI ", MMI_ROMAN],
+        "text-font": LABEL_FONT,
+        "text-size": 11,
+      },
+      paint: { "text-color": "#ffffff", "text-halo-color": "#111827", "text-halo-width": 1.5 },
+    },
+  ] as LayerSpecification[];
+}
+
 const GIBS = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best";
 const GIBS_SOURCE = {
   name: "NASA GIBS",
@@ -242,6 +279,27 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
       return (await response.json()) as GeoJSON.FeatureCollection;
     },
     styleLayers: cycloneStyleLayers,
+  },
+  {
+    id: "shakemaps",
+    kind: "geojson",
+    category: "hazards",
+    auth: "keyless",
+    source: {
+      name: "USGS ShakeMap",
+      url: "https://earthquake.usgs.gov/data/shakemap/",
+      license: "U.S. Government public domain",
+      commercialUse: true,
+      attribution: "Shaking intensity: USGS ShakeMap",
+    },
+    defaultOpacity: 0.9,
+    refreshMs: TEN_MINUTES,
+    loadData: async () => {
+      const response = await fetch(`${API_URL}/api/v1/hazards/shakemaps`);
+      if (!response.ok) throw new Error(`ShakeMaps ${response.status}`);
+      return (await response.json()) as GeoJSON.FeatureCollection;
+    },
+    styleLayers: shakemapStyleLayers,
   },
 ];
 

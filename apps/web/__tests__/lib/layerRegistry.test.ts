@@ -46,6 +46,15 @@ describe("layer registry", () => {
     expect(new Set(layers.map((l) => l.id)).size).toBe(layers.length);
   });
 
+  it("ShakeMap labels only whole-intensity contours", () => {
+    const shakemaps = LAYER_DEFINITIONS_BY_ID.get("shakemaps")!;
+    if (shakemaps.kind !== "geojson") throw new Error("expected geojson layer");
+    const [lines, labels] = shakemaps.styleLayers("overlay-shakemaps");
+    expect(lines!.type).toBe("line");
+    expect(labels!.type).toBe("symbol");
+    expect((labels as { filter?: unknown }).filter).toEqual(["==", ["%", ["get", "mmi"], 1], 0]);
+  });
+
   it("radar uses the newest RainViewer frame", async () => {
     vi.stubGlobal(
       "fetch",
