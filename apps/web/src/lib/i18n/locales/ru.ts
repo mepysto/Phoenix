@@ -125,6 +125,15 @@ export const ru: Translations = {
     reconnecting: "Переподключение…",
     share: "Поделиться видом",
     linkCopied: "Ссылка скопирована",
+    viewMode: "Режим просмотра",
+    viewModes: {
+      normal: "Обычный вид",
+      nvg: "Ночное видение",
+      flir: "Тепловизор (FLIR)",
+      crt: "Консоль (CRT)",
+      noir: "Нуар",
+      contrast: "Высокий контраст",
+    },
   },
   sources: {
     title: "Источники данных",

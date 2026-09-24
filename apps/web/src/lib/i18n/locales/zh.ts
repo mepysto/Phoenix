@@ -122,6 +122,15 @@ export const zh: Translations = {
     reconnecting: "正在重新连接…",
     share: "分享视图",
     linkCopied: "链接已复制",
+    viewMode: "视图模式",
+    viewModes: {
+      normal: "普通视图",
+      nvg: "夜视",
+      flir: "热成像 (FLIR)",
+      crt: "控制台 (CRT)",
+      noir: "黑白",
+      contrast: "高对比度",
+    },
   },
   sources: {
     title: "数据来源",

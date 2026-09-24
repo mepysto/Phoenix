@@ -37,7 +37,7 @@ export function useMapUrlState(): {
 
   const write = useCallback(() => {
     const { visibleTypes, visibleSeverities } = useEventStore.getState();
-    const { basemap } = useMapStore.getState();
+    const { basemap, viewMode } = useMapStore.getState();
     const qs = serializeMapUrlState(
       {
         ...camera.current,
@@ -46,6 +46,7 @@ export function useMapUrlState(): {
         severities: [...visibleSeverities],
         event: initial.event,
         at: useTimelineStore.getState().at ?? undefined,
+        mode: viewMode,
       },
       new URLSearchParams(window.location.search),
     );
@@ -64,6 +65,7 @@ export function useMapUrlState(): {
   useEffect(() => {
     const defaultBasemap = useSettingsStore.getState().defaultBasemap;
     useMapStore.getState().setBasemap(initial.basemap ?? defaultBasemap);
+    useMapStore.getState().setViewMode(initial.mode ?? "normal");
     const events = useEventStore.getState();
     events.setVisibility(initial.types, initial.severities);
     useTimelineStore.getState().setAt(initial.at ?? null);
@@ -81,7 +83,7 @@ export function useMapUrlState(): {
       }
     });
     const unsubscribeMap = useMapStore.subscribe((state, prev) => {
-      if (state.basemap !== prev.basemap) scheduleWrite();
+      if (state.basemap !== prev.basemap || state.viewMode !== prev.viewMode) scheduleWrite();
     });
     const unsubscribeTimeline = useTimelineStore.subscribe((state, prev) => {
       if (state.at !== prev.at) scheduleWrite();

@@ -123,6 +123,15 @@ export const ko: Translations = {
     reconnecting: "재연결 중…",
     share: "화면 공유",
     linkCopied: "링크 복사됨",
+    viewMode: "보기 모드",
+    viewModes: {
+      normal: "기본 보기",
+      nvg: "야간 투시",
+      flir: "열화상 (FLIR)",
+      crt: "콘솔 (CRT)",
+      noir: "흑백",
+      contrast: "고대비",
+    },
   },
   sources: {
     title: "데이터 소스",

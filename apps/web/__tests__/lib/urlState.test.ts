@@ -4,6 +4,13 @@ import { parseMapUrlState, serializeMapUrlState } from "@/lib/map/urlState";
 const parse = (qs: string) => parseMapUrlState(new URLSearchParams(qs));
 
 describe("map URL state", () => {
+  it("keeps only known, non-default view modes", () => {
+    expect(parse("m=nvg").mode).toBe("nvg");
+    expect(parse("m=normal").mode).toBeUndefined();
+    expect(parse("m=xray").mode).toBeUndefined();
+    expect(serializeMapUrlState({ mode: "normal" })).toBe("");
+  });
+
   it("round-trips a full state", () => {
     const state = {
       view: { lng: 139.6917, lat: 35.6895, zoom: 6.5, bearing: 30, pitch: 45 },
@@ -13,6 +20,7 @@ describe("map URL state", () => {
       severities: ["high", "critical"] as const,
       event: "661f99ef-07b4-4f39-9232-d5da4fb3c319",
       at: "2026-09-01T06:00:00.000Z", // must not collide with the types param "t"
+      mode: "flir" as const,
     };
     const qs = serializeMapUrlState(state as never);
     expect(parse(qs)).toEqual(state);

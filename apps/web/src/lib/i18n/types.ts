@@ -1,3 +1,4 @@
+import type { ViewMode } from "@/lib/map/viewModes";
 import type { ShipCategory } from "@/lib/telemetry";
 
 export interface Translations {
@@ -126,6 +127,8 @@ export interface Translations {
     reconnecting: string;
     share: string;
     linkCopied: string;
+    viewMode: string;
+    viewModes: Record<ViewMode, string>;
   };
   sources: {
     title: string;

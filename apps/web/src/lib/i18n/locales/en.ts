@@ -124,6 +124,15 @@ export const en: Translations = {
     reconnecting: "Reconnecting…",
     share: "Share view",
     linkCopied: "Link copied",
+    viewMode: "View mode",
+    viewModes: {
+      normal: "Normal view",
+      nvg: "Night vision",
+      flir: "Thermal (FLIR)",
+      crt: "Console (CRT)",
+      noir: "Noir",
+      contrast: "High contrast",
+    },
   },
   sources: {
     title: "Data sources",
