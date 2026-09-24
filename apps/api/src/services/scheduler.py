@@ -1,28 +1,69 @@
+"""Periodic ingestion jobs (GDACS, Copernicus, USGS, EONET, FIRMS).
+
+Every job runs through `_run`, which provides the shared behaviour:
+- a PostgreSQL advisory lock so only one worker/replica runs each job;
+- commit on success, and failure recording on the data source otherwise
+  (shown in the source status panel);
+- in-memory status for GET /scheduler/status.
+"""
+
 import logging
 import zlib
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.exceptions import DataSyncError, ExternalAPIError
 from src.db.database import async_session_maker
 from src.repositories.data_source_repository import DataSourceRepository
 from src.services.copernicus_service import CopernicusEMSService
 from src.services.gdacs_service import GDACSService
+from src.services.hazards.firms import ingest_firms
 from src.services.ingestion_service import IngestionService
 
 logger = logging.getLogger(__name__)
+
+# Consecutive failures after which a job is logged as critical
+CRITICAL_AFTER_FAILURES = 3
 
 
 def _job_lock_key(job: str) -> int:
     """Stable advisory-lock key per job (crc32 fits PostgreSQL's bigint key)."""
     return zlib.crc32(f"phoenix-sync:{job}".encode())
+
+
+@dataclass
+class JobStatus:
+    last_sync: datetime | None = None
+    last_error: str | None = None
+    sync_count: int = 0
+    consecutive_failures: int = 0
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "last_sync": self.last_sync.isoformat() if self.last_sync else None,
+            "last_error": self.last_error,
+            "sync_count": self.sync_count,
+            "consecutive_failures": self.consecutive_failures,
+        }
+
+
+# job key -> data source name (as stored in data_sources)
+JOBS = {
+    "gdacs": "GDACS",
+    "copernicus": "Copernicus",
+    "usgs": "USGS",
+    "eonet": "EONET",
+    "firms": "NASA FIRMS",
+}
+
+Work = Callable[[AsyncSession], Awaitable[dict[str, Any]]]
 
 
 class SchedulerService:
@@ -39,25 +80,7 @@ class SchedulerService:
             self._scheduler = AsyncIOScheduler()
             self._gdacs_service = GDACSService()
             self._copernicus_service = CopernicusEMSService()
-            self._last_sync: datetime | None = None
-            self._last_sync_error: str | None = None
-            self._sync_count = 0
-            self._consecutive_failures = 0
-            # Copernicus specific tracking
-            self._last_copernicus_sync: datetime | None = None
-            self._last_copernicus_error: str | None = None
-            self._copernicus_sync_count = 0
-            self._copernicus_consecutive_failures = 0
-            # USGS specific tracking
-            self._last_usgs_sync: datetime | None = None
-            self._last_usgs_error: str | None = None
-            self._usgs_sync_count = 0
-            self._usgs_consecutive_failures = 0
-            # EONET specific tracking
-            self._last_eonet_sync: datetime | None = None
-            self._last_eonet_error: str | None = None
-            self._eonet_sync_count = 0
-            self._eonet_consecutive_failures = 0
+            self._status = {job: JobStatus() for job in JOBS}
 
     @asynccontextmanager
     async def _exclusive_job(self, job: str) -> AsyncIterator[AsyncSession | None]:
@@ -103,464 +126,126 @@ class SchedulerService:
         except Exception:
             logger.exception("Could not record %s sync failure", source_name)
 
-    async def sync_gdacs(self) -> None:
-        """
-        Synchronize GDACS events with error handling and DB persistence.
-
-        This method:
-        1. Fetches events from GDACS RSS feed
-        2. Opens a DB session and uses IngestionService to persist events
-        3. Updates data_sources table with sync status
-        4. Catches all exceptions to prevent the scheduler from stopping
-
-        Errors are logged with appropriate severity levels.
-        """
+    async def _run(self, job: str, work: Work) -> None:
+        """Run one job under its lock; never raises (a job must not kill the scheduler)."""
+        status = self._status[job]
         try:
-            logger.info("Starting GDACS sync...")
-
-            # Only one worker/replica runs this job at a time; the lock is taken
-            # before fetching so losers skip the download too.
-            async with self._exclusive_job("gdacs") as session:
+            # The lock is taken before fetching so losing workers skip the download
+            async with self._exclusive_job(job) as session:
                 if session is None:
                     return
-
-                # 1. Fetch events from GDACS
-                events = await self._gdacs_service.fetch_rss_events()
-
-                # 2. Ingest and commit (commit also releases the lock)
-                ingestion_service = IngestionService(session)
-                result = await ingestion_service.ingest_gdacs_events(events, atomic=False)
-                await session.commit()
-
-            # 3. Update in-memory status
-            self._last_sync = datetime.now(timezone.utc)
-            self._last_sync_error = None
-            self._sync_count += 1
-            self._consecutive_failures = 0
-
-            logger.info(
-                f"GDACS sync completed: {result['created']} created, "
-                f"{result['updated']} updated, {result['failed']} failed "
-                f"(sync #{self._sync_count})"
-            )
-
-        except DataSyncError as e:
-            await self._record_failure("GDACS", e)
-            self._consecutive_failures += 1
-            self._last_sync_error = str(e)
-            logger.error(
-                f"GDACS sync failed after retries: {e} "
-                f"(consecutive failures: {self._consecutive_failures})"
-            )
-            if self._consecutive_failures >= 3:
-                logger.critical(
-                    f"GDACS sync has failed {self._consecutive_failures} consecutive times. "
-                    "Manual intervention may be required."
-                )
-
-        except ExternalAPIError as e:
-            await self._record_failure("GDACS", e)
-            self._consecutive_failures += 1
-            self._last_sync_error = str(e)
-            logger.error(
-                f"GDACS external API error: {e} "
-                f"(consecutive failures: {self._consecutive_failures})"
-            )
-
+                result = await work(session)
+                await session.commit()  # also releases the lock
         except Exception as e:
-            await self._record_failure("GDACS", e)
-            self._consecutive_failures += 1
-            self._last_sync_error = str(e)
-            logger.exception(
-                f"Unexpected error during GDACS sync: {e} "
-                f"(consecutive failures: {self._consecutive_failures})"
+            await self._record_failure(JOBS[job], e)
+            status.consecutive_failures += 1
+            status.last_error = str(e)
+            critical = status.consecutive_failures >= CRITICAL_AFTER_FAILURES
+            logger.log(
+                logging.CRITICAL if critical else logging.ERROR,
+                "%s sync failed (%d consecutive): %r",
+                job,
+                status.consecutive_failures,
+                e,
+                exc_info=critical,
             )
+            return
+        status.last_sync = datetime.now(timezone.utc)
+        status.last_error = None
+        status.sync_count += 1
+        status.consecutive_failures = 0
+        logger.info("%s sync #%d completed: %s", job, status.sync_count, result)
+
+    # --- jobs -------------------------------------------------------------
+
+    async def sync_gdacs(self) -> None:
+        async def work(session: AsyncSession) -> dict[str, Any]:
+            events = await self._gdacs_service.fetch_rss_events()
+            return await IngestionService(session).ingest_gdacs_events(events, atomic=False)
+
+        await self._run("gdacs", work)
 
     async def sync_copernicus(self) -> None:
-        """
-        Synchronize Copernicus EMS events with error handling and DB persistence.
+        async def work(session: AsyncSession) -> dict[str, Any]:
+            events = await self._copernicus_service.fetch_activations()
+            return await IngestionService(session).ingest_copernicus_events(events, atomic=False)
 
-        This method:
-        1. Fetches events from Copernicus EMS API
-        2. Opens a DB session and uses IngestionService to persist events
-        3. Updates data_sources table with sync status
-        4. Catches all exceptions to prevent the scheduler from stopping
-
-        Errors are logged with appropriate severity levels.
-        """
-        try:
-            logger.info("Starting Copernicus EMS sync...")
-
-            # Only one worker/replica runs this job at a time; the lock is taken
-            # before fetching so losers skip the download too.
-            async with self._exclusive_job("copernicus") as session:
-                if session is None:
-                    return
-
-                # 1. Fetch events from Copernicus
-                events = await self._copernicus_service.fetch_activations()
-
-                # 2. Ingest and commit (commit also releases the lock)
-                ingestion_service = IngestionService(session)
-                result = await ingestion_service.ingest_copernicus_events(events, atomic=False)
-                await session.commit()
-
-            # 3. Update in-memory status
-            self._last_copernicus_sync = datetime.now(timezone.utc)
-            self._last_copernicus_error = None
-            self._copernicus_sync_count += 1
-            self._copernicus_consecutive_failures = 0
-
-            logger.info(
-                f"Copernicus EMS sync completed: {result['created']} created, "
-                f"{result['updated']} updated, {result['failed']} failed "
-                f"(sync #{self._copernicus_sync_count})"
-            )
-
-        except DataSyncError as e:
-            await self._record_failure("Copernicus", e)
-            self._copernicus_consecutive_failures += 1
-            self._last_copernicus_error = str(e)
-            logger.error(
-                f"Copernicus EMS sync failed after retries: {e} "
-                f"(consecutive failures: {self._copernicus_consecutive_failures})"
-            )
-            if self._copernicus_consecutive_failures >= 3:
-                logger.critical(
-                    f"Copernicus EMS sync has failed {self._copernicus_consecutive_failures} "
-                    "consecutive times. Manual intervention may be required."
-                )
-
-        except ExternalAPIError as e:
-            await self._record_failure("Copernicus", e)
-            self._copernicus_consecutive_failures += 1
-            self._last_copernicus_error = str(e)
-            logger.error(
-                f"Copernicus EMS external API error: {e} "
-                f"(consecutive failures: {self._copernicus_consecutive_failures})"
-            )
-
-        except Exception as e:
-            await self._record_failure("Copernicus", e)
-            self._copernicus_consecutive_failures += 1
-            self._last_copernicus_error = str(e)
-            logger.exception(
-                f"Unexpected error during Copernicus EMS sync: {e} "
-                f"(consecutive failures: {self._copernicus_consecutive_failures})"
-            )
+        await self._run("copernicus", work)
 
     async def sync_usgs(self) -> None:
-        """
-        Synchronize USGS earthquake events with error handling and DB persistence.
+        from src.services.connectors.usgs_connector import USGSConnector
 
-        This method:
-        1. Fetches earthquake events from USGS GeoJSON feed
-        2. Opens a DB session and uses IngestionService to persist events
-        3. Updates data_sources table with sync status
-        4. Catches all exceptions to prevent the scheduler from stopping
+        async def work(session: AsyncSession) -> dict[str, Any]:
+            events = await USGSConnector(feed="4.5_week").fetch_events()  # M4.5+, past week
+            return await IngestionService(session).ingest_usgs_events(events, atomic=False)
 
-        Errors are logged with appropriate severity levels.
-        """
-        try:
-            from src.services.connectors.usgs_connector import USGSConnector
-
-            logger.info("Starting USGS sync...")
-
-            # Only one worker/replica runs this job at a time; the lock is taken
-            # before fetching so losers skip the download too.
-            async with self._exclusive_job("usgs") as session:
-                if session is None:
-                    return
-
-                # 1. Fetch events from USGS (M4.5+ past week)
-                connector = USGSConnector(feed="4.5_week")
-                events = await connector.fetch_events()
-
-                # 2. Ingest and commit (commit also releases the lock)
-                ingestion_service = IngestionService(session)
-                result = await ingestion_service.ingest_usgs_events(events, atomic=False)
-                await session.commit()
-
-            # 3. Update in-memory status
-            self._last_usgs_sync = datetime.now(timezone.utc)
-            self._last_usgs_error = None
-            self._usgs_sync_count += 1
-            self._usgs_consecutive_failures = 0
-
-            logger.info(
-                f"USGS sync completed: {result['created']} created, "
-                f"{result['updated']} updated, {result['failed']} failed "
-                f"(sync #{self._usgs_sync_count})"
-            )
-
-        except DataSyncError as e:
-            await self._record_failure("USGS", e)
-            self._usgs_consecutive_failures += 1
-            self._last_usgs_error = str(e)
-            logger.error(
-                f"USGS sync failed after retries: {e} "
-                f"(consecutive failures: {self._usgs_consecutive_failures})"
-            )
-            if self._usgs_consecutive_failures >= 3:
-                logger.critical(
-                    f"USGS sync has failed {self._usgs_consecutive_failures} consecutive times. "
-                    "Manual intervention may be required."
-                )
-
-        except ExternalAPIError as e:
-            await self._record_failure("USGS", e)
-            self._usgs_consecutive_failures += 1
-            self._last_usgs_error = str(e)
-            logger.error(
-                f"USGS external API error: {e} "
-                f"(consecutive failures: {self._usgs_consecutive_failures})"
-            )
-
-        except Exception as e:
-            await self._record_failure("USGS", e)
-            self._usgs_consecutive_failures += 1
-            self._last_usgs_error = str(e)
-            logger.exception(
-                f"Unexpected error during USGS sync: {e} "
-                f"(consecutive failures: {self._usgs_consecutive_failures})"
-            )
+        await self._run("usgs", work)
 
     async def sync_eonet(self) -> None:
-        """
-        Synchronize NASA EONET events with error handling and DB persistence.
+        from src.services.connectors.eonet_connector import EONETConnector
 
-        This method:
-        1. Fetches natural events from NASA EONET API
-        2. Opens a DB session and uses IngestionService to persist events
-        3. Updates data_sources table with sync status
-        4. Catches all exceptions to prevent the scheduler from stopping
+        async def work(session: AsyncSession) -> dict[str, Any]:
+            events = await EONETConnector(status="open", days=30).fetch_events()
+            return await IngestionService(session).ingest_eonet_events(events, atomic=False)
 
-        Errors are logged with appropriate severity levels.
-        """
-        try:
-            from src.services.connectors.eonet_connector import EONETConnector
+        await self._run("eonet", work)
 
-            logger.info("Starting EONET sync...")
+    async def sync_firms(self) -> None:
+        """NASA FIRMS active fires (keyless 24 h files) into PostGIS."""
 
-            # Only one worker/replica runs this job at a time; the lock is taken
-            # before fetching so losers skip the download too.
-            async with self._exclusive_job("eonet") as session:
-                if session is None:
-                    return
-
-                # 1. Fetch events from EONET (open events, past 30 days)
-                connector = EONETConnector(status="open", days=30)
-                events = await connector.fetch_events()
-
-                # 2. Ingest and commit (commit also releases the lock)
-                ingestion_service = IngestionService(session)
-                result = await ingestion_service.ingest_eonet_events(events, atomic=False)
-                await session.commit()
-
-            # 3. Update in-memory status
-            self._last_eonet_sync = datetime.now(timezone.utc)
-            self._last_eonet_error = None
-            self._eonet_sync_count += 1
-            self._eonet_consecutive_failures = 0
-
-            logger.info(
-                f"EONET sync completed: {result['created']} created, "
-                f"{result['updated']} updated, {result['failed']} failed "
-                f"(sync #{self._eonet_sync_count})"
+        async def work(session: AsyncSession) -> dict[str, Any]:
+            result = await ingest_firms(session)
+            repo = DataSourceRepository(session)
+            source = await repo.get_or_create(
+                name="NASA FIRMS",
+                type="satellite",
+                defaults={
+                    "api_url": "https://firms.modaps.eosdis.nasa.gov/active_fire/",
+                    "update_frequency": "30 minutes",
+                    "sync_interval_minutes": 30,
+                    "is_realtime": True,
+                },
             )
-
-        except DataSyncError as e:
-            await self._record_failure("EONET", e)
-            self._eonet_consecutive_failures += 1
-            self._last_eonet_error = str(e)
-            logger.error(
-                f"EONET sync failed after retries: {e} "
-                f"(consecutive failures: {self._eonet_consecutive_failures})"
+            await repo.update_sync_status(
+                source.id, last_sync=datetime.now(timezone.utc), status="success"
             )
-            if self._eonet_consecutive_failures >= 3:
-                logger.critical(
-                    f"EONET sync has failed {self._eonet_consecutive_failures} consecutive times. "
-                    "Manual intervention may be required."
-                )
+            return result
 
-        except ExternalAPIError as e:
-            await self._record_failure("EONET", e)
-            self._eonet_consecutive_failures += 1
-            self._last_eonet_error = str(e)
-            logger.error(
-                f"EONET external API error: {e} "
-                f"(consecutive failures: {self._eonet_consecutive_failures})"
-            )
+        await self._run("firms", work)
 
-        except Exception as e:
-            await self._record_failure("EONET", e)
-            self._eonet_consecutive_failures += 1
-            self._last_eonet_error = str(e)
-            logger.exception(
-                f"Unexpected error during EONET sync: {e} "
-                f"(consecutive failures: {self._eonet_consecutive_failures})"
-            )
+    # --- lifecycle ----------------------------------------------------------
 
     def start(self, sync_interval_minutes: int = 5) -> None:
         if self._scheduler is None:
             return
-
-        # GDACS sync job
-        self._scheduler.add_job(
-            self.sync_gdacs,
-            trigger=IntervalTrigger(minutes=sync_interval_minutes),
-            id="gdacs_sync",
-            name="GDACS Event Sync",
-            replace_existing=True,
-        )
-
-        # Copernicus EMS sync job (offset by 2 minutes to avoid simultaneous requests)
-        self._scheduler.add_job(
-            self.sync_copernicus,
-            trigger=IntervalTrigger(minutes=sync_interval_minutes),
-            id="copernicus_sync",
-            name="Copernicus EMS Sync",
-            replace_existing=True,
-        )
-
-        # USGS sync job (every 5 minutes, earthquakes update frequently)
-        self._scheduler.add_job(
-            self.sync_usgs,
-            trigger=IntervalTrigger(minutes=sync_interval_minutes),
-            id="usgs_sync",
-            name="USGS Earthquake Sync",
-            replace_existing=True,
-        )
-
-        # EONET sync job (every 10 minutes, natural events update less frequently)
-        self._scheduler.add_job(
-            self.sync_eonet,
-            trigger=IntervalTrigger(minutes=10),
-            id="eonet_sync",
-            name="EONET Event Sync",
-            replace_existing=True,
-        )
-
+        schedule = [
+            (self.sync_gdacs, sync_interval_minutes, "GDACS Event Sync"),
+            (self.sync_copernicus, sync_interval_minutes, "Copernicus EMS Sync"),
+            (self.sync_usgs, sync_interval_minutes, "USGS Earthquake Sync"),
+            (self.sync_eonet, 10, "EONET Event Sync"),  # natural events change slowly
+            (self.sync_firms, 30, "NASA FIRMS Active Fires"),  # files refresh every few hours
+        ]
+        for job, minutes, name in schedule:
+            self._scheduler.add_job(
+                job,
+                trigger=IntervalTrigger(minutes=minutes),
+                id=f"{job.__name__.removeprefix('sync_')}_sync",
+                name=name,
+                replace_existing=True,
+            )
         self._scheduler.start()
-        logger.info(
-            f"Scheduler started with {sync_interval_minutes}-minute sync interval "
-            "(GDACS + Copernicus EMS + USGS + EONET)"
-        )
+        logger.info("Scheduler started with %d jobs", len(schedule))
 
     def stop(self) -> None:
-        if self._scheduler is not None:
+        if self._scheduler is not None and self._scheduler.running:
             self._scheduler.shutdown(wait=False)
             logger.info("Scheduler stopped")
 
-    def get_status(self) -> dict[str, str | int | None | dict]:
-        """Get scheduler status from in-memory state.
-
-        For DB-backed status including data_sources table info,
-        use get_status_with_db() instead.
-        """
+    def get_status(self) -> dict[str, Any]:
         return {
             "running": self._scheduler.running if self._scheduler else False,
-            "gdacs": {
-                "last_sync": self._last_sync.isoformat() if self._last_sync else None,
-                "last_error": self._last_sync_error,
-                "sync_count": self._sync_count,
-                "consecutive_failures": self._consecutive_failures,
-            },
-            "copernicus": {
-                "last_sync": (
-                    self._last_copernicus_sync.isoformat()
-                    if self._last_copernicus_sync
-                    else None
-                ),
-                "last_error": self._last_copernicus_error,
-                "sync_count": self._copernicus_sync_count,
-                "consecutive_failures": self._copernicus_consecutive_failures,
-            },
-            "usgs": {
-                "last_sync": (
-                    self._last_usgs_sync.isoformat() if self._last_usgs_sync else None
-                ),
-                "last_error": self._last_usgs_error,
-                "sync_count": self._usgs_sync_count,
-                "consecutive_failures": self._usgs_consecutive_failures,
-            },
-            "eonet": {
-                "last_sync": (
-                    self._last_eonet_sync.isoformat() if self._last_eonet_sync else None
-                ),
-                "last_error": self._last_eonet_error,
-                "sync_count": self._eonet_sync_count,
-                "consecutive_failures": self._eonet_consecutive_failures,
-            },
+            **{job: status.as_dict() for job, status in self._status.items()},
         }
-
-    async def get_status_with_db(self) -> dict[str, str | int | None | dict]:
-        """Get scheduler status including data_sources table info.
-
-        This method queries the database for the current status of
-        each data source, providing persistent sync history.
-        """
-        from src.repositories.data_source_repository import DataSourceRepository
-
-        status = self.get_status()
-
-        try:
-            async with async_session_maker() as session:
-                repo = DataSourceRepository(session)
-
-                # Get GDACS data source status
-                gdacs_source = await repo.get_by_name("GDACS")
-                if gdacs_source:
-                    gdacs_status = status.get("gdacs")
-                    if isinstance(gdacs_status, dict):
-                        gdacs_status["db_last_sync"] = (
-                            gdacs_source.last_sync.isoformat() if gdacs_source.last_sync else None
-                        )
-                        gdacs_status["db_last_sync_status"] = gdacs_source.last_sync_status
-                        gdacs_status["db_consecutive_failures"] = gdacs_source.consecutive_failures
-
-                # Get Copernicus data source status
-                copernicus_source = await repo.get_by_name("Copernicus")
-                if copernicus_source:
-                    copernicus_status = status.get("copernicus")
-                    if isinstance(copernicus_status, dict):
-                        copernicus_status["db_last_sync"] = (
-                            copernicus_source.last_sync.isoformat()
-                            if copernicus_source.last_sync
-                            else None
-                        )
-                        copernicus_status["db_last_sync_status"] = copernicus_source.last_sync_status
-                        copernicus_status["db_consecutive_failures"] = (
-                            copernicus_source.consecutive_failures
-                        )
-
-                # Get USGS data source status
-                usgs_source = await repo.get_by_name("USGS")
-                if usgs_source:
-                    usgs_status = status.get("usgs")
-                    if isinstance(usgs_status, dict):
-                        usgs_status["db_last_sync"] = (
-                            usgs_source.last_sync.isoformat() if usgs_source.last_sync else None
-                        )
-                        usgs_status["db_last_sync_status"] = usgs_source.last_sync_status
-                        usgs_status["db_consecutive_failures"] = usgs_source.consecutive_failures
-
-                # Get EONET data source status
-                eonet_source = await repo.get_by_name("EONET")
-                if eonet_source:
-                    eonet_status = status.get("eonet")
-                    if isinstance(eonet_status, dict):
-                        eonet_status["db_last_sync"] = (
-                            eonet_source.last_sync.isoformat() if eonet_source.last_sync else None
-                        )
-                        eonet_status["db_last_sync_status"] = eonet_source.last_sync_status
-                        eonet_status["db_consecutive_failures"] = eonet_source.consecutive_failures
-
-        except Exception as e:
-            logger.warning(f"Failed to fetch DB status for data sources: {e}")
-            status["db_error"] = str(e)
-
-        return status
 
 
 scheduler_service = SchedulerService()

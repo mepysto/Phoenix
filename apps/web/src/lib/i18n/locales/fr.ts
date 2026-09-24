@@ -49,6 +49,7 @@ export const fr: Translations = {
     nightLights: "Lumières nocturnes (VIIRS)",
     cyclones: "Cyclones tropicaux (NHC)",
     shakemaps: "Intensité des secousses (USGS ShakeMap)",
+    fires: "Feux actifs (NASA FIRMS)",
     powerPlants: "Centrales électriques (WRI)",
     dams: "Barrages (Global Dam Watch)",
     hospitals: "Hôpitaux (OSM)",

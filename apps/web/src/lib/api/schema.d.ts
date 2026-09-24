@@ -334,6 +334,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hazards/fires": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Active Fires
+         * @description NASA FIRMS VIIRS active-fire detections in the viewport from the last
+         *     `hours`, most intense first (fire radiative power). `truncated` means
+         *     zoom in to see smaller fires.
+         */
+        get: operations["active_fires_api_v1_hazards_fires_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/infrastructure": {
         parameters: {
             query?: never;
@@ -1302,6 +1324,44 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    active_fires_api_v1_hazards_fires_get: {
+        parameters: {
+            query: {
+                min_lng: number;
+                min_lat: number;
+                max_lng: number;
+                max_lat: number;
+                hours?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

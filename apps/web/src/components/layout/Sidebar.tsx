@@ -52,6 +52,7 @@ const LAYER_ID_TO_TRANSLATION_KEY: Record<string, string> = {
   "night-lights": "nightLights",
   cyclones: "cyclones",
   shakemaps: "shakemaps",
+  fires: "fires",
   "power-plants": "powerPlants",
   dams: "dams",
   hospitals: "hospitals",

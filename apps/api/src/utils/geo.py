@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 
 def make_point_expr(lat: float, lng: float) -> Any:
@@ -165,3 +165,20 @@ def distance_meters(
         func.geography(location_column),
         func.geography(ref_point),
     )
+
+
+def envelope_filter(
+    location_column: Any, min_lng: float, min_lat: float, max_lng: float, max_lat: float
+) -> Any:
+    """Bounding-box test on a GiST-indexed geometry column.
+
+    A box crossing the antimeridian (min_lng > max_lng, e.g. a Pacific view)
+    is split into its two halves.
+    """
+
+    def box(west: float, east: float) -> Any:
+        return location_column.op("&&")(func.ST_MakeEnvelope(west, min_lat, east, max_lat, 4326))
+
+    if min_lng <= max_lng:
+        return box(min_lng, max_lng)
+    return or_(box(min_lng, 180), box(-180, max_lng))
