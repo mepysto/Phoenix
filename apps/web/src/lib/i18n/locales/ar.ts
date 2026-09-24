@@ -49,6 +49,7 @@ export const ar: Translations = {
     nightLights: "الأضواء الليلية (VIIRS)",
     cyclones: "الأعاصير المدارية (NHC)",
     shakemaps: "شدة الاهتزاز الزلزالي (USGS ShakeMap)",
+    fires: "الحرائق النشطة (NASA FIRMS)",
     powerPlants: "محطات الطاقة (WRI)",
     dams: "السدود (Global Dam Watch)",
     hospitals: "المستشفيات (OSM)",

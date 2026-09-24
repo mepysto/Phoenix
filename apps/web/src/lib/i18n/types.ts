@@ -50,6 +50,7 @@ export interface Translations {
     nightLights: string;
     cyclones: string;
     shakemaps: string;
+    fires: string;
     powerPlants: string;
     dams: string;
     hospitals: string;

@@ -49,6 +49,7 @@ export const ko: Translations = {
     nightLights: "야간 조명 (VIIRS)",
     cyclones: "열대저기압 (NHC)",
     shakemaps: "지진동 강도 (USGS ShakeMap)",
+    fires: "산불·화점 (NASA FIRMS)",
     powerPlants: "발전소 (WRI)",
     dams: "댐 (Global Dam Watch)",
     hospitals: "병원 (OSM)",

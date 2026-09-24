@@ -49,6 +49,7 @@ export const zh: Translations = {
     nightLights: "夜间灯光 (VIIRS)",
     cyclones: "热带气旋 (NHC)",
     shakemaps: "地震烈度 (USGS ShakeMap)",
+    fires: "活跃火点 (NASA FIRMS)",
     powerPlants: "发电厂 (WRI)",
     dams: "水坝 (Global Dam Watch)",
     hospitals: "医院 (OSM)",

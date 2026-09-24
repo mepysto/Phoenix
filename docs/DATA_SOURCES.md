@@ -37,6 +37,7 @@ A unit test fails if a registry source is missing from this file.
 | **RainViewer** | Precipitation radar | "Personal and educational use only" | ❌ non-commercial only | Must link to https://www.rainviewer.com/ as the data source. Radar availability is not guaranteed. | 10 min |
 | **NASA GIBS** — GOES-East ABI Band 13 | Infrared clouds | NASA open data (no restrictions) | ✅ | "Imagery © NASA GIBS / ESDIS" | 10 min |
 | **NOAA National Hurricane Center** | Tropical cyclones: forecast cone, track, positions, past track (Atlantic, East & Central Pacific) | U.S. Government public domain | ✅ | "Tropical cyclones: NOAA NHC"; aggregated and cached by the API | 10 min |
+| **NASA LANCE FIRMS** | Active fires, VIIRS S-NPP + NOAA-20 (375 m), last 24–48 h | NASA open data | ✅ | Credit "NASA LANCE FIRMS" and follow the [LANCE citation & disclaimer](https://www.earthdata.nasa.gov/data/tools/firms/faq) when redistributing. Keyless 24 h global files, ingested into PostGIS every 30 min | 30 min |
 | **USGS ShakeMap** | Shaking-intensity contours (MMI IV+) of the past week's M4.5+ earthquakes | U.S. Government public domain | ✅ | "Shaking intensity: USGS ShakeMap"; aggregated and cached by the API | 10 min |
 | **NASA GIBS** — VIIRS SNPP Day/Night Band | Night lights (power-outage indicator) | NASA open data (no restrictions) | ✅ | "Imagery © NASA GIBS / ESDIS" | Daily |
 
@@ -61,8 +62,3 @@ not be relied on as the backend of a public website.
 | CARTO basemaps | Began rendering an "API KEY REQUIRED" watermark. |
 | Esri World Imagery / World Dark Gray | Terms could not be confirmed to allow use without an ArcGIS licence. |
 
-## Planned (not yet integrated)
-
-| Source | Needs | Notes |
-|---|---|---|
-| NASA FIRMS active fires | Free `FIRMS_MAP_KEY` (server-side only) | Will be served through the API; the key is never sent to browsers. |

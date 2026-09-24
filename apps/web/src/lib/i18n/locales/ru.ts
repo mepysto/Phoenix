@@ -49,6 +49,7 @@ export const ru: Translations = {
     nightLights: "Ночные огни (VIIRS)",
     cyclones: "Тропические циклоны (NHC)",
     shakemaps: "Интенсивность сотрясений (USGS ShakeMap)",
+    fires: "Активные пожары (NASA FIRMS)",
     powerPlants: "Электростанции (WRI)",
     dams: "Плотины (Global Dam Watch)",
     hospitals: "Больницы (OSM)",

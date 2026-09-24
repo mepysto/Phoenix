@@ -377,6 +377,56 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
     styleLayers: shakemapStyleLayers,
   },
   {
+    id: "fires",
+    kind: "geojson",
+    category: "hazards",
+    auth: "keyless",
+    source: {
+      name: "NASA LANCE FIRMS",
+      url: "https://www.earthdata.nasa.gov/data/tools/firms",
+      license: "NASA open data; LANCE citation and disclaimer apply",
+      commercialUse: true,
+      attribution:
+        'Active fires: <a href="https://www.earthdata.nasa.gov/data/tools/firms">NASA LANCE FIRMS</a>',
+    },
+    defaultOpacity: 0.9,
+    refreshMs: TEN_MINUTES * 3,
+    viewportDriven: true,
+    minZoom: 1,
+    loadData: async ({ bbox: [west, south, east, north] }) => {
+      const params = new URLSearchParams({
+        min_lng: String(west),
+        min_lat: String(south),
+        max_lng: String(east),
+        max_lat: String(north),
+        limit: "3000",
+      });
+      const response = await fetch(`${API_URL}/api/v1/hazards/fires?${params}`);
+      if (!response.ok) throw new Error(`Fires ${response.status}`);
+      return (await response.json()) as GeoJSON.FeatureCollection;
+    },
+    styleLayers: (sourceId) => [
+      {
+        id: `${sourceId}-points`,
+        type: "circle",
+        source: sourceId,
+        paint: {
+          // Fire radiative power (MW): small agricultural burns -> major wildfires
+          "circle-color": [
+            "interpolate", ["linear"], ["coalesce", ["get", "frp"], 0],
+            0, "#fde047", 10, "#fb923c", 50, "#ef4444", 200, "#7f1d1d",
+          ],
+          "circle-radius": [
+            "interpolate", ["linear"], ["zoom"],
+            2, ["interpolate", ["linear"], ["coalesce", ["get", "frp"], 0], 0, 1.5, 200, 4],
+            10, ["interpolate", ["linear"], ["coalesce", ["get", "frp"], 0], 0, 4, 200, 10],
+          ],
+          "circle-blur": 0.3,
+        },
+      } as LayerSpecification,
+    ],
+  },
+  {
     id: "power-plants",
     kind: "geojson",
     category: "infrastructure",
