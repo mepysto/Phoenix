@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import model_validator
+from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -32,6 +32,17 @@ class Settings(BaseSettings):
     gdacs_api_url: str = "https://www.gdacs.org/gdacsapi/api"
     copernicus_api_url: str = "https://emergency.copernicus.eu"
     hdx_api_url: str = "https://data.humdata.org/api/3"
+
+    # Map agent (M4). Off unless a key is set: keys are upgrades, not gates.
+    anthropic_api_key: SecretStr | None = None
+    agent_model: str = "claude-sonnet-5"
+    agent_max_output_tokens: int = 1024
+    # Model calls per user message (each tool round trip is one)
+    agent_max_steps: int = 6
+    # Token caps (input + output). Session ids come from the client, so the
+    # daily cap across all sessions is the real hard ceiling on spend.
+    agent_session_token_cap: int = 200_000
+    agent_daily_token_cap: int = 5_000_000
 
     @model_validator(mode="after")
     def reject_insecure_production(self) -> "Settings":
