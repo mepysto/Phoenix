@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     api_sync_key: str = DEV_SYNC_KEY
 
     cors_origins: list[str] = ["http://localhost:23000", "http://127.0.0.1:23000"]
+    # Upper bound on concurrent WebSocket clients per API process
+    ws_max_connections: int = 1000
 
     gdacs_api_url: str = "https://www.gdacs.org/gdacsapi/api"
     copernicus_api_url: str = "https://emergency.copernicus.eu"

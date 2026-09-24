@@ -4,10 +4,14 @@ import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from src.core.config import settings
 from src.services.broadcaster import connection_manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+WS_POLICY_VIOLATION = 1008
+WS_TRY_AGAIN_LATER = 1013
 
 
 @router.websocket("/events")
@@ -34,6 +38,17 @@ async def websocket_events(websocket: WebSocket) -> None:
         }
     }
     """
+    # Browsers always send Origin and do not apply CORS to WebSockets, so a
+    # page on any site could otherwise open this socket (cross-site WebSocket
+    # hijacking). Non-browser clients send no Origin and are allowed.
+    origin = websocket.headers.get("origin")
+    if origin is not None and origin not in settings.cors_origins:
+        await websocket.close(code=WS_POLICY_VIOLATION)
+        return
+    if connection_manager.connection_count >= settings.ws_max_connections:
+        await websocket.close(code=WS_TRY_AGAIN_LATER)
+        return
+
     await connection_manager.connect(websocket)
     try:
         while True:
