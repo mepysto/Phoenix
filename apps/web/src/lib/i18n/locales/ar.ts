@@ -142,4 +142,21 @@ export const ar: Translations = {
     noneNearby: "لا توجد أحداث قريبة",
     label: "ملخص العرض الحالي",
   },
+  brief: {
+    play: "تشغيل موجز الكارثة",
+    pause: "إيقاف مؤقت",
+    resume: "تشغيل",
+    prev: "المشهد السابق",
+    next: "المشهد التالي",
+    share: "نسخ رابط الموجز",
+    linkCopied: "تم نسخ الرابط",
+    close: "إغلاق الموجز",
+    scene: "المشهد {n} من {total}",
+    captions: {
+      before: "قبل يوم: {title}",
+      onset: "البداية: {title}",
+      now: "الوضع الحالي",
+      context: "السدود ومحطات الطاقة قرب المنطقة المتضررة",
+    },
+  },
 };

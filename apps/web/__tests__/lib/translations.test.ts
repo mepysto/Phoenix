@@ -14,12 +14,11 @@ describe("translations", () => {
   });
 
   it("no locale has an empty string", () => {
-    for (const [lang, t] of locales) {
-      for (const [section, entries] of Object.entries(t)) {
-        for (const [key, value] of Object.entries(entries as Record<string, string>)) {
-          expect(value.trim(), `${lang}.${section}.${key}`).not.toBe("");
-        }
-      }
-    }
+    // Sections may nest (e.g. brief.captions)
+    const check = (path: string, value: unknown) => {
+      if (typeof value === "string") expect(value.trim(), path).not.toBe("");
+      else for (const [key, inner] of Object.entries(value as object)) check(`${path}.${key}`, inner);
+    };
+    for (const [lang, t] of locales) check(lang, t);
   });
 });

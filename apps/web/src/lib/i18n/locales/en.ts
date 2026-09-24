@@ -144,4 +144,21 @@ export const en: Translations = {
     noneNearby: "No events nearby",
     label: "Current view summary",
   },
+  brief: {
+    play: "Play Disaster Brief",
+    pause: "Pause",
+    resume: "Play",
+    prev: "Previous scene",
+    next: "Next scene",
+    share: "Copy brief link",
+    linkCopied: "Link copied",
+    close: "Close brief",
+    scene: "Scene {n} of {total}",
+    captions: {
+      before: "The day before: {title}",
+      onset: "Onset: {title}",
+      now: "Where things stand now",
+      context: "Dams and power plants near the affected area",
+    },
+  },
 };
