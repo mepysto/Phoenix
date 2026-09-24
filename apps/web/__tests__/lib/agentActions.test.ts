@@ -4,6 +4,7 @@ import { eventsAPI, type ApiDisasterEvent, type ApiMapAction } from "@/lib/api/c
 import { useBriefStore } from "@/store/briefStore";
 import { ALL_EVENT_TYPES, useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
+import { useRouteStore } from "@/store/routeStore";
 import { useTimelineStore } from "@/store/timelineStore";
 
 const CAPTIONS = { before: "b", onset: "o", now: "n", context: "c" };
@@ -65,6 +66,30 @@ describe("applyMapActions", () => {
     });
     expect(applied).toBe(0);
     expect(focusEvent).not.toHaveBeenCalled();
+  });
+});
+
+describe("monitoring actions", () => {
+  it("basemap, view mode, camera and route", async () => {
+    const applied = await applyMapActions(
+      [
+        { type: "set_basemap", basemap: "satellite" },
+        { type: "set_view_mode", mode: "nvg" },
+        { type: "open_camera", cameraId: "caltrans-d4-488", name: "Tunnel", direction: "West" },
+        { type: "show_route", start: { lat: 38.0, lng: 12.5 }, end: { lat: 38.1, lng: 13.3 }, mode: "truck" },
+      ] as ApiMapAction[],
+      { focusEvent: vi.fn(), captions: CAPTIONS },
+    );
+    expect(applied).toBe(4);
+    expect(useMapStore.getState()).toMatchObject({ basemap: "satellite", viewMode: "nvg" });
+    expect(useMapStore.getState().inspected).toMatchObject({ layerId: "cameras", properties: { id: "caltrans-d4-488" } });
+    expect(useRouteStore.getState()).toMatchObject({
+      start: { lat: 38.0, lng: 12.5 },
+      end: { lat: 38.1, lng: 13.3 },
+      mode: "truck",
+      pickingStart: false,
+    });
+    useRouteStore.getState().clear();
   });
 });
 

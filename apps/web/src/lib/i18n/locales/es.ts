@@ -193,6 +193,10 @@ export const es: Translations = {
     error: "El asistente no está disponible ahora. Inténtalo de nuevo.",
     mapChanged: "Mapa actualizado ({n})",
     usage: "{used} / {cap} tokens usados",
+    speak: "Preguntar por voz",
+    stopListening: "Dejar de escuchar",
+    readAloud: "Leer respuestas en voz alta",
+    micError: "No se pudo usar el micrófono (permiso o compatibilidad del navegador).",
     suggestions: {
       view: "¿Qué está pasando en la vista actual?",
       quakes: "Muestra los terremotos fuertes de la última semana",

@@ -7,6 +7,7 @@ through our proxy (GET /cameras/{id}/snapshot); clients never send URLs.
 
 import asyncio
 import logging
+import math
 from dataclasses import dataclass
 from typing import Any
 
@@ -115,6 +116,20 @@ class CaltransCameras:
     async def get(self, camera_id: str) -> Camera | None:
         await self.all()
         return self._by_id.get(camera_id)
+
+    async def nearest(self, lat: float, lng: float, radius_km: float, limit: int) -> list[tuple[Camera, float]]:
+        """Cameras within radius_km of a point, nearest first, with distance in km."""
+        ranked = sorted(
+            ((c, distance_km(lat, lng, c.latitude, c.longitude)) for c in await self.all()),
+            key=lambda pair: pair[1],
+        )
+        return [(c, d) for c, d in ranked[:limit] if d <= radius_km]
+
+
+def distance_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    h = math.sin((p2 - p1) / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(math.radians(lng2 - lng1) / 2) ** 2
+    return 2 * 6371 * math.asin(min(1.0, math.sqrt(h)))
 
 
 caltrans_cameras = CaltransCameras()

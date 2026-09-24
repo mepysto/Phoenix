@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Loader2, Send, Sparkles, X } from "lucide-react";
+import { Loader2, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { applyMapActions, buildMapContext } from "@/lib/agent/actions";
+import { canListen, canSpeak, listenOnce, speak, stopSpeaking } from "@/lib/agent/speech";
 import { agentAPI, APIError, type ApiDisasterEvent } from "@/lib/api/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
@@ -35,8 +36,12 @@ interface AgentPanelProps {
 
 /** Chat with the map assistant; its answers can move and filter the map */
 export function AgentPanel({ onSelectEvent }: AgentPanelProps) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [open, setOpen] = useState(false);
+  // Voice (Web Speech API); detected after mount so server and client render alike
+  const [voice, setVoice] = useState({ listen: false, speak: false });
+  const [listening, setListening] = useState<{ stop: () => void } | null>(null);
+  const [readAloud, setReadAloud] = useState(false);
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
@@ -44,6 +49,11 @@ export function AgentPanel({ onSelectEvent }: AgentPanelProps) {
   const [usage, setUsage] = useState<{ used: number; cap: number } | null>(null);
   const session = useRef<string | null>(null);
   const listEnd = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVoice({ listen: canListen(), speak: canSpeak() });
+    return stopSpeaking;
+  }, []);
 
   useEffect(() => {
     agentAPI
@@ -56,7 +66,7 @@ export function AgentPanel({ onSelectEvent }: AgentPanelProps) {
     listEnd.current?.scrollIntoView({ block: "end" });
   }, [messages, busy]);
 
-  const send = async (text: string) => {
+  const send = async (text: string, spoken = false) => {
     const content = text.trim();
     if (!content || busy) return;
     session.current ??= sessionId();
@@ -73,6 +83,8 @@ export function AgentPanel({ onSelectEvent }: AgentPanelProps) {
       const applied = await applyMapActions(reply.actions, { focusEvent: onSelectEvent, captions: t.brief.captions });
       setUsage({ used: reply.usage.sessionTokens, cap: reply.usage.sessionCap });
       setMessages((current) => [...current, { role: "assistant", content: reply.reply || "…", applied }]);
+      // A spoken question gets a spoken answer
+      if (readAloud || spoken) speak(reply.reply, lang);
     } catch (error) {
       const message =
         error instanceof APIError && error.statusCode === 429
@@ -86,6 +98,24 @@ export function AgentPanel({ onSelectEvent }: AgentPanelProps) {
     } finally {
       setBusy(false);
     }
+  };
+
+  const toggleListening = () => {
+    if (listening) {
+      listening.stop();
+      return;
+    }
+    stopSpeaking();
+    const session = listenOnce(lang);
+    setListening(session);
+    session.result
+      .then((heard) => {
+        if (heard) void send(heard, true);
+      })
+      .catch(() => {
+        setMessages((current) => [...current, { role: "assistant", content: t.agent.micError, error: true }]);
+      })
+      .finally(() => setListening(null));
   };
 
   const onSubmit = (e: FormEvent) => {
@@ -115,6 +145,21 @@ export function AgentPanel({ onSelectEvent }: AgentPanelProps) {
       <header className="flex items-center gap-2 border-b border-gray-700/60 px-3 py-2">
         <Sparkles className="h-4 w-4 text-primary-400" aria-hidden="true" />
         <h2 className="flex-1 font-semibold text-white">{t.agent.title}</h2>
+        {voice.speak && (
+          <button
+            type="button"
+            onClick={() => {
+              if (readAloud) stopSpeaking();
+              setReadAloud(!readAloud);
+            }}
+            aria-pressed={readAloud}
+            className="rounded p-1 hover:bg-gray-800"
+            aria-label={t.agent.readAloud}
+            title={t.agent.readAloud}
+          >
+            {readAloud ? <Volume2 className="h-4 w-4 text-primary-300" aria-hidden="true" /> : <VolumeX className="h-4 w-4" aria-hidden="true" />}
+          </button>
+        )}
         <button type="button" onClick={() => setOpen(false)} className="rounded p-1 hover:bg-gray-800" aria-label={t.common.close}>
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -176,6 +221,19 @@ export function AgentPanel({ onSelectEvent }: AgentPanelProps) {
               aria-label={t.agent.placeholder}
               className="flex-1 rounded-md bg-gray-800 px-3 py-1.5 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
             />
+            {voice.listen && (
+              <button
+                type="button"
+                onClick={toggleListening}
+                disabled={busy}
+                aria-pressed={!!listening}
+                className={`rounded-md px-2 ${listening ? "animate-pulse bg-red-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"} disabled:opacity-40`}
+                aria-label={listening ? t.agent.stopListening : t.agent.speak}
+                title={listening ? t.agent.stopListening : t.agent.speak}
+              >
+                {listening ? <MicOff className="h-4 w-4" aria-hidden="true" /> : <Mic className="h-4 w-4" aria-hidden="true" />}
+              </button>
+            )}
             <button
               type="submit"
               disabled={busy || !draft.trim()}

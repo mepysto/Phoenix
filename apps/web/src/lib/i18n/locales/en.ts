@@ -192,6 +192,10 @@ export const en: Translations = {
     error: "The assistant is unavailable right now. Please try again.",
     mapChanged: "Map updated ({n})",
     usage: "{used} / {cap} tokens used",
+    speak: "Ask by voice",
+    stopListening: "Stop listening",
+    readAloud: "Read answers aloud",
+    micError: "Could not use the microphone (permission or browser support).",
     suggestions: {
       view: "What's happening in the current view?",
       quakes: "Show strong earthquakes from the past week",

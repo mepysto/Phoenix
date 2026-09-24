@@ -873,7 +873,7 @@ export interface components {
             /** Reply */
             reply: string;
             /** Actions */
-            actions: (components["schemas"]["FlyTo"] | components["schemas"]["SetLayers"] | components["schemas"]["SetEventFilters"] | components["schemas"]["SetTime"] | components["schemas"]["SelectEvent"] | components["schemas"]["PlayBrief"])[];
+            actions: (components["schemas"]["FlyTo"] | components["schemas"]["SetLayers"] | components["schemas"]["SetEventFilters"] | components["schemas"]["SetTime"] | components["schemas"]["SelectEvent"] | components["schemas"]["PlayBrief"] | components["schemas"]["SetBasemap"] | components["schemas"]["SetViewMode"] | components["schemas"]["OpenCamera"] | components["schemas"]["ShowRoute"])[];
             /** Tool Calls */
             tool_calls: components["schemas"]["ToolCallRecord"][];
             usage: components["schemas"]["AgentUsageInfo"];
@@ -1216,6 +1216,13 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** LatLng */
+        LatLng: {
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+        };
         /**
          * Location
          * @description Geographic location with optional coordinates and region info.
@@ -1296,6 +1303,23 @@ export interface components {
             radius_km: number;
             /** Data */
             data: components["schemas"]["NearbyEvent"][];
+        };
+        /** OpenCamera */
+        OpenCamera: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "open_camera";
+            /** Camera Id */
+            camera_id: string;
+            /**
+             * Name
+             * @default Camera
+             */
+            name: string;
+            /** Direction */
+            direction?: string | null;
         };
         /** Pagination */
         Pagination: {
@@ -1477,6 +1501,19 @@ export interface components {
              */
             event_id: string;
         };
+        /** SetBasemap */
+        SetBasemap: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "set_basemap";
+            /**
+             * Basemap
+             * @enum {string}
+             */
+            basemap: "dark" | "satellite";
+        };
         /** SetEventFilters */
         SetEventFilters: {
             /**
@@ -1511,11 +1548,40 @@ export interface components {
             /** At */
             at?: string | null;
         };
+        /** SetViewMode */
+        SetViewMode: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "set_view_mode";
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "normal" | "nvg" | "flir" | "crt" | "noir" | "contrast";
+        };
         /**
          * SeverityLevel
          * @enum {string}
          */
         SeverityLevel: "low" | "medium" | "high" | "critical";
+        /** ShowRoute */
+        ShowRoute: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "show_route";
+            start: components["schemas"]["LatLng"];
+            end: components["schemas"]["LatLng"];
+            /**
+             * Mode
+             * @default auto
+             * @enum {string}
+             */
+            mode: "auto" | "truck" | "pedestrian" | "bicycle";
+        };
         /** SourceStatus */
         SourceStatus: {
             /** Name */

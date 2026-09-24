@@ -198,6 +198,10 @@ export interface Translations {
     mapChanged: string;
     /** "{used} / {cap} tokens used" */
     usage: string;
+    speak: string;
+    stopListening: string;
+    readAloud: string;
+    micError: string;
     suggestions: {
       view: string;
       quakes: string;
