@@ -96,8 +96,38 @@ class PlayBrief(BaseModel):
     event_id: UUID
 
 
+class SetBasemap(BaseModel):
+    type: Literal["set_basemap"] = "set_basemap"
+    basemap: Literal["dark", "satellite"]
+
+
+class SetViewMode(BaseModel):
+    type: Literal["set_view_mode"] = "set_view_mode"
+    mode: Literal["normal", "nvg", "flir", "crt", "noir", "contrast"]
+
+
+class OpenCamera(BaseModel):
+    type: Literal["open_camera"] = "open_camera"
+    camera_id: Annotated[str, StringConstraints(pattern=r"^[a-z]+-d\d{1,2}-\d{1,6}$")]
+    name: Annotated[str, StringConstraints(max_length=120)] = "Camera"
+    direction: Annotated[str, StringConstraints(max_length=20)] | None = None
+
+
+class LatLng(BaseModel):
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+
+
+class ShowRoute(BaseModel):
+    type: Literal["show_route"] = "show_route"
+    start: LatLng
+    end: LatLng
+    mode: Literal["auto", "truck", "pedestrian", "bicycle"] = "auto"
+
+
 MapAction = Annotated[
-    FlyTo | SetLayers | SetEventFilters | SetTime | SelectEvent | PlayBrief,
+    FlyTo | SetLayers | SetEventFilters | SetTime | SelectEvent | PlayBrief
+    | SetBasemap | SetViewMode | OpenCamera | ShowRoute,
     Field(discriminator="type"),
 ]
 

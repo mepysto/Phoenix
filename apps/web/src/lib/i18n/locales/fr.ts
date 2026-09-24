@@ -195,6 +195,10 @@ export const fr: Translations = {
     error: "L'assistant est indisponible pour le moment. Réessayez.",
     mapChanged: "Carte mise à jour ({n})",
     usage: "{used} / {cap} jetons utilisés",
+    speak: "Poser la question à voix haute",
+    stopListening: "Arrêter l'écoute",
+    readAloud: "Lire les réponses à voix haute",
+    micError: "Impossible d'utiliser le micro (autorisation ou navigateur).",
     suggestions: {
       view: "Que se passe-t-il dans la vue actuelle ?",
       quakes: "Montre les forts séismes de la semaine passée",

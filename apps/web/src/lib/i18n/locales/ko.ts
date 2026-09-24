@@ -191,6 +191,10 @@ export const ko: Translations = {
     error: "지금은 어시스턴트를 사용할 수 없습니다. 다시 시도해 주세요.",
     mapChanged: "지도 변경됨 ({n})",
     usage: "토큰 {used} / {cap} 사용",
+    speak: "음성으로 질문",
+    stopListening: "듣기 중지",
+    readAloud: "답변 소리 내어 읽기",
+    micError: "마이크를 사용할 수 없습니다 (권한 또는 브라우저 지원 문제).",
     suggestions: {
       view: "현재 화면에서 무슨 일이 일어나고 있나요?",
       quakes: "지난 일주일간의 강한 지진을 보여줘",

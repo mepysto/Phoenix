@@ -4,6 +4,7 @@ import { LAYER_DEFINITIONS } from "@/lib/layers/registry";
 import { useBriefStore } from "@/store/briefStore";
 import { ALL_EVENT_TYPES, ALL_SEVERITIES, useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
+import { useRouteStore } from "@/store/routeStore";
 import { useTimelineStore } from "@/store/timelineStore";
 
 const OVERLAY_IDS = LAYER_DEFINITIONS.map((definition) => definition.id);
@@ -69,6 +70,27 @@ export async function applyMapActions(actions: ApiMapAction[], deps: ActionDeps)
           if (!brief) continue;
           useBriefStore.getState().start(brief);
         }
+        break;
+      }
+      case "set_basemap":
+        useMapStore.getState().setBasemap(action.basemap);
+        break;
+      case "set_view_mode":
+        useMapStore.getState().setViewMode(action.mode);
+        break;
+      case "open_camera":
+        useMapStore.getState().setInspected({
+          layerId: "cameras",
+          properties: { id: action.cameraId, name: action.name, direction: action.direction, source: "Caltrans" },
+          lng: 0,
+          lat: 0,
+        });
+        break;
+      case "show_route": {
+        const route = useRouteStore.getState();
+        route.routeTo({ lat: action.end.lat, lng: action.end.lng });
+        route.setMode(action.mode ?? "auto");
+        route.setStart({ lat: action.start.lat, lng: action.start.lng });
         break;
       }
       default:

@@ -1,7 +1,6 @@
 """Public traffic cameras and their snapshot proxy (M6, G-10)."""
 
 import asyncio
-import math
 import time
 from collections import OrderedDict
 from typing import Any
@@ -46,12 +45,6 @@ def _in_bbox(camera: Camera, west: float, south: float, east: float, north: floa
     return camera.longitude >= west or camera.longitude <= east  # crosses the antimeridian
 
 
-def _distance_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
-    p1, p2 = math.radians(lat1), math.radians(lat2)
-    h = math.sin((p2 - p1) / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(math.radians(lng2 - lng1) / 2) ** 2
-    return 2 * 6371 * math.asin(min(1.0, math.sqrt(h)))
-
-
 @router.get("")
 async def cameras_in_view(
     response: Response,
@@ -84,15 +77,9 @@ async def cameras_nearby(
     limit: int = Query(default=10, ge=1, le=50),
 ) -> list[NearbyCamera]:
     """Cameras closest to a point (e.g. an event), nearest first."""
-    cameras = await caltrans_cameras.all()
-    ranked = sorted(
-        ((c, _distance_km(lat, lng, c.latitude, c.longitude)) for c in cameras),
-        key=lambda pair: pair[1],
-    )
     return [
         NearbyCamera(id=c.id, name=c.name, direction=c.direction, source=c.source, distance_km=round(d, 1))
-        for c, d in ranked[:limit]
-        if d <= radius_km
+        for c, d in await caltrans_cameras.nearest(lat, lng, radius_km, limit)
     ]
 
 

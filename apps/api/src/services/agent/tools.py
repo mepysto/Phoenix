@@ -15,6 +15,12 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 from src.models.event import EventType, SeverityLevel
 from src.schemas.agent import MapAction, MapContext
 from src.schemas.event import EventFilter, EventResponse
+from src.services.agent.monitoring_tools import (
+    MONITORING_TOOL_NAMES,
+    MONITORING_TOOLS,
+    MonitoringToolError,
+    run_monitoring_tool,
+)
 from src.services.event_service import EventService
 
 MAX_RESULTS = 20
@@ -140,9 +146,49 @@ MAP_TOOLS: list[dict[str, Any]] = [
             "required": ["event_id"],
         },
     },
+    {
+        "name": "set_basemap",
+        "description": "Switch the basemap: dark streets or satellite imagery.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"basemap": {"type": "string", "enum": ["dark", "satellite"]}},
+            "required": ["basemap"],
+        },
+    },
+    {
+        "name": "set_view_mode",
+        "description": "Sensor view mode: normal, nvg (night vision), flir (thermal palette), crt, noir, contrast (accessibility).",
+        "input_schema": {
+            "type": "object",
+            "properties": {"mode": {"type": "string", "enum": ["normal", "nvg", "flir", "crt", "noir", "contrast"]}},
+            "required": ["mode"],
+        },
+    },
+    {
+        "name": "open_camera",
+        "description": "Open a public camera's latest image (ids from nearby_cameras).",
+        "input_schema": {
+            "type": "object",
+            "properties": {"camera_id": {"type": "string"}, "name": {"type": "string"}, "direction": {"type": "string"}},
+            "required": ["camera_id"],
+        },
+    },
+    {
+        "name": "show_route",
+        "description": "Draw a route with its hazards on the user's map (use route_hazards first to check it).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "start": {"type": "object", "properties": {"lat": {"type": "number"}, "lng": {"type": "number"}}, "required": ["lat", "lng"]},
+                "end": {"type": "object", "properties": {"lat": {"type": "number"}, "lng": {"type": "number"}}, "required": ["lat", "lng"]},
+                "mode": {"type": "string", "enum": ["auto", "truck", "pedestrian", "bicycle"]},
+            },
+            "required": ["start", "end"],
+        },
+    },
 ]
 
-TOOLS = DATA_TOOLS + MAP_TOOLS
+TOOLS = DATA_TOOLS + MONITORING_TOOLS + MAP_TOOLS
 MAP_TOOL_NAMES = {tool["name"] for tool in MAP_TOOLS}
 _action_adapter: TypeAdapter[MapAction] = TypeAdapter(MapAction)
 
@@ -207,6 +253,11 @@ def compact_event(event: EventResponse) -> dict[str, Any]:
 async def run_data_tool(
     name: str, args: dict[str, Any], events: EventService, context: MapContext
 ) -> dict[str, Any]:
+    if name in MONITORING_TOOL_NAMES:
+        try:
+            return await run_monitoring_tool(name, args, events.session)
+        except MonitoringToolError as e:
+            raise ToolError(str(e)) from e
     if name == "search_events":
         result = await events.list_events(_filter(args, context, default_bbox=False), _limit(args), 0)
         return {"total": result.pagination.total, "events": [compact_event(e) for e in result.data]}

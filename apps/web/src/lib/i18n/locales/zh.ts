@@ -190,6 +190,10 @@ export const zh: Translations = {
     error: "助手暂时不可用。请重试。",
     mapChanged: "地图已更新（{n}）",
     usage: "已使用 {used} / {cap} 令牌",
+    speak: "语音提问",
+    stopListening: "停止聆听",
+    readAloud: "朗读回答",
+    micError: "无法使用麦克风（权限或浏览器不支持）。",
     suggestions: {
       view: "当前视图中发生了什么？",
       quakes: "显示过去一周的强烈地震",
