@@ -128,4 +128,12 @@ export interface Translations {
     /** Accessible summary, e.g. "USGS: Up to date" */
     summary: string;
   };
+  timeline: {
+    live: string;
+    play: string;
+    pause: string;
+    speed: string;
+    backToLive: string;
+    scrub: string;
+  };
 }

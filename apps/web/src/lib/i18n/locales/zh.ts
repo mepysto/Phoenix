@@ -126,4 +126,12 @@ export const zh: Translations = {
     never: "暂无数据",
     summary: "{name}：{status}",
   },
+  timeline: {
+    live: "实时",
+    play: "播放",
+    pause: "暂停",
+    speed: "播放速度",
+    backToLive: "返回实时",
+    scrub: "时间",
+  },
 };

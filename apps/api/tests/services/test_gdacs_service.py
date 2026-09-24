@@ -533,6 +533,25 @@ class TestGDACSItemIdentityAndCoords:
         assert events[0].lat == 12.5 and events[0].lng == -45.25
 
 
+class TestGDACSDates:
+    """The live feed sends RFC 2822 dates, not ISO 8601."""
+
+    def test_rfc2822_fromdate(self):
+        xml = _rss("<gdacs:eventid>1</gdacs:eventid><geo:lat>1</geo:lat><geo:long>2</geo:long>").replace(
+            "2026-09-01T00:00:00Z", "Wed, 23 Sep 2026 14:41:02 GMT"
+        )
+        raw = GDACSService()._parse_rss(xml)[0].to_raw_event()
+        assert raw.start_date == datetime(2026, 9, 23, 14, 41, 2, tzinfo=timezone.utc)
+
+    def test_unparseable_fromdate_falls_back_to_pubdate(self):
+        xml = _rss(
+            "<gdacs:eventid>1</gdacs:eventid><pubDate>Tue, 22 Sep 2026 06:00:00 GMT</pubDate>"
+            "<geo:lat>1</geo:lat><geo:long>2</geo:long>"
+        ).replace("2026-09-01T00:00:00Z", "not a date")
+        raw = GDACSService()._parse_rss(xml)[0].to_raw_event()
+        assert raw.start_date == datetime(2026, 9, 22, 6, tzinfo=timezone.utc)
+
+
 class TestGDACSToRawEvent:
     """GDACS items are converted into the shared RawEvent pipeline format."""
 

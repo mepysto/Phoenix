@@ -128,4 +128,12 @@ export const en: Translations = {
     never: "No data yet",
     summary: "{name}: {status}",
   },
+  timeline: {
+    live: "Live",
+    play: "Play",
+    pause: "Pause",
+    speed: "Playback speed",
+    backToLive: "Back to live",
+    scrub: "Time",
+  },
 };

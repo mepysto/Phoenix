@@ -24,6 +24,7 @@ def _existing_event(**overrides):
         "geo_method": GeoMethod.source_provided,
         "end_date": None,
         "is_active": True,
+        "start_date": datetime(2026, 9, 24, 4, 54, tzinfo=UTC),
     }
     base.update(overrides)
     return SimpleNamespace(**base)
@@ -130,3 +131,18 @@ def test_pop_coord_keeps_zero():
     assert _pop_coord(data, "lat", "latitude") == 0.0
     assert _pop_coord(data, "lng", "longitude") == 0.0
     assert data == {}
+
+
+@pytest.mark.asyncio
+async def test_start_date_only_moves_earlier():
+    """An onset that fell back to ingestion time is repaired, never pushed later."""
+    repo, session = _repo(_existing_event())
+    onset = datetime(2026, 9, 21, tzinfo=UTC)
+
+    await repo.update_if_better("evt-1", {"start_date": onset})
+    assert _applied_values(session)["start_date"] == onset
+
+    repo, session = _repo(_existing_event(start_date=onset))
+    result = await repo.update_if_better("evt-1", {"start_date": datetime(2026, 9, 23, tzinfo=UTC)})
+    assert result is None
+    session.execute.assert_not_called()

@@ -117,6 +117,8 @@ class EventFilter(BaseModel):
     center_lng: float | None = None
     radius_km: float | None = None
     is_active: bool | None = None
+    # Events that were ongoing at this instant (timeline scrubbing)
+    at: datetime | None = None
     # Merged (non-canonical) duplicates are hidden unless explicitly requested
     include_merged: bool = False
 
@@ -166,3 +168,16 @@ class ClusterResponse(BaseModel):
     unclustered: list[EventResponse]
     total_events: int
     total_clusters: int
+
+
+class TimelineBucket(BaseModel):
+    start: datetime
+    total: int
+    by_type: dict[str, int]
+
+
+class TimelineResponse(BaseModel):
+    bucket: Literal["hour", "day", "week"]
+    start: datetime
+    end: datetime
+    buckets: list[TimelineBucket]

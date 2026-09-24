@@ -126,4 +126,12 @@ export const ar: Translations = {
     never: "لا توجد بيانات بعد",
     summary: "{name}: {status}",
   },
+  timeline: {
+    live: "مباشر",
+    play: "تشغيل",
+    pause: "إيقاف مؤقت",
+    speed: "سرعة التشغيل",
+    backToLive: "العودة إلى المباشر",
+    scrub: "الوقت",
+  },
 };

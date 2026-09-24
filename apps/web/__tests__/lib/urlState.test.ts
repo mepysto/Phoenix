@@ -12,6 +12,7 @@ describe("map URL state", () => {
       types: ["earthquake", "flood"] as const,
       severities: ["high", "critical"] as const,
       event: "661f99ef-07b4-4f39-9232-d5da4fb3c319",
+      at: "2026-09-01T06:00:00.000Z", // must not collide with the types param "t"
     };
     const qs = serializeMapUrlState(state as never);
     expect(parse(qs)).toEqual(state);
@@ -36,6 +37,13 @@ describe("map URL state", () => {
   it("keeps unrelated query params", () => {
     const qs = serializeMapUrlState({ basemap: "satellite" }, new URLSearchParams("utm=x"));
     expect(new URLSearchParams(qs).get("utm")).toBe("x");
+  });
+
+  it("carries the timeline instant at hour precision", () => {
+    const qs = serializeMapUrlState({ at: "2026-09-01T06:42:10.000Z" });
+    expect(qs).toBe("time=2026-09-01T06:00Z");
+    expect(parse(qs).at).toBe("2026-09-01T06:00:00.000Z");
+    expect(parse("time=not-a-date").at).toBeUndefined();
   });
 
   it("normalises bearing into 0..360", () => {

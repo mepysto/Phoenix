@@ -37,7 +37,7 @@ SAMPLE_EONET_GEOJSON = {
                     {"id": "InciWeb", "url": "https://inciweb.nwcg.gov/incident/123"},
                     {"id": "CALFIRE", "url": "https://www.fire.ca.gov/incident/456"},
                 ],
-                "geometryDates": ["2025-01-10T14:30:00Z"],
+                "date": "2025-01-10T14:30:00Z",
             },
             "geometry": {
                 "type": "Point",
@@ -55,7 +55,7 @@ SAMPLE_EONET_GEOJSON = {
                 "closed": "2025-01-08T00:00:00Z",
                 "categories": [{"id": "severeStorms", "title": "Severe Storms"}],
                 "sources": [{"id": "NWS", "url": "https://www.weather.gov/storm/456"}],
-                "geometryDates": ["2025-01-05T08:00:00Z"],
+                "date": "2025-01-05T08:00:00Z",
             },
             "geometry": {
                 "type": "Point",
@@ -350,7 +350,7 @@ class TestEONETConnectorParsing:
                 "title": "Test Event",
                 "categories": [{"id": "floods"}],
                 "sources": [],
-                "geometryDates": ["2025-01-01T00:00:00Z"],
+                "date": "2025-01-01T00:00:00Z",
             },
             "geometry": {"type": "Point", "coordinates": [100.0, 10.0]},
         }
@@ -367,7 +367,7 @@ class TestEONETConnectorParsing:
                 "id": "EONET_1111",
                 "categories": [],
                 "sources": [],
-                "geometryDates": [],
+                "date": None,
             },
             "geometry": {"type": "Point", "coordinates": [0, 0]},
         }
@@ -387,7 +387,7 @@ class TestEONETConnectorParsing:
                 "title": "Test",
                 "categories": [],
                 "sources": [],
-                "geometryDates": ["2025-01-01T00:00:00Z"],
+                "date": "2025-01-01T00:00:00Z",
             },
             "geometry": {"type": "Point", "coordinates": [0, 0]},
         }
@@ -407,7 +407,7 @@ class TestEONETConnectorParsing:
                 "title": "MultiPoint Event",
                 "categories": [{"id": "volcanoes"}],
                 "sources": [],
-                "geometryDates": ["2025-01-01T00:00:00Z"],
+                "date": "2025-01-01T00:00:00Z",
             },
             "geometry": {
                 "type": "MultiPoint",
@@ -434,7 +434,7 @@ class TestEONETConnectorParsing:
                 "title": "Polygon Event",
                 "categories": [{"id": "floods"}],
                 "sources": [],
-                "geometryDates": ["2025-01-01T00:00:00Z"],
+                "date": "2025-01-01T00:00:00Z",
             },
             "geometry": {
                 "type": "Polygon",
@@ -747,7 +747,7 @@ class TestEONETConnectorFetchEvents:
                         "title": "Unknown Event",
                         "categories": [{"id": "unknownCategory"}],
                         "sources": [],
-                        "geometryDates": ["2025-01-01T00:00:00Z"],
+                        "date": "2025-01-01T00:00:00Z",
                     },
                     "geometry": {"type": "Point", "coordinates": [0, 0]},
                 }
@@ -786,7 +786,7 @@ class TestEONETConnectorFetchEvents:
                         "title": "No Category Event",
                         "categories": [],
                         "sources": [],
-                        "geometryDates": ["2025-01-01T00:00:00Z"],
+                        "date": "2025-01-01T00:00:00Z",
                     },
                     "geometry": {"type": "Point", "coordinates": [0, 0]},
                 }
@@ -1045,3 +1045,39 @@ class TestEONETConnectorAPIParameters:
             assert params["status"] == "all"
             assert params["days"] == "7"
             assert params["category"] == "wildfires,volcanoes"
+
+
+class TestEONETTrackCollapse:
+    """The geojson endpoint returns one feature per geometry (track point)."""
+
+    @pytest.mark.asyncio
+    async def test_track_points_collapse_to_onset_and_latest_position(self) -> None:
+        def point(date: str, lng: float) -> dict:
+            return {
+                "type": "Feature",
+                "properties": {
+                    "id": "EONET_1",
+                    "title": "Hurricane Test",
+                    "date": date,
+                    "categories": [{"id": "severeStorms"}],
+                    "sources": [],
+                },
+                "geometry": {"type": "Point", "coordinates": [lng, 10.0]},
+            }
+
+        geojson = {
+            "type": "FeatureCollection",
+            # Out of order on purpose
+            "features": [
+                point("2026-09-22T06:00:00Z", -101.0),
+                point("2026-09-21T00:00:00Z", -100.0),
+                point("2026-09-24T00:00:00Z", -104.0),
+            ],
+        }
+        connector = EONETConnector()
+        with patch.object(connector, "_request_with_retry", AsyncMock(return_value=geojson)):
+            events = await connector.fetch_events()
+
+        assert len(events) == 1
+        assert events[0].start_date == datetime(2026, 9, 21, tzinfo=timezone.utc)
+        assert events[0].lng == -104.0

@@ -127,4 +127,12 @@ export const ko: Translations = {
     never: "데이터 없음",
     summary: "{name}: {status}",
   },
+  timeline: {
+    live: "실시간",
+    play: "재생",
+    pause: "일시정지",
+    speed: "재생 속도",
+    backToLive: "실시간으로",
+    scrub: "시간",
+  },
 };

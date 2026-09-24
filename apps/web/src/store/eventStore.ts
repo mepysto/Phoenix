@@ -189,6 +189,8 @@ const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
 
   applyEventChanges: async (eventIds) => {
     const { filter } = get();
+    // Live changes describe "now"; a historical view must not change under the user
+    if (filter.at) return;
     // Large batches (a full sync) or an active text search: one refresh is
     // cheaper and keeps server-side filtering authoritative.
     if (eventIds.length > MAX_INDIVIDUAL_FETCHES || filter.q) {

@@ -1,7 +1,7 @@
 """Events API endpoints for disaster event management."""
 
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -13,7 +13,10 @@ from src.schemas.event import (
     EventDetailResponse,
     EventFilter,
     EventListResponse,
+    TimelineBucket,
+    TimelineResponse,
 )
+from src.repositories.event_repository import EventRepository
 from src.services.event_service import EventService
 
 router = APIRouter()
@@ -47,6 +50,7 @@ async def list_events(
     center_lng: float | None = Query(default=None, ge=-180, le=180),
     radius_km: float | None = Query(default=None, gt=0, le=500),
     is_active: bool | None = None,
+    at: datetime | None = Query(default=None, description="Only events ongoing at this time"),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ) -> EventListResponse:
@@ -86,8 +90,47 @@ async def list_events(
         center_lng=center_lng,
         radius_km=radius_km,
         is_active=is_active,
+        at=at,
     )
     return await event_service.list_events(filters, limit, offset)
+
+
+TIMELINE_MAX_BUCKETS = {"hour": 24 * 14, "day": 366, "week": 520}
+
+
+@router.get("/timeline", response_model=TimelineResponse)
+async def event_timeline(
+    session: Annotated[AsyncSession, Depends(get_db)],
+    start: datetime,
+    end: datetime,
+    bucket: Literal["hour", "day", "week"] = "day",
+    types: Annotated[list[EventType] | None, Query()] = None,
+    severities: Annotated[list[SeverityLevel] | None, Query()] = None,
+) -> TimelineResponse:
+    """Event onsets per time bucket (by type) for the timeline histogram.
+
+    Declared before /{event_id} so "timeline" is not parsed as a UUID.
+    """
+    if end <= start:
+        raise HTTPException(status_code=422, detail="end must be after start")
+    span = {"hour": 3600, "day": 86400, "week": 604800}[bucket]
+    if (end - start).total_seconds() / span > TIMELINE_MAX_BUCKETS[bucket]:
+        raise HTTPException(status_code=422, detail="Range too long for this bucket size")
+    rows = await EventRepository(session).timeline(
+        EventFilter(types=types, severities=severities), start, end, bucket
+    )
+    grouped: dict[datetime, dict[str, int]] = {}
+    for bucket_start, event_type, count in rows:
+        grouped.setdefault(bucket_start, {})[event_type] = count
+    return TimelineResponse(
+        bucket=bucket,
+        start=start,
+        end=end,
+        buckets=[
+            TimelineBucket(start=t, total=sum(by_type.values()), by_type=by_type)
+            for t, by_type in grouped.items()
+        ],
+    )
 
 
 @router.get("/{event_id}", response_model=EventDetailResponse)

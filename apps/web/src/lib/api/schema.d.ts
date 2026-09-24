@@ -44,6 +44,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/events/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Event Timeline
+         * @description Event onsets per time bucket (by type) for the timeline histogram.
+         *
+         *     Declared before /{event_id} so "timeline" is not parsed as a UUID.
+         */
+        get: operations["event_timeline_api_v1_events_timeline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/events/{event_id}": {
         parameters: {
             query?: never;
@@ -880,6 +902,40 @@ export interface components {
             /** Last Error */
             last_error: string | null;
         };
+        /** TimelineBucket */
+        TimelineBucket: {
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+            /** Total */
+            total: number;
+            /** By Type */
+            by_type: {
+                [key: string]: number;
+            };
+        };
+        /** TimelineResponse */
+        TimelineResponse: {
+            /**
+             * Bucket
+             * @enum {string}
+             */
+            bucket: "hour" | "day" | "week";
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /** Buckets */
+            buckets: components["schemas"]["TimelineBucket"][];
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -918,6 +974,8 @@ export interface operations {
                 center_lng?: number | null;
                 radius_km?: number | null;
                 is_active?: boolean | null;
+                /** @description Only events ongoing at this time */
+                at?: string | null;
                 limit?: number;
                 offset?: number;
             };
@@ -934,6 +992,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    event_timeline_api_v1_events_timeline_get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+                bucket?: "hour" | "day" | "week";
+                types?: components["schemas"]["EventType"][] | null;
+                severities?: components["schemas"]["SeverityLevel"][] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimelineResponse"];
                 };
             };
             /** @description Validation Error */
