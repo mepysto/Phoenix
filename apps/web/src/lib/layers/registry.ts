@@ -822,6 +822,55 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
       } as LayerSpecification,
     ],
   },
+  {
+    id: "launches",
+    kind: "geojson",
+    category: "monitoring",
+    auth: "keyless",
+    source: {
+      name: "Launch Library 2",
+      url: "https://thespacedevs.com/llapi",
+      license: "Free API; credit The Space Devs",
+      commercialUse: false,
+      attribution: 'Launches: <a href="https://thespacedevs.com">The Space Devs</a>',
+    },
+    defaultOpacity: 1,
+    refreshMs: 30 * 60_000,
+    inspectable: true,
+    loadData: async () => {
+      const response = await fetch(`${API_URL}/api/v1/tracks/launches`);
+      if (!response.ok) throw new Error(`Launches ${response.status}`);
+      return (await response.json()) as GeoJSON.FeatureCollection;
+    },
+    styleLayers: (sourceId) => [
+      {
+        id: `${sourceId}-points`,
+        type: "circle",
+        source: sourceId,
+        paint: {
+          "circle-color": "#f472b6",
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 4, 8, 8],
+          "circle-stroke-color": "#500724",
+          "circle-stroke-width": 1.5,
+        },
+      } as LayerSpecification,
+      {
+        id: `${sourceId}-labels`,
+        type: "symbol",
+        source: sourceId,
+        minzoom: 4,
+        layout: {
+          "text-field": ["get", "name"],
+          "text-font": LABEL_FONT,
+          "text-size": 10,
+          "text-offset": [0, 1.2],
+          "text-anchor": "top",
+          "text-max-width": 14,
+        },
+        paint: { "text-color": "#fbcfe8", "text-halo-color": "#0f172a", "text-halo-width": 1.2 },
+      } as LayerSpecification,
+    ],
+  },
 ];
 
 /** Layers this deployment may show (commercial deployments drop NC-only sources) */

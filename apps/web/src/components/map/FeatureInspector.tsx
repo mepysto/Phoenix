@@ -1,6 +1,6 @@
 "use client";
 
-import { Plane, Satellite, Ship } from "lucide-react";
+import { Plane, Rocket, Satellite, Ship } from "lucide-react";
 import { formatAge } from "@/components/layout/SourceStatusPanel";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { compassPoint, numberProp, shipCategory, stringProp } from "@/lib/telemetry";
@@ -96,6 +96,29 @@ export function FeatureInspector() {
             },
           ]}
           footer="SGP4 · CelesTrak"
+          onClose={close}
+        />
+      );
+    }
+    case "launches": {
+      const net = stringProp(p.net);
+      const when = net
+        ? `${new Intl.DateTimeFormat(lang, { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(net))} UTC`
+        : DASH;
+      return (
+        <TelemetryCard
+          icon={<Rocket className="h-4 w-4 text-pink-300" />}
+          title={stringProp(p.name) ?? DASH}
+          subtitle={net ? formatAge(net, lang) ?? undefined : undefined}
+          rows={[
+            { label: t.telemetry.launchTime, value: when },
+            { label: t.telemetry.status, value: stringProp(p.status) ?? DASH },
+            { label: t.telemetry.provider, value: stringProp(p.provider) ?? DASH },
+            { label: t.telemetry.mission, value: stringProp(p.mission_type) ?? DASH },
+            { label: t.telemetry.orbit, value: stringProp(p.orbit) ?? DASH },
+            { label: t.telemetry.pad, value: stringProp(p.pad) ?? DASH },
+          ]}
+          footer="Launch Library 2 · The Space Devs"
           onClose={close}
         />
       );
