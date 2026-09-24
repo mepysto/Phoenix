@@ -234,4 +234,12 @@ export const es: Translations = {
       other: "Otro",
     },
   },
+  radio: {
+    title: "Radio local",
+    play: "Escuchar",
+    stop: "Detener",
+    offAir: "Fuera del aire en la última comprobación",
+    open: "Abrir emisión",
+    source: "Directorio Radio Browser",
+  },
 };

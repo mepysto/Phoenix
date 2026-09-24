@@ -231,4 +231,12 @@ export const ar: Translations = {
       other: "أخرى",
     },
   },
+  radio: {
+    title: "الإذاعة المحلية",
+    play: "استماع",
+    stop: "إيقاف",
+    offAir: "متوقفة عن البث عند آخر فحص",
+    open: "فتح البث",
+    source: "دليل Radio Browser",
+  },
 };

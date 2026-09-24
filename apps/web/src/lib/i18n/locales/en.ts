@@ -233,4 +233,12 @@ export const en: Translations = {
       other: "Other",
     },
   },
+  radio: {
+    title: "Local radio",
+    play: "Listen",
+    stop: "Stop",
+    offAir: "Off air at last check",
+    open: "Open stream",
+    source: "Radio Browser directory",
+  },
 };

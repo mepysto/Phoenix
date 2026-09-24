@@ -236,4 +236,12 @@ export const fr: Translations = {
       other: "Autre",
     },
   },
+  radio: {
+    title: "Radio locale",
+    play: "Écouter",
+    stop: "Arrêter",
+    offAir: "Hors antenne au dernier contrôle",
+    open: "Ouvrir le flux",
+    source: "Annuaire Radio Browser",
+  },
 };
