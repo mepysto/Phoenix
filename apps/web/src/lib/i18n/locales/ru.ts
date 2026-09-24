@@ -55,6 +55,8 @@ export const ru: Translations = {
     hospitals: "Больницы (OSM)",
     satellites: "Спутники наблюдения Земли",
     aircraft: "Воздушные суда (ADS-B, масштаб 5+)",
+    vessels: "Суда у зон бедствий (AIS, масштаб 4+)",
+    keyRequired: "Требуется ключ API на сервере",
     opacity: "Прозрачность",
     dataSource: "Данные: GDACS, Copernicus EMS",
     eventsCount: "событий",

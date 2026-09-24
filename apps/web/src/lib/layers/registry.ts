@@ -655,6 +655,67 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
       } as LayerSpecification,
     ],
   },
+  {
+    id: "vessels",
+    kind: "geojson",
+    category: "monitoring",
+    // Needs AISSTREAM_API_KEY on the server; without it the API returns an empty list
+    auth: "free_key",
+    source: {
+      name: "AISStream",
+      url: "https://aisstream.io",
+      license: "AISStream terms (no explicit licence)",
+      commercialUse: false,
+      attribution: 'Ships: <a href="https://aisstream.io">AISStream</a>',
+    },
+    defaultOpacity: 1,
+    refreshMs: 15_000,
+    viewportDriven: true,
+    minZoom: 4,
+    loadData: async ({ bbox: [west, south, east, north] }) => {
+      const params = new URLSearchParams({
+        min_lng: String(west),
+        min_lat: String(south),
+        max_lng: String(east),
+        max_lat: String(north),
+      });
+      const response = await fetch(`${API_URL}/api/v1/tracks/vessels?${params}`);
+      if (!response.ok) throw new Error(`Vessels ${response.status}`);
+      return (await response.json()) as GeoJSON.FeatureCollection;
+    },
+    styleLayers: (sourceId) => [
+      {
+        id: `${sourceId}-icons`,
+        type: "symbol",
+        source: sourceId,
+        layout: {
+          "text-field": "▲",
+          "text-font": LABEL_FONT,
+          "text-size": ["interpolate", ["linear"], ["zoom"], 4, 9, 10, 14],
+          // Heading when reported, else course over ground
+          "text-rotate": ["coalesce", ["get", "heading_deg"], ["get", "course_deg"], 0],
+          "text-rotation-alignment": "map",
+          "text-allow-overlap": true,
+          "text-ignore-placement": true,
+        },
+        paint: { "text-color": "#2dd4bf", "text-halo-color": "#042f2e", "text-halo-width": 1 },
+      } as LayerSpecification,
+      {
+        id: `${sourceId}-labels`,
+        type: "symbol",
+        source: sourceId,
+        minzoom: 8,
+        layout: {
+          "text-field": ["coalesce", ["get", "name"], ""],
+          "text-font": LABEL_FONT,
+          "text-size": 10,
+          "text-offset": [0, 1.2],
+          "text-anchor": "top",
+        },
+        paint: { "text-color": "#99f6e4", "text-halo-color": "#042f2e", "text-halo-width": 1.2 },
+      } as LayerSpecification,
+    ],
+  },
 ];
 
 /** Layers this deployment may show (commercial deployments drop NC-only sources) */

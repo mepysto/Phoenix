@@ -13,6 +13,7 @@ import {
   Sun,
   Eye,
   EyeOff,
+  KeyRound,
 } from "lucide-react";
 import type { EventType, SeverityLevel } from "@phoenix/shared/types";
 import {
@@ -22,6 +23,7 @@ import {
 } from "@phoenix/shared/constants";
 import { useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
+import { LAYER_DEFINITIONS_BY_ID } from "@/lib/layers/registry";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SourceStatusPanel } from "./SourceStatusPanel";
 import { FilterSection } from "./FilterSection";
@@ -58,6 +60,7 @@ const LAYER_ID_TO_TRANSLATION_KEY: Record<string, string> = {
   hospitals: "hospitals",
   satellites: "satellites",
   aircraft: "aircraft",
+  vessels: "vessels",
 };
 
 interface LayerItemProps {
@@ -81,6 +84,8 @@ function LayerItem({
   t,
 }: LayerItemProps) {
   const opacityPercent = Math.round(layer.opacity * 100);
+  const auth = LAYER_DEFINITIONS_BY_ID.get(layer.id)?.auth;
+  const needsKey = auth !== undefined && auth !== "keyless";
 
   return (
     <div className="rounded px-2 py-1.5 hover:bg-gray-800/50">
@@ -101,6 +106,12 @@ function LayerItem({
         >
           {t[translationKey] || layer.name}
         </span>
+        {/* Keys are upgrades: the layer works only when the server has its key */}
+        {needsKey && (
+          <span title={t.keyRequired} aria-label={t.keyRequired}>
+            <KeyRound className="h-3.5 w-3.5 text-amber-400" aria-hidden="true" />
+          </span>
+        )}
         {layer.visible && (
           <span className="text-xs text-gray-500 min-w-[36px] text-right">
             {opacityPercent}%
