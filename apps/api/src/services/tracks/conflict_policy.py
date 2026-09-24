@@ -82,10 +82,12 @@ class ConflictZoneCache:
 
     def __init__(self) -> None:
         self._points: list[tuple[float, float]] = []
-        self._loaded_at = 0.0
+        # None = never loaded. (A 0.0 default looked fresh on machines booted
+        # less than ZONES_TTL_SECONDS ago: time.monotonic() counts from boot.)
+        self._loaded_at: float | None = None
 
     async def zones(self, session: AsyncSession, radius_km: float, boxes: list[list[float]]) -> ConflictZones:
-        if time.monotonic() - self._loaded_at > ZONES_TTL_SECONDS:
+        if self._loaded_at is None or time.monotonic() - self._loaded_at > ZONES_TTL_SECONDS:
             rows = await session.execute(
                 select(Event.latitude, Event.longitude).where(
                     Event.type.in_(CONFLICT_TYPES),

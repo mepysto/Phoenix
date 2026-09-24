@@ -41,3 +41,26 @@ def test_operator_boxes_including_across_the_antimeridian():
     assert zones.contains(-10, 175) and zones.contains(-10, -175)
     assert not zones.contains(-10, 160)
     assert ConflictZones(boxes=[[22, 44, 40, 53]]).contains(48.0, 30.0)
+
+
+def test_zone_cache_loads_on_first_use_even_right_after_boot(monkeypatch):
+    """Regression: monotonic time starts near 0 on fresh machines (CI runners)."""
+    import asyncio
+
+    from src.services.tracks import conflict_policy
+
+    monkeypatch.setattr(conflict_policy.time, "monotonic", lambda: 12.0)  # 12 s after boot
+    loaded = []
+
+    class Session:
+        async def execute(self, statement):
+            loaded.append(statement)
+
+            class Rows:
+                def all(self):
+                    return [(48.5, 35.0)]
+
+            return Rows()
+
+    zones = asyncio.run(conflict_policy.ConflictZoneCache().zones(Session(), 150, []))
+    assert loaded and zones.points == [(48.5, 35.0)]
