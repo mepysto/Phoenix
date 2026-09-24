@@ -54,6 +54,7 @@ export const ko: Translations = {
     dams: "댐 (Global Dam Watch)",
     hospitals: "병원 (OSM)",
     satellites: "지구관측 위성",
+    aircraft: "항공기 (ADS-B, 줌 5+)",
     opacity: "투명도",
     dataSource: "데이터: GDACS, Copernicus EMS",
     eventsCount: "개 이벤트",

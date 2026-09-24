@@ -10,6 +10,7 @@
 import type { ExpressionSpecification, LayerSpecification } from "maplibre-gl";
 import { API_URL } from "@/lib/api/client";
 import { COMMERCIAL_DEPLOYMENT, LABEL_FONT } from "@/lib/map/basemaps";
+import { bboxCenter, bboxRadiusKm } from "@/lib/map/geo";
 
 export type LayerCategory = "weather" | "satellite" | "hazards" | "infrastructure" | "monitoring";
 
@@ -584,6 +585,73 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
           "text-anchor": "top",
         },
         paint: { "text-color": "#bae6fd", "text-halo-color": "#0f172a", "text-halo-width": 1.2 },
+      } as LayerSpecification,
+    ],
+  },
+  {
+    id: "aircraft",
+    kind: "geojson",
+    category: "monitoring",
+    auth: "keyless",
+    source: {
+      name: "adsb.lol",
+      url: "https://adsb.lol",
+      license: "ODbL",
+      commercialUse: true,
+      attribution: 'Aircraft: <a href="https://adsb.lol">adsb.lol</a> (ODbL)',
+    },
+    defaultOpacity: 1,
+    refreshMs: 15_000,
+    viewportDriven: true,
+    // One upstream query covers at most 250 NM, about a zoom-5 view
+    minZoom: 5,
+    loadData: async ({ bbox }) => {
+      const { lat, lng } = bboxCenter(bbox);
+      const radiusNm = Math.min(250, Math.ceil(bboxRadiusKm(bbox) / 1.852));
+      const params = new URLSearchParams({ lat: lat.toFixed(3), lng: lng.toFixed(3), radius_nm: String(radiusNm) });
+      const response = await fetch(`${API_URL}/api/v1/tracks/aircraft?${params}`);
+      if (!response.ok) throw new Error(`Aircraft ${response.status}`);
+      return (await response.json()) as GeoJSON.FeatureCollection;
+    },
+    styleLayers: (sourceId) => [
+      {
+        id: `${sourceId}-icons`,
+        type: "symbol",
+        source: sourceId,
+        layout: {
+          // Heading arrow; aircraft without a track are drawn pointing north
+          "text-field": "▲",
+          "text-font": LABEL_FONT,
+          "text-size": ["interpolate", ["linear"], ["zoom"], 5, 10, 10, 16],
+          "text-rotate": ["coalesce", ["get", "track_deg"], 0],
+          "text-rotation-alignment": "map",
+          "text-allow-overlap": true,
+          "text-ignore-placement": true,
+        },
+        paint: {
+          "text-color": [
+            "case",
+            ["get", "military"], "#fb923c",
+            ["get", "on_ground"], "#94a3b8",
+            "#f1f5f9",
+          ],
+          "text-halo-color": "#0f172a",
+          "text-halo-width": 1,
+        },
+      } as LayerSpecification,
+      {
+        id: `${sourceId}-labels`,
+        type: "symbol",
+        source: sourceId,
+        minzoom: 8,
+        layout: {
+          "text-field": ["coalesce", ["get", "callsign"], ""],
+          "text-font": LABEL_FONT,
+          "text-size": 10,
+          "text-offset": [0, 1.2],
+          "text-anchor": "top",
+        },
+        paint: { "text-color": "#cbd5e1", "text-halo-color": "#0f172a", "text-halo-width": 1.2 },
       } as LayerSpecification,
     ],
   },

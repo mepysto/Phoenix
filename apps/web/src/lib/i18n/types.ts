@@ -55,6 +55,7 @@ export interface Translations {
     dams: string;
     hospitals: string;
     satellites: string;
+    aircraft: string;
     opacity: string;
     // Footer
     dataSource: string;
