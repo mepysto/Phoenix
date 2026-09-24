@@ -1,0 +1,21 @@
+# Development overrides: hot reload with source mounted from the host.
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+services:
+  api:
+    environment:
+      ENVIRONMENT: development
+    volumes:
+      - ../../apps/api:/app
+    command: ["sh", "-c", "python -m scripts.migrate && exec uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"]
+
+  web:
+    build:
+      target: dev
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:28000}
+    volumes:
+      - ../../apps/web/src:/app/apps/web/src
+      - ../../packages/shared/src:/app/packages/shared/src
+    depends_on:
+      api:
+        condition: service_started

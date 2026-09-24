@@ -1,12 +1,18 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
-from src.api.v1 import events, geodata, sync
+from src.api.v1 import admin, events, geodata, sync, websocket
 from src.core.config import settings
+from src.core.exceptions import DataSyncError, ExternalAPIError
+from src.core.security import verify_api_key
 from src.services.scheduler import scheduler_service
 
 logging.basicConfig(
@@ -19,10 +25,17 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Starting Phoenix API...")
-    await scheduler_service.sync_gdacs()
-    scheduler_service.start(sync_interval_minutes=5)
+    initial_sync: asyncio.Task[None] | None = None
+    if settings.scheduler_enabled:
+        # Initial sync runs in the background: a slow or unreachable feed must
+        # not block startup (it took up to ~47s with retries).
+        initial_sync = asyncio.create_task(scheduler_service.sync_gdacs())
+        scheduler_service.start(sync_interval_minutes=5)
     yield
-    scheduler_service.stop()
+    if initial_sync is not None and not initial_sync.done():
+        initial_sync.cancel()
+    if settings.scheduler_enabled:
+        scheduler_service.stop()
     logger.info("Phoenix API shutdown complete")
 
 
@@ -36,6 +49,21 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+@app.exception_handler(ValidationError)
+async def validation_error_handler(request: Request, exc: ValidationError) -> JSONResponse:
+    """Models built inside endpoints (e.g. EventFilter) are client input errors."""
+    errors = exc.errors(include_url=False, include_context=False)
+    return JSONResponse(status_code=422, content={"detail": jsonable_encoder(errors)})
+
+
+@app.exception_handler(ExternalAPIError)
+@app.exception_handler(DataSyncError)
+async def upstream_error_handler(request: Request, exc: ExternalAPIError) -> JSONResponse:
+    """Upstream data source failures are gateway errors, not internal bugs."""
+    logger.warning("Upstream failure on %s: %s", request.url.path, exc.message)
+    return JSONResponse(status_code=502, content={"detail": "Upstream data source unavailable"})
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -47,6 +75,13 @@ app.add_middleware(
 app.include_router(events.router, prefix="/api/v1/events", tags=["Events"])
 app.include_router(geodata.router, prefix="/api/v1/geodata", tags=["GeoData"])
 app.include_router(sync.router, prefix="/api/v1/sync", tags=["Sync"])
+app.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
+app.include_router(
+    admin.router,
+    prefix="/api/v1/admin",
+    tags=["Admin"],
+    dependencies=[Depends(verify_api_key)],
+)
 
 
 @app.get("/health")
@@ -54,6 +89,6 @@ async def health_check() -> dict[str, str]:
     return {"status": "healthy"}
 
 
-@app.get("/scheduler/status")
+@app.get("/scheduler/status", dependencies=[Depends(verify_api_key)])
 async def scheduler_status() -> dict:
     return scheduler_service.get_status()

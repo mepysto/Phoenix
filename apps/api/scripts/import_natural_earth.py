@@ -20,15 +20,13 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-import tempfile
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 import geopandas as gpd
 import pandas as pd
-from shapely import wkb
-from shapely.geometry import MultiPolygon, Polygon, mapping
+from shapely.geometry import MultiPolygon, Polygon
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 

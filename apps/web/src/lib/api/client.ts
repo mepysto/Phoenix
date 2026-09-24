@@ -95,19 +95,19 @@ const client = createClient<paths>({
 client.use(camelCaseMiddleware);
 
 export type ApiDisasterEvent = CamelCaseKeys<
-  components["schemas"]["DisasterEvent"]
+  components["schemas"]["EventResponse"]
 >;
 export type ApiDisasterEventDetail = CamelCaseKeys<
-  components["schemas"]["DisasterEventDetail"]
+  components["schemas"]["EventDetailResponse"]
 >;
 export type ApiEventListResponse = CamelCaseKeys<
   components["schemas"]["EventListResponse"]
 >;
-export type ApiGeoLayer = CamelCaseKeys<components["schemas"]["GeoLayer"]>;
-export type ApiDataSource = CamelCaseKeys<components["schemas"]["DataSource"]>;
-export type ApiDataset = CamelCaseKeys<components["schemas"]["Dataset"]>;
+export type ApiGeoLayer = CamelCaseKeys<components["schemas"]["GeoLayerResponse"]>;
+export type ApiDataSource = CamelCaseKeys<components["schemas"]["DataSourceRef"]>;
+export type ApiDataset = CamelCaseKeys<components["schemas"]["DatasetResponse"]>;
 export type ApiEventMetric = CamelCaseKeys<
-  components["schemas"]["EventMetric"]
+  components["schemas"]["EventMetricResponse"]
 >;
 export type ApiLocation = CamelCaseKeys<components["schemas"]["Location"]>;
 export type ApiPagination = CamelCaseKeys<components["schemas"]["Pagination"]>;
@@ -115,10 +115,12 @@ export type ApiGeoJSONFeatureCollection = CamelCaseKeys<
   components["schemas"]["GeoJSONFeatureCollection"]
 >;
 
-export type EventType = components["schemas"]["DisasterEvent"]["type"];
-export type SeverityLevel = components["schemas"]["DisasterEvent"]["severity"];
+export type EventType = components["schemas"]["EventType"];
+export type SeverityLevel = components["schemas"]["SeverityLevel"];
 
 export interface EventFilter {
+  /** Free-text search over title and region */
+  q?: string;
   types?: EventType[];
   severities?: SeverityLevel[];
   startDate?: string;
@@ -141,6 +143,7 @@ export const eventsAPI = {
     const { data, error, response } = await client.GET("/api/v1/events", {
       params: {
         query: {
+          q: filter?.q || undefined,
           types: filter?.types,
           severities: filter?.severities,
           start_date: filter?.startDate,
@@ -203,7 +206,7 @@ export const geodataAPI = {
     filter?: Omit<EventFilter, "boundingBox">,
   ): Promise<ApiGeoJSONFeatureCollection> => {
     const { data, error, response } = await client.GET(
-      "/api/v1/geodata/geojson",
+      "/api/v1/geodata/events/geojson",
       {
         params: {
           query: {
@@ -234,28 +237,6 @@ export const healthAPI = {
     }
 
     return data as { status: string };
-  },
-};
-
-export const syncAPI = {
-  syncGDACS: async () => {
-    const { data, error } = await client.POST("/api/v1/sync/gdacs");
-
-    if (error) {
-      throw new APIError(500, "GDACS sync failed");
-    }
-
-    return data;
-  },
-
-  syncCopernicus: async () => {
-    const { data, error } = await client.POST("/api/v1/sync/copernicus");
-
-    if (error) {
-      throw new APIError(500, "Copernicus sync failed");
-    }
-
-    return data;
   },
 };
 

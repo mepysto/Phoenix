@@ -1,6 +1,13 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { Header } from "@/components/layout/Header";
+
+const { mockPush } = vi.hoisted(() => ({ mockPush: vi.fn() }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush, replace: vi.fn(), prefetch: vi.fn() }),
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 describe("Header", () => {
   it("renders the Phoenix logo and title", () => {

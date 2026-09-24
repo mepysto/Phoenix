@@ -4,7 +4,7 @@ import pytest
 from datetime import datetime, timezone, timedelta
 from unittest.mock import MagicMock
 
-from src.models.event import Event, EventType, GeoPrecision, SeverityLevel
+from src.models.event import Event, EventType, GeoPrecision
 from src.services.connectors.base import RawEvent
 from src.services.dedup.quality import (
     QualityScorer,

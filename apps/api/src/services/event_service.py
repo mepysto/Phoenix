@@ -1,5 +1,5 @@
-"""Event service for managing disaster events with DB integration."""
-
+from datetime import datetime, timezone
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +13,8 @@ from src.schemas.event import (
     EventFilter,
     EventListResponse,
     EventResponse,
+    GeoJSONFeature,
+    GeoJSONFeatureCollection,
     GeoLayerResponse,
     Location,
     Pagination,
@@ -83,15 +85,57 @@ class EventService:
         )
 
     async def get_event_layers(self, event_id: UUID) -> list[GeoLayerResponse]:
-        """Get event layers (Phase 2: returns empty list).
-
-        Args:
-            event_id: UUID of the event
-
-        Returns:
-            Empty list for Phase 2
-        """
         return []
+
+    async def get_events_as_geojson(
+        self,
+        filters: EventFilter,
+        include_properties: bool = True,
+        limit: int = 1000,
+    ) -> GeoJSONFeatureCollection:
+        events, total = await self.event_repo.list_events(
+            filters, limit=limit, offset=0, with_sources=True
+        )
+
+        features: list[GeoJSONFeature] = []
+        for event in events:
+            geometry: dict[str, Any] | None = None
+            if event.latitude is not None and event.longitude is not None:
+                geometry = {
+                    "type": "Point",
+                    "coordinates": [event.longitude, event.latitude],
+                }
+
+            properties: dict[str, Any] = {}
+            if include_properties:
+                properties = {
+                    "id": str(event.id),
+                    "title": event.title,
+                    "type": event.type.value,
+                    "severity": event.severity.value,
+                    "start_date": event.start_date.isoformat() if event.start_date else None,
+                    "end_date": event.end_date.isoformat() if event.end_date else None,
+                    "is_active": event.is_active,
+                    "geo_precision": event.geo_precision.value if event.geo_precision else None,
+                    "country_code": event.country_code,
+                    "region": event.region,
+                    "affected_population": event.affected_population,
+                    "description": event.description,
+                }
+
+            features.append(GeoJSONFeature(
+                geometry=geometry,
+                properties=properties,
+            ))
+
+        return GeoJSONFeatureCollection(
+            features=features,
+            metadata={
+                "total": total,
+                "returned": len(features),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            },
+        )
 
     def _to_response(self, event: Event) -> EventResponse:
         """Convert Event model to EventResponse schema.

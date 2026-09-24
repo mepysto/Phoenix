@@ -3,7 +3,6 @@
 import math
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
 
 from src.models.event import Event, GeoPrecision
 from src.services.connectors.base import RawEvent

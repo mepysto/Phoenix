@@ -6,7 +6,7 @@ allowing tests to run without a real database connection.
 """
 
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
@@ -328,9 +328,47 @@ class TestHealthEndpoint:
 class TestSchedulerStatus:
     """Tests for the scheduler status endpoint."""
 
-    def test_scheduler_status(self, client_with_mock_service: TestClient) -> None:
+    def test_scheduler_status(
+        self, client_with_mock_service: TestClient, api_sync_key: str
+    ) -> None:
         """Test scheduler status endpoint returns valid response."""
-        response = client_with_mock_service.get("/scheduler/status")
+        response = client_with_mock_service.get(
+            "/scheduler/status", headers={"X-API-Key": api_sync_key}
+        )
         assert response.status_code == 200
         data = response.json()
         assert "running" in data or "status" in data or "last_sync" in data
+
+    def test_scheduler_status_requires_key(self, client_with_mock_service: TestClient) -> None:
+        """Scheduler status exposes internal errors, so it is operator-only."""
+        assert client_with_mock_service.get("/scheduler/status").status_code == 401
+
+
+class TestInputValidation:
+    """Bad client input must be rejected with 422, never surface as 500."""
+
+    @pytest.mark.parametrize(
+        "params",
+        [
+            {"types": ["not-a-type"]},
+            {"severities": ["extreme"]},
+            {"start_date": "yesterday"},
+            {"limit": 0},
+            {"limit": -5},
+            {"min_lat": 123},
+            # partial radius search: validated inside EventFilter, not by FastAPI
+            {"center_lat": 10, "center_lng": 20},
+        ],
+    )
+    def test_invalid_list_params_return_422(
+        self, client_with_mock_service: TestClient, params: dict
+    ) -> None:
+        response = client_with_mock_service.get("/api/v1/events", params=params)
+        assert response.status_code == 422, response.text
+
+    def test_iso_dates_are_accepted(self, client_with_mock_service: TestClient) -> None:
+        response = client_with_mock_service.get(
+            "/api/v1/events",
+            params={"start_date": "2026-09-01T00:00:00Z", "end_date": "2026-09-24"},
+        )
+        assert response.status_code == 200

@@ -18,6 +18,8 @@ import type {
   SeverityLevel,
 } from "@/lib/api/client";
 import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
+import { escapeHtml } from "@/lib/escapeHtml";
+import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 
 if (typeof window !== "undefined") {
   Ion.defaultAccessToken = process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN || "";
@@ -32,93 +34,8 @@ interface CesiumViewerProps {
   showBuildings?: boolean;
 }
 
-const MOCK_EVENTS: DisasterEvent[] = [
-  {
-    id: "1",
-    type: "earthquake",
-    title: "M 6.2 Earthquake - Turkey",
-    description: "Moderate earthquake struck southeastern Turkey",
-    location: { lat: 37.5, lng: 37.0, country: "Turkey", countryCode: "TR" },
-    severity: "high",
-    affectedPopulation: 50000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    type: "flood",
-    title: "Severe Flooding - Bangladesh",
-    description: "Monsoon flooding affecting multiple districts",
-    location: {
-      lat: 23.8,
-      lng: 90.4,
-      country: "Bangladesh",
-      countryCode: "BD",
-    },
-    severity: "critical",
-    affectedPopulation: 200000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    type: "wildfire",
-    title: "Wildfire - California, USA",
-    description: "Large wildfire burning in northern California",
-    location: {
-      lat: 39.5,
-      lng: -121.5,
-      country: "United States",
-      countryCode: "US",
-    },
-    severity: "high",
-    affectedPopulation: 10000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    type: "hurricane",
-    title: "Tropical Cyclone - Philippines",
-    description: "Category 4 typhoon approaching eastern coast",
-    location: {
-      lat: 14.5,
-      lng: 126.0,
-      country: "Philippines",
-      countryCode: "PH",
-    },
-    severity: "critical",
-    affectedPopulation: 500000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "5",
-    type: "war",
-    title: "Armed Conflict - Ukraine",
-    description: "Ongoing military operations in eastern regions",
-    location: { lat: 48.5, lng: 37.5, country: "Ukraine", countryCode: "UA" },
-    severity: "critical",
-    affectedPopulation: 1000000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+// Stable reference so effects depending on `events` do not re-run every render
+const NO_EVENTS: DisasterEvent[] = [];
 
 function getMarkerColor(event: DisasterEvent): Color {
   const hexColor = EVENT_TYPE_COLORS[event.type as EventType] || "#808080";
@@ -172,7 +89,7 @@ function BuildingsLoader({ showBuildings }: { showBuildings: boolean }) {
 }
 
 export default function CesiumViewer({
-  events = MOCK_EVENTS,
+  events = NO_EVENTS,
   onEventClick,
   showTerrain = true,
   showBuildings = false,
@@ -217,29 +134,28 @@ export default function CesiumViewer({
         }}
       >
         <BuildingsLoader showBuildings={showBuildings} />
-        {events.map((event) => (
+        {events.map((event) => {
+          const position = getEventPosition(event);
+          if (!position) return null; // cannot be placed on the globe
+          return (
           <Entity
             key={event.id}
             name={event.title}
             description={`
               <div style="padding: 8px; min-width: 200px;">
-                <p style="margin: 0 0 8px 0; font-size: 13px; color: #333;">${event.description || ""}</p>
+                <p style="margin: 0 0 8px 0; font-size: 13px; color: #333;">${escapeHtml(event.description || "")}</p>
                 <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
-                  <span style="padding: 2px 8px; border-radius: 9999px; font-size: 11px; background: ${SEVERITY_COLORS[event.severity as SeverityLevel]}; color: white;">
-                    ${event.severity.toUpperCase()}
+                  <span style="padding: 2px 8px; border-radius: 9999px; font-size: 11px; background: ${SEVERITY_COLORS[event.severity as SeverityLevel] ?? "#808080"}; color: white;">
+                    ${escapeHtml(event.severity.toUpperCase())}
                   </span>
                   ${event.affectedPopulation ? `<span style="font-size: 11px; color: #666;">${event.affectedPopulation.toLocaleString()} affected</span>` : ""}
                 </div>
                 <div style="margin-top: 8px; font-size: 11px; color: #666;">
-                  Location: ${event.location.country || `${event.location.lat.toFixed(2)}, ${event.location.lng.toFixed(2)}`}
+                  Location: ${event.location.country ? escapeHtml(event.location.country) : formatPosition(position)}
                 </div>
               </div>
             `}
-            position={Cartesian3.fromDegrees(
-              event.location.lng,
-              event.location.lat,
-              0,
-            )}
+            position={Cartesian3.fromDegrees(position.lng, position.lat, 0)}
             onClick={() => handleEventClick(event)}
           >
             <PointGraphics
@@ -250,7 +166,8 @@ export default function CesiumViewer({
               disableDepthTestDistance={Number.POSITIVE_INFINITY}
             />
           </Entity>
-        ))}
+          );
+        })}
       </Viewer>
 
       <div className="absolute bottom-4 left-4 rounded-lg bg-gray-900/90 p-3 text-xs text-gray-300 shadow-lg backdrop-blur">
@@ -291,7 +208,7 @@ export default function CesiumViewer({
               <span className="text-gray-500">Location</span>
               <span className="text-gray-300">
                 {selectedEvent.location.country ||
-                  `${selectedEvent.location.lat.toFixed(2)}, ${selectedEvent.location.lng.toFixed(2)}`}
+                  formatPosition(getEventPosition(selectedEvent))}
               </span>
             </div>
             <div className="flex justify-between">

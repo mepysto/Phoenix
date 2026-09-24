@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -23,14 +24,20 @@ import {
 } from "@phoenix/shared/constants";
 import {
   useEventStore,
+  ALL_EVENT_TYPES,
+  ALL_SEVERITIES,
   type DisasterEvent,
   type EventType,
   type SeverityLevel,
 } from "@/store/eventStore";
 import { Header } from "@/components/layout/Header";
+import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const EVENT_ICONS: Record<EventType, React.ReactNode> = {
+// Types without a dedicated icon fall back to `other`
+const EVENT_ICONS: Partial<Record<EventType, React.ReactNode>> & {
+  other: React.ReactNode;
+} = {
   earthquake: <Mountain className="h-5 w-5" />,
   flood: <Droplets className="h-5 w-5" />,
   wildfire: <Flame className="h-5 w-5" />,
@@ -59,7 +66,7 @@ function EventCard({ event }: { event: DisasterEvent }) {
             className="flex h-10 w-10 items-center justify-center rounded-lg"
             style={{ backgroundColor: `${typeColor}20`, color: typeColor }}
           >
-            {EVENT_ICONS[event.type as EventType]}
+            {EVENT_ICONS[event.type as EventType] ?? EVENT_ICONS.other}
           </div>
           <div className="flex-1">
             <h3 className="font-medium text-white">{event.title}</h3>
@@ -75,8 +82,7 @@ function EventCard({ event }: { event: DisasterEvent }) {
         <div className="flex items-center gap-1">
           <MapPin className="h-4 w-4" />
           <span>
-            {event.location.country ||
-              `${event.location.lat.toFixed(2)}, ${event.location.lng.toFixed(2)}`}
+            {event.location.country || formatPosition(getEventPosition(event))}
           </span>
         </div>
         {event.affectedPopulation && (
@@ -114,27 +120,34 @@ function EventCard({ event }: { event: DisasterEvent }) {
   );
 }
 
-export default function EventsPage() {
+function EventsPageContent() {
   const { t } = useTranslation();
   const {
     events,
     isLoading,
     error,
-    fetchEvents,
-    filter,
+    visibleTypes,
+    visibleSeverities,
     toggleEventType,
     toggleSeverity,
     clearFilters,
+    setFilter,
   } = useEventStore();
 
+  // Header search navigates to /events?q=...; setFilter refetches
+  const query = useSearchParams().get("q")?.trim() || undefined;
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    setFilter({ q: query });
+  }, [query, setFilter]);
 
   const eventTypes = Object.keys(EVENT_TYPE_LABELS) as EventType[];
   const severityLevels: SeverityLevel[] = ["critical", "high", "medium", "low"];
-  const selectedTypes = new Set(filter.types || []);
-  const selectedSeverities = new Set(filter.severities || []);
+  // Pills show what is visible, matching the sidebar checkboxes (same store)
+  const selectedTypes = visibleTypes;
+  const selectedSeverities = visibleSeverities;
+  const isFiltered =
+    visibleTypes.size < ALL_EVENT_TYPES.length ||
+    visibleSeverities.size < ALL_SEVERITIES.length;
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-950">
@@ -149,6 +162,14 @@ export default function EventsPage() {
               </h1>
               <p className="mt-1 text-sm text-gray-400">
                 {events.length} {t.events.eventsFound}
+                {query && (
+                  <>
+                    {" · "}&ldquo;{query}&rdquo;{" "}
+                    <Link href="/events" className="text-primary-400 hover:underline">
+                      ✕
+                    </Link>
+                  </>
+                )}
               </p>
             </div>
             <Link
@@ -165,6 +186,7 @@ export default function EventsPage() {
                 <button
                   key={type}
                   onClick={() => toggleEventType(type)}
+                  aria-pressed={selectedTypes.has(type)}
                   className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     selectedTypes.has(type)
                       ? "bg-primary-600 text-white"
@@ -178,7 +200,7 @@ export default function EventsPage() {
                         : EVENT_TYPE_COLORS[type],
                     }}
                   >
-                    {EVENT_ICONS[type]}
+                    {EVENT_ICONS[type] ?? EVENT_ICONS.other}
                   </span>
                   {EVENT_TYPE_LABELS[type]}
                 </button>
@@ -190,6 +212,7 @@ export default function EventsPage() {
                 <button
                   key={severity}
                   onClick={() => toggleSeverity(severity)}
+                  aria-pressed={selectedSeverities.has(severity)}
                   className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     selectedSeverities.has(severity)
                       ? "text-white"
@@ -205,7 +228,7 @@ export default function EventsPage() {
                 </button>
               ))}
             </div>
-            {(filter.types?.length || filter.severities?.length) && (
+            {isFiltered && (
               <button
                 onClick={clearFilters}
                 className="rounded-full bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-300 hover:bg-gray-700 transition-colors"
@@ -248,5 +271,14 @@ export default function EventsPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+// useSearchParams() needs a Suspense boundary for static rendering
+export default function EventsPage() {
+  return (
+    <Suspense>
+      <EventsPageContent />
+    </Suspense>
   );
 }

@@ -1,0 +1,24 @@
+# Build context is the repository root (see Dockerfiles)
+**/node_modules
+**/.next
+**/.turbo
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/*.pyc
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.github
+.claude
+.claude-flow
+**/.claude-flow
+tmp
+docs
+**/test-results
+**/playwright-report
+**/coverage
+apps/web/openapi.json

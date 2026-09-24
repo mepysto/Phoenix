@@ -11,7 +11,17 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   pollution: 'Environmental Pollution',
   drought: 'Drought',
   other: 'Other',
+  landslide: 'Landslide',
+  industrial: 'Industrial Accident',
+  epidemic: 'Epidemic',
+  storm: 'Severe Storm',
+  coldwave: 'Cold Wave',
+  heatwave: 'Heat Wave',
+  complex_emergency: 'Complex Emergency',
 };
+
+/** Every event type the API can return (mirrors the backend EventType enum). */
+export const EVENT_TYPES = Object.keys(EVENT_TYPE_LABELS) as EventType[];
 
 export const EVENT_TYPE_COLORS: Record<EventType, string> = {
   earthquake: '#8B4513',
@@ -24,6 +34,13 @@ export const EVENT_TYPE_COLORS: Record<EventType, string> = {
   pollution: '#32CD32',
   drought: '#DAA520',
   other: '#808080',
+  landslide: '#A0522D',
+  industrial: '#708090',
+  epidemic: '#C71585',
+  storm: '#4682B4',
+  coldwave: '#87CEEB',
+  heatwave: '#FF8C00',
+  complex_emergency: '#556B2F',
 };
 
 export const SEVERITY_COLORS: Record<SeverityLevel, string> = {

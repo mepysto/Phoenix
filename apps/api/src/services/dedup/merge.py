@@ -1,7 +1,7 @@
 """Event merging logic for deduplication."""
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -97,7 +97,7 @@ class EventMerger:
             return None
         
         # Always update timestamp
-        updates["updated_at"] = datetime.utcnow()
+        updates["updated_at"] = datetime.now(UTC)
         
         return MergePatch(
             fields=updates,

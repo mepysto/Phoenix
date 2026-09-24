@@ -153,10 +153,13 @@ run_migrations() {
     
     if [[ -f "alembic.ini" ]]; then
         # Use uv if available, otherwise use pip
-        if command -v uv &> /dev/null; then
-            uv run alembic upgrade head 2>/dev/null || log_warn "Migration skipped (may already be up to date)"
-        else
-            python3 -m alembic upgrade head 2>/dev/null || log_warn "Migration skipped (may already be up to date)"
+        # scripts.migrate also adopts databases created by the legacy
+        # init-db.sql. Failures must stop startup, not be hidden.
+        local python_bin="python3"
+        [[ -x .venv/bin/python ]] && python_bin=".venv/bin/python"
+        if ! "$python_bin" -m scripts.migrate; then
+            log_error "Database migration failed"
+            exit 1
         fi
     else
         log_warn "No alembic.ini found, skipping migrations"

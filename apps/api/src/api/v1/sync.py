@@ -1,9 +1,9 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.config import settings
+from src.core.security import verify_api_key
 from src.db.database import get_db
 from src.services.connectors.eonet_connector import EONETConnector
 from src.services.connectors.usgs_connector import USGSConnector
@@ -14,9 +14,8 @@ from src.services.ingestion_service import IngestionService
 router = APIRouter()
 
 
-def verify_sync_key(x_api_key: Annotated[str | None, Header()] = None) -> None:
-    if x_api_key != settings.api_sync_key:
-        raise HTTPException(status_code=401, detail="Invalid API key")
+# Kept as an alias so existing imports/overrides keep working
+verify_sync_key = verify_api_key
 
 
 @router.post("/gdacs", dependencies=[Depends(verify_sync_key)])
@@ -60,7 +59,7 @@ async def sync_copernicus(session: AsyncSession = Depends(get_db)) -> dict:
 @router.post("/usgs", dependencies=[Depends(verify_sync_key)])
 async def sync_usgs(
     feed: Annotated[
-        str,
+        Literal["4.5_day", "4.5_week", "all_day", "significant_month"],
         Query(
             description="USGS feed to sync. Options: 4.5_day, 4.5_week, all_day, significant_month"
         ),
@@ -94,7 +93,7 @@ async def sync_usgs(
 @router.post("/eonet", dependencies=[Depends(verify_sync_key)])
 async def sync_eonet(
     status: Annotated[
-        str,
+        Literal["open", "closed", "all"],
         Query(description="Event status filter. Options: open, closed, all"),
     ] = "open",
     days: Annotated[

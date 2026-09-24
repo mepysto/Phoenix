@@ -44,6 +44,7 @@ class RawEvent:
         severity_raw: Source's original severity string
         magnitude: Numeric magnitude (e.g., USGS earthquake magnitude)
         glide_number: ReliefWeb GLIDE number for disaster tracking
+        affected_population: Estimated affected population, if the source provides it
         raw_data: Complete original data from the source
     """
     
@@ -71,6 +72,7 @@ class RawEvent:
     severity_raw: str | None = None
     magnitude: float | None = None
     glide_number: str | None = None
+    affected_population: int | None = None
     
     # Full original data for reference/debugging
     raw_data: dict[str, Any] = field(default_factory=dict)

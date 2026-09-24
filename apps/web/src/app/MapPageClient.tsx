@@ -1,8 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { eventsAPI, type ApiDisasterEvent } from "@/lib/api/client";
 import { useEventStore } from "@/store/eventStore";
+import { DEMO_EVENTS, DEMO_MODE } from "@/lib/demo/demoEvents";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const MapEngineWrapper = dynamic(
   () => import("@/components/map/MapEngineWrapper"),
@@ -19,13 +23,42 @@ const MapEngineWrapper = dynamic(
   },
 );
 
-export function MapPageClient() {
-  const { events, isLoading, error, fetchEvents, selectEvent } =
-    useEventStore();
+function MapPageContent() {
+  const events = useEventStore((s) => s.events);
+  const isLoading = useEventStore((s) => s.isLoading);
+  const error = useEventStore((s) => s.error);
+  const setFilter = useEventStore((s) => s.setFilter);
+  const selectEvent = useEventStore((s) => s.selectEvent);
+  const { t } = useTranslation();
+
+  // Demo data is opt-in only; an empty result or API error must stay visibly empty
+  const useDemo = DEMO_MODE && events.length === 0 && !isLoading;
+  const displayedEvents = useDemo ? DEMO_EVENTS : events;
+  const showEmptyState = !useDemo && !isLoading && !error && events.length === 0;
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    // A text search from /events must not silently filter the map
+    setFilter({ q: undefined });
+  }, [setFilter]);
+
+  // "View on Globe" links to /?event=<id>: load it even if outside the current filter
+  const focusId = useSearchParams().get("event");
+  const [focusEvent, setFocusEvent] = useState<ApiDisasterEvent | null>(null);
+  useEffect(() => {
+    if (!focusId) return;
+    let cancelled = false;
+    eventsAPI
+      .get(focusId)
+      .then((event) => {
+        if (!cancelled) setFocusEvent(event);
+      })
+      .catch(() => {
+        // Unknown or deleted event: just show the map
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [focusId]);
 
   return (
     <main className="relative flex-1">
@@ -34,10 +67,24 @@ export function MapPageClient() {
           Failed to load events: {error}
         </div>
       )}
+      {useDemo && (
+        <div className="absolute left-1/2 top-4 z-50 -translate-x-1/2 rounded-lg bg-amber-700/90 px-4 py-2 text-sm text-white">
+          Demo mode — sample data, not real events
+        </div>
+      )}
       <MapEngineWrapper
-        events={events.length > 0 ? events : undefined}
+        events={displayedEvents}
         onEventClick={selectEvent}
+        focusEvent={focusEvent}
       />
+      {showEmptyState && (
+        <div
+          role="status"
+          className="pointer-events-none absolute left-1/2 top-4 z-40 -translate-x-1/2 rounded-lg bg-gray-800/90 px-4 py-2 text-sm text-gray-200"
+        >
+          {t.events.noEvents} · {t.events.adjustFilters}
+        </div>
+      )}
       {isLoading && events.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50">
           <div className="text-center">
@@ -47,5 +94,14 @@ export function MapPageClient() {
         </div>
       )}
     </main>
+  );
+}
+
+// useSearchParams() needs a Suspense boundary for static rendering
+export function MapPageClient() {
+  return (
+    <Suspense>
+      <MapPageContent />
+    </Suspense>
   );
 }

@@ -5,7 +5,6 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING
-from uuid import UUID
 
 from src.models.event import Event, EventType
 from src.services.connectors.base import RawEvent
@@ -88,6 +87,11 @@ class FuzzyMatcher:
         Returns:
             MatchCandidate if score >= threshold, None otherwise
         """
+        # Two distinct records from the same source are separate events
+        # (e.g. USGS aftershocks); only cross-source records are merged.
+        if _has_source(candidate, raw_event.source_name):
+            return None
+
         reasons: list[str] = []
         score_components: list[float] = []
         
@@ -223,3 +227,14 @@ class FuzzyMatcher:
         union = tokens1 | tokens2
         
         return len(intersection) / len(union)
+
+
+def _has_source(candidate: Event, source_name: str | None) -> bool:
+    """Return True if the candidate event already has a record from source_name."""
+    sources = getattr(candidate, "sources", None)
+    if not source_name or not isinstance(sources, (list, tuple)):
+        return False
+    return any(
+        getattr(getattr(link, "source", None), "name", None) == source_name
+        for link in sources
+    )

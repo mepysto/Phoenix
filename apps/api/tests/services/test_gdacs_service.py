@@ -485,3 +485,94 @@ class TestGDACSServiceConfiguration:
         """Test custom max retries can be set."""
         service = GDACSService(max_retries=5)
         assert service.max_retries == 5
+
+
+def _rss(item_body: str) -> str:
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:gdacs="http://www.gdacs.org"
+    xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#"
+    xmlns:georss="http://www.georss.org/georss">
+  <channel><item>
+    <title>Test event</title>
+    <gdacs:eventtype>EQ</gdacs:eventtype>
+    <gdacs:alertlevel>Orange</gdacs:alertlevel>
+    <gdacs:fromdate>2026-09-01T00:00:00Z</gdacs:fromdate>
+    {item_body}
+  </item></channel>
+</rss>"""
+
+
+class TestGDACSItemIdentityAndCoords:
+    """Regression tests for event_id precedence and georss fallback."""
+
+    def test_event_id_falls_back_to_link(self):
+        events = GDACSService()._parse_rss(
+            _rss(
+                "<link>https://www.gdacs.org/report.aspx?x=/EQ/1234/</link>"
+                "<geo:lat>1.0</geo:lat><geo:long>2.0</geo:long>"
+            )
+        )
+        assert len(events) == 1
+        assert events[0].external_id.endswith("1234")
+
+    def test_item_without_id_or_link_is_skipped(self):
+        events = GDACSService()._parse_rss(_rss("<geo:lat>1.0</geo:lat><geo:long>2.0</geo:long>"))
+        assert events == []
+
+    def test_eventid_preferred_even_without_link(self):
+        events = GDACSService()._parse_rss(
+            _rss("<gdacs:eventid>555</gdacs:eventid><geo:lat>1.0</geo:lat><geo:long>2.0</geo:long>")
+        )
+        assert events[0].external_id == "555"
+
+    def test_georss_point_fallback(self):
+        events = GDACSService()._parse_rss(
+            _rss("<gdacs:eventid>9</gdacs:eventid><georss:point>12.5 -45.25</georss:point>")
+        )
+        assert len(events) == 1
+        assert events[0].lat == 12.5 and events[0].lng == -45.25
+
+
+class TestGDACSToRawEvent:
+    """GDACS items are converted into the shared RawEvent pipeline format."""
+
+    def test_finished_event_gets_end_date_and_typed_key(self):
+        events = GDACSService()._parse_rss(
+            _rss(
+                "<gdacs:eventid>1000</gdacs:eventid>"
+                "<gdacs:iscurrent>false</gdacs:iscurrent>"
+                "<gdacs:todate>2026-09-05T12:00:00Z</gdacs:todate>"
+                "<gdacs:glide>EQ-2026-000123-JPN</gdacs:glide>"
+                "<gdacs:population>1500</gdacs:population>"
+                "<geo:lat>1.0</geo:lat><geo:long>2.0</geo:long>"
+            )
+        )
+        raw = events[0].to_raw_event()
+        assert raw.source_name == "GDACS"
+        assert raw.external_id == "EQ-1000"
+        assert raw.end_date == datetime(2026, 9, 5, 12, tzinfo=timezone.utc)
+        assert raw.glide_number == "EQ-2026-000123-JPN"
+        assert raw.affected_population == 1500
+        assert raw.severity_raw == "Orange"
+
+    def test_current_event_has_no_end_date(self):
+        events = GDACSService()._parse_rss(
+            _rss(
+                "<gdacs:eventid>7</gdacs:eventid><gdacs:iscurrent>true</gdacs:iscurrent>"
+                "<geo:lat>1.0</geo:lat><geo:long>2.0</geo:long>"
+            )
+        )
+        assert events[0].to_raw_event().end_date is None
+
+
+class TestGDACSUnsafeXML:
+    def test_entity_expansion_is_rejected(self):
+        bomb = """<?xml version="1.0"?>
+<!DOCTYPE lolz [<!ENTITY lol "lol"><!ENTITY lol2 "&lol;&lol;&lol;&lol;">]>
+<rss><channel><item><title>&lol2;</title></item></channel></rss>"""
+        with pytest.raises(DataSyncError, match="rejected"):
+            GDACSService()._parse_rss(bomb)
+
+    def test_malformed_xml_is_a_sync_error(self):
+        with pytest.raises(DataSyncError):
+            GDACSService()._parse_rss("<rss><channel>")

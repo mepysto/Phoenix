@@ -10,7 +10,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-phoenix}
       POSTGRES_DB: ${POSTGRES_DB:-phoenix_db}
     ports:
-      - "25432:5432"
+      # Loopback only: reachable by host-run dev servers, not the network
+      - "127.0.0.1:25432:5432"
     volumes:
       - phoenix_db_data:/home/postgres/pgdata/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
@@ -28,12 +29,13 @@ services:
   redis:
     image: redis:7-alpine
     container_name: phoenix-redis
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-phoenix-dev-redis}"]
     ports:
-      - "26379:6379"
+      - "127.0.0.1:26379:6379"
     volumes:
       - phoenix_redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD:-phoenix-dev-redis}\" --no-auth-warning ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -46,14 +48,12 @@ services:
     container_name: phoenix-api
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-phoenix}:${POSTGRES_PASSWORD:-phoenix}@db:5432/${POSTGRES_DB:-phoenix_db}
-      REDIS_URL: redis://redis:6379
-      API_HOST: 0.0.0.0
-      API_PORT: 28000
-      API_DEBUG: ${API_DEBUG:-true}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-phoenix-dev-redis}@redis:6379
+      API_DEBUG: ${API_DEBUG:-false}
+      API_SYNC_KEY: ${API_SYNC_KEY:-dev-sync-key}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
     ports:
       - "28000:8000"
-    volumes:
-      - ../../apps/api:/app
     depends_on:
       db:
         condition: service_healthy
@@ -65,16 +65,16 @@ services:
     build:
       context: ../../
       dockerfile: apps/web/Dockerfile
+      target: runner
+      args:
+        # Inlined into the browser bundle at build time: the URL browsers use
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:28000}
     container_name: phoenix-web
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:28000
     ports:
       - "23000:23000"
-    volumes:
-      - ../../apps/web/src:/app/apps/web/src
-      - ../../apps/web/public:/app/apps/web/public
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

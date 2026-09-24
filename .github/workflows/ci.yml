@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API (lint, migrations, tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      db:
+        # Same engine as production: PostgreSQL 16 + PostGIS + TimescaleDB
+        image: timescale/timescaledb-ha:pg16
+        env:
+          POSTGRES_USER: phoenix
+          POSTGRES_PASSWORD: phoenix
+          POSTGRES_DB: phoenix_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U phoenix -d phoenix_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://phoenix:phoenix@localhost:5432/phoenix_test
+      TEST_DATABASE_URL: postgresql://phoenix:phoenix@localhost:5432/phoenix_test
+      SCHEDULER_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/api/requirements-dev.lock
+      - name: Install (locked versions)
+        run: pip install -r requirements-dev.lock && pip install --no-deps -e .
+      - name: Lint (errors only)
+        run: ruff check src tests scripts alembic --select F,E9
+      - name: Migrate empty database to head
+        run: python -m scripts.migrate
+      - name: Schema matches models
+        run: alembic check
+      - name: Tests (unit + PostgreSQL integration)
+        run: pytest -q
+
+  web:
+    name: Web (types, tests, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm --filter web typecheck
+      - name: Unit tests
+        run: pnpm --filter web exec vitest run
+      - name: Build
+        run: pnpm --filter web build
+
+  api-contract:
+    name: Web API types match the backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/api/requirements.lock
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pip install -r requirements.lock && pip install --no-deps -e .
+        working-directory: apps/api
+      - run: pnpm install --frozen-lockfile
+      - name: Regenerate schema.d.ts from the API
+        env:
+          SCHEDULER_ENABLED: "false"
+        run: |
+          (cd apps/api && python -m scripts.export_openapi ../web/openapi.json)
+          pnpm --filter web generate:types:local
+      - name: Fail if the committed types are stale
+        run: |
+          git diff --exit-code -- apps/web/src/lib/api/schema.d.ts || {
+            echo "::error::schema.d.ts is out of date. Run scripts/export_openapi.py + pnpm generate:types:local and commit."
+            exit 1
+          }

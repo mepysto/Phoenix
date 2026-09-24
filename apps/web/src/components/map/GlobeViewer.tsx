@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import type {
   Map as MapLibreMap,
   NavigationControl,
@@ -12,105 +12,29 @@ import type {
   EventType,
   SeverityLevel,
 } from "@/lib/api/client";
-import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
+import {
+  EVENT_TYPE_COLORS,
+  EVENT_TYPE_LABELS,
+  EVENT_TYPES,
+  SEVERITY_COLORS,
+} from "@phoenix/shared/constants";
 import { useMapStore } from "@/store/mapStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatPosition, getEventPosition } from "@/lib/eventPosition";
+import { applyBasemap, createBasemapStyle, LABEL_FONT } from "@/lib/map/basemaps";
 
 type DisasterEvent = ApiDisasterEvent;
 
 interface GlobeViewerProps {
   events?: DisasterEvent[];
   onEventClick?: (event: DisasterEvent) => void;
+  /** Fly to this event and open its card (e.g. from a /?event=<id> link) */
+  focusEvent?: DisasterEvent | null;
 }
 
-const MOCK_EVENTS: DisasterEvent[] = [
-  {
-    id: "1",
-    type: "earthquake",
-    title: "M 6.2 Earthquake - Turkey",
-    description: "Moderate earthquake struck southeastern Turkey",
-    location: { lat: 37.5, lng: 37.0, country: "Turkey", countryCode: "TR" },
-    severity: "high",
-    affectedPopulation: 50000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    type: "flood",
-    title: "Severe Flooding - Bangladesh",
-    description: "Monsoon flooding affecting multiple districts",
-    location: {
-      lat: 23.8,
-      lng: 90.4,
-      country: "Bangladesh",
-      countryCode: "BD",
-    },
-    severity: "critical",
-    affectedPopulation: 200000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    type: "wildfire",
-    title: "Wildfire - California, USA",
-    description: "Large wildfire burning in northern California",
-    location: {
-      lat: 39.5,
-      lng: -121.5,
-      country: "United States",
-      countryCode: "US",
-    },
-    severity: "high",
-    affectedPopulation: 10000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    type: "hurricane",
-    title: "Tropical Cyclone - Philippines",
-    description: "Category 4 typhoon approaching eastern coast",
-    location: {
-      lat: 14.5,
-      lng: 126.0,
-      country: "Philippines",
-      countryCode: "PH",
-    },
-    severity: "critical",
-    affectedPopulation: 500000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "5",
-    type: "war",
-    title: "Armed Conflict - Ukraine",
-    description: "Ongoing military operations in eastern regions",
-    location: { lat: 48.5, lng: 37.5, country: "Ukraine", countryCode: "UA" },
-    severity: "critical",
-    affectedPopulation: 1000000,
-    startDate: new Date().toISOString(),
-    isActive: true,
-    sources: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+// Stable reference so effects depending on `events` do not re-run every render
+const NO_EVENTS: DisasterEvent[] = [];
 
 function getMarkerColor(event: DisasterEvent): string {
   return EVENT_TYPE_COLORS[event.type as EventType] || "#808080";
@@ -127,13 +51,15 @@ function getMarkerSize(severity: SeverityLevel): number {
 }
 
 function eventsToGeoJSON(events: DisasterEvent[]): GeoJSON.FeatureCollection {
-  return {
-    type: "FeatureCollection",
-    features: events.map((event) => ({
-      type: "Feature" as const,
+  const features: GeoJSON.Feature[] = [];
+  for (const event of events) {
+    const position = getEventPosition(event);
+    if (!position) continue; // cannot be placed on the map
+    features.push({
+      type: "Feature",
       geometry: {
-        type: "Point" as const,
-        coordinates: [event.location.lng, event.location.lat],
+        type: "Point",
+        coordinates: [position.lng, position.lat],
       },
       properties: {
         id: event.id,
@@ -146,13 +72,15 @@ function eventsToGeoJSON(events: DisasterEvent[]): GeoJSON.FeatureCollection {
         affectedPopulation: event.affectedPopulation || 0,
         country: event.location.country || "",
       },
-    })),
-  };
+    });
+  }
+  return { type: "FeatureCollection", features };
 }
 
 export default function GlobeViewer({
-  events = MOCK_EVENTS,
+  events = NO_EVENTS,
   onEventClick,
+  focusEvent,
 }: GlobeViewerProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
@@ -175,65 +103,33 @@ export default function GlobeViewer({
     eventsRef.current = events;
   }, [events]);
 
+  // The map is created once per mount. Values the init code needs are read
+  // through refs so changing them never tears down and rebuilds the map
+  // (which reset the camera and left basemap/layer state unapplied).
+  const onEventClickRef = useRef(onEventClick);
+  useEffect(() => {
+    onEventClickRef.current = onEventClick;
+  }, [onEventClick]);
+  const is3DRef = useRef(is3D);
+  useEffect(() => {
+    is3DRef.current = is3D;
+  }, [is3D]);
+
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
+    let cancelled = false;
 
     const initMap = async () => {
       const maplibregl = await import("maplibre-gl");
       maplibreRef.current = maplibregl;
 
-      if (!mapContainer.current) return;
+      // Unmounted (or StrictMode's first pass cleaned up) while loading
+      if (cancelled || !mapContainer.current || map.current) return;
 
       const currentBasemap = useMapStore.getState().basemap;
       map.current = new maplibregl.Map({
         container: mapContainer.current,
-        style: {
-          version: 8,
-          sources: {
-            dark: {
-              type: "raster",
-              tiles: [
-                "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-                "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-                "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-              ],
-              tileSize: 256,
-              attribution: "&copy; OpenStreetMap contributors, &copy; CARTO",
-            },
-            satellite: {
-              type: "raster",
-              tiles: [
-                "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-              ],
-              tileSize: 256,
-              maxzoom: 19,
-              attribution: "Esri, Maxar, Earthstar Geographics",
-            },
-          },
-          layers: [
-            {
-              id: "dark-basemap",
-              type: "raster",
-              source: "dark",
-              minzoom: 0,
-              maxzoom: 19,
-              layout: {
-                visibility: currentBasemap === "dark" ? "visible" : "none",
-              },
-            },
-            {
-              id: "satellite-basemap",
-              type: "raster",
-              source: "satellite",
-              minzoom: 0,
-              maxzoom: 19,
-              layout: {
-                visibility: currentBasemap === "satellite" ? "visible" : "none",
-              },
-            },
-          ],
-          glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-        },
+        style: createBasemapStyle(currentBasemap),
         center: [0, 20],
         zoom: 2,
       });
@@ -247,7 +143,7 @@ export default function GlobeViewer({
               setProjection: (proj: { type: string }) => void;
             }
           ).setProjection({
-            type: is3D ? "globe" : "mercator",
+            type: is3DRef.current ? "globe" : "mercator",
           });
         }
 
@@ -298,6 +194,7 @@ export default function GlobeViewer({
           filter: ["has", "point_count"],
           layout: {
             "text-field": ["get", "point_count_abbreviated"],
+            "text-font": LABEL_FONT,
             "text-size": 12,
           },
           paint: {
@@ -385,7 +282,7 @@ export default function GlobeViewer({
 
           if (clickedEvent) {
             setSelectedEvent(clickedEvent);
-            onEventClick?.(clickedEvent);
+            onEventClickRef.current?.(clickedEvent);
           }
         });
 
@@ -429,17 +326,34 @@ export default function GlobeViewer({
       );
     };
 
-    if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(() => initMap());
-    } else {
-      setTimeout(initMap, 1);
-    }
+    const cancelScheduled =
+      "requestIdleCallback" in window
+        ? (() => {
+            const id = window.requestIdleCallback(() => void initMap());
+            return () => window.cancelIdleCallback(id);
+          })()
+        : (() => {
+            const id = setTimeout(() => void initMap(), 1);
+            return () => clearTimeout(id);
+          })();
 
     return () => {
+      cancelled = true;
+      cancelScheduled();
       map.current?.remove();
       map.current = null;
+      setMapReady(false);
     };
-  }, [is3D, onEventClick]);
+  }, []);
+
+  useEffect(() => {
+    if (!map.current || !mapReady || !focusEvent) return;
+    const position = getEventPosition(focusEvent);
+    setSelectedEvent(focusEvent);
+    if (position) {
+      map.current.flyTo({ center: [position.lng, position.lat], zoom: 5 });
+    }
+  }, [focusEvent, mapReady]);
 
   useEffect(() => {
     if (!map.current || !mapReady) return;
@@ -453,16 +367,7 @@ export default function GlobeViewer({
   useEffect(() => {
     if (!map.current || !mapReady) return;
 
-    map.current.setLayoutProperty(
-      "dark-basemap",
-      "visibility",
-      basemap === "dark" ? "visible" : "none",
-    );
-    map.current.setLayoutProperty(
-      "satellite-basemap",
-      "visibility",
-      basemap === "satellite" ? "visible" : "none",
-    );
+    applyBasemap(map.current, basemap);
   }, [basemap, mapReady]);
 
   useEffect(() => {
@@ -536,6 +441,12 @@ export default function GlobeViewer({
     }
   }, [layers, mapReady]);
 
+  // Only list types actually on the map, in the canonical order
+  const legendTypes = useMemo(() => {
+    const present = new Set(events.map((e) => e.type as EventType));
+    return EVENT_TYPES.filter((type) => present.has(type));
+  }, [events]);
+
   const toggleProjection = useCallback(() => {
     if (!map.current) return;
     const newIs3D = !is3D;
@@ -583,13 +494,28 @@ export default function GlobeViewer({
         <div className="mb-2 font-medium text-white">
           {t.map.activeEvents}: {events.length}
         </div>
-        <div className="flex flex-wrap gap-2">
-          {(["critical", "high", "medium", "low"] as SeverityLevel[]).map(
+        {/* Markers: colour = event type, size = severity (see eventsToGeoJSON) */}
+        <div className="mb-2 flex max-w-xs flex-wrap gap-x-3 gap-y-1">
+          {legendTypes.map((type) => (
+            <div key={type} className="flex items-center gap-1">
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: EVENT_TYPE_COLORS[type] }}
+              />
+              <span>{EVENT_TYPE_LABELS[type]}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-3">
+          {(["low", "medium", "high", "critical"] as SeverityLevel[]).map(
             (severity) => (
               <div key={severity} className="flex items-center gap-1">
                 <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: SEVERITY_COLORS[severity] }}
+                  className="rounded-full bg-gray-400"
+                  style={{
+                    width: getMarkerSize(severity),
+                    height: getMarkerSize(severity),
+                  }}
                 />
                 <span className="capitalize">{severity}</span>
               </div>
@@ -617,7 +543,7 @@ export default function GlobeViewer({
               <span className="text-gray-500">{t.events.location}</span>
               <span className="text-gray-300">
                 {selectedEvent.location.country ||
-                  `${selectedEvent.location.lat.toFixed(2)}, ${selectedEvent.location.lng.toFixed(2)}`}
+                  formatPosition(getEventPosition(selectedEvent))}
               </span>
             </div>
             <div className="flex justify-between">

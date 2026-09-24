@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
+
+from src.models.event import EventType, SeverityLevel
 
 
 class Location(BaseModel):
@@ -100,18 +102,23 @@ class EventListResponse(BaseModel):
 
 
 class EventFilter(BaseModel):
-    types: list[str] | None = None
-    severities: list[str] | None = None
-    start_date: str | None = None
-    end_date: str | None = None
-    min_lng: float | None = None
-    min_lat: float | None = None
-    max_lng: float | None = None
-    max_lat: float | None = None
+    # Free-text search over title and region
+    q: str | None = Field(default=None, min_length=1, max_length=100)
+    # Typed so invalid values are rejected with 422 instead of failing in SQL
+    types: list[EventType] | None = None
+    severities: list[SeverityLevel] | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    min_lng: float | None = Field(default=None, ge=-180, le=180)
+    min_lat: float | None = Field(default=None, ge=-90, le=90)
+    max_lng: float | None = Field(default=None, ge=-180, le=180)
+    max_lat: float | None = Field(default=None, ge=-90, le=90)
     center_lat: float | None = None
     center_lng: float | None = None
     radius_km: float | None = None
     is_active: bool | None = None
+    # Merged (non-canonical) duplicates are hidden unless explicitly requested
+    include_merged: bool = False
 
     @model_validator(mode="after")
     def validate_radius_params(self) -> "EventFilter":
@@ -122,3 +129,40 @@ class EventFilter(BaseModel):
                 "center_lat, center_lng, and radius_km must all be provided together"
             )
         return self
+
+
+class GeoJSONFeature(BaseModel):
+    type: Literal["Feature"] = "Feature"
+    geometry: dict[str, Any] | None
+    properties: dict[str, Any]
+
+
+class GeoJSONFeatureCollection(BaseModel):
+    type: Literal["FeatureCollection"] = "FeatureCollection"
+    features: list[GeoJSONFeature]
+    metadata: dict[str, Any] | None = None
+
+
+class ClusterBBox(BaseModel):
+    min_lat: float
+    max_lat: float
+    min_lng: float
+    max_lng: float
+
+
+class EventCluster(BaseModel):
+    cluster_id: str
+    center_lat: float
+    center_lng: float
+    count: int
+    bbox: ClusterBBox | None = None
+    event_types: dict[str, int]
+    max_severity: str | None = None
+
+
+class ClusterResponse(BaseModel):
+    zoom: int
+    clusters: list[EventCluster]
+    unclustered: list[EventResponse]
+    total_events: int
+    total_clusters: int

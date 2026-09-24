@@ -230,11 +230,25 @@ Phase 4에서는 Cross-source 중복 제거(Dedup) 및 이벤트 병합(Merge) �
    - radius 파라미터 3개 모두 있거나 모두 없어야 함
    - `radius_km` 최대 500km 제한
 
-### Phase 6 (실시간/고급 기능) ← **다음 단계**
+### Phase 6 (실시간/고급 기능) ✅ COMPLETED (2026-01-01)
 
-- 실시간 WebSocket 업데이트 (이벤트 생성/수정 시 push)
+1. **WebSocket 실시간 업데이트** ✅
+   - `/ws/events` 엔드포인트 추가
+   - `ConnectionManager`: 클라이언트 연결 관리
+   - `EventBroadcaster`: event_created, event_updated, event_merged 브로드캐스트
+   - IngestionService에 자동 broadcast 훅
+
+2. **Admin API** ✅
+   - `GET /api/v1/admin/status`: 시스템 상태 (WebSocket + Scheduler)
+   - `GET /api/v1/admin/dedup/status`: 중복 제거 통계 (multi-source events, by source)
+   - `POST /api/v1/admin/sync/trigger`: 수동 동기화 트리거 (source 파라미터)
+
+### Phase 7 (확장 기능) ← **다음 단계**
+
 - Offline merge job (기존 중복 Event 정리)
-- Admin API (/admin/dedup/run 등)
+- `events.merged_into_id`, `events.is_canonical` 컬럼 추가
+- GeoJSON export API (`GET /events/geojson`)
+- 이벤트 클러스터링 API (zoom level별)
 
 ---
 
@@ -451,16 +465,135 @@ Ingestion → Same-source check → Cross-source match (Strong key/Fuzzy)
 
 ---
 
-## 12. 다음 단계 추천 (Phase 6 착수)
+## 12. Phase 6 완료 변경사항 요약 (2026-01-01)
+
+**생성된 파일**
+| 파일 | 설명 |
+|------|------|
+| `src/services/broadcaster.py` | ConnectionManager, EventBroadcaster (WebSocket 관리) |
+| `src/api/v1/websocket.py` | `/ws/events` WebSocket 엔드포인트 |
+| `src/api/v1/admin.py` | Admin API (status, dedup/status, sync/trigger) |
+| `tests/services/test_broadcaster.py` | Broadcaster 테스트 (8개) |
+| `tests/api/test_admin.py` | Admin API 테스트 (5개) |
+
+**수정된 파일**
+| 파일 | 변경 내용 |
+|------|-----------|
+| `src/main.py` | WebSocket, Admin 라우터 등록 |
+| `src/services/__init__.py` | broadcaster exports 추가 |
+| `src/services/ingestion_service.py` | broadcast hooks 추가 (created, updated, merged) |
+
+**테스트 현황**
+
+- 전체 382개 테스트 통과
+
+**새로운 API 기능**
+| 기능 | 엔드포인트 | 설명 |
+|------|-----------|------|
+| WebSocket | `WS /ws/events` | 실시간 이벤트 알림 (created/updated/merged) |
+| 시스템 상태 | `GET /admin/status` | WebSocket + Scheduler 상태 |
+| Dedup 통계 | `GET /admin/dedup/status` | multi-source events, by source 통계 |
+| 수동 동기화 | `POST /admin/sync/trigger` | source 파라미터로 선택적 동기화 |
+
+---
+
+## 13. 다음 단계 추천 (Phase 7 착수) ✅ COMPLETED (2026-01-05)
+
+1. Offline merge job (기존 중복 Event 정리) ✅
+2. GeoJSON export API (`GET /events/geojson`) ✅
+3. 이벤트 클러스터링 API (zoom level별) ✅
+
+---
+
+## 14. Phase 7 완료 변경사항 요약 (2026-01-05)
+
+### Phase 7.1: Offline Merge Job ✅
+
+**생성된 파일**
+| 파일 | 설명 |
+|------|------|
+| `alembic/versions/2026_01_05_0000-add_merge_tracking_columns.py` | merged_into_id, is_canonical 컬럼 추가 |
+| `src/services/dedup/offline_merge_service.py` | OfflineMergeService (배치 중복 정리) |
+| `scripts/offline_merge.py` | CLI 스크립트 |
+| `tests/services/test_offline_merge.py` | 18개 테스트 |
+
+**주요 기능**
+
+- pg_advisory_lock으로 동시 실행 방지
+- Strong-key (GLIDE) + Fuzzy (시공간) 그룹핑
+- QualityScorer 기반 canonical 선택
+- dry-run 모드 지원
+
+**CLI 사용법**
+
+```bash
+python -m scripts.offline_merge --dry-run              # 미리보기
+python -m scripts.offline_merge --since 2025-12-01     # 증분 처리
+```
+
+### Phase 7.2: GeoJSON Export API ✅
+
+**수정된 파일**
+| 파일 | 변경 내용 |
+|------|-----------|
+| `src/schemas/event.py` | GeoJSONFeature, GeoJSONFeatureCollection 스키마 |
+| `src/services/event_service.py` | get_events_as_geojson() 메서드 |
+| `src/api/v1/geodata.py` | GET /geodata/events/geojson 엔드포인트 |
+| `tests/api/test_geodata.py` | 9개 테스트 추가 |
+
+**API 사용법**
+
+```bash
+GET /api/v1/geodata/events/geojson?types=earthquake&limit=100
+```
+
+### Phase 7.3: Event Clustering API ✅
+
+**생성된 파일**
+| 파일 | 설명 |
+|------|------|
+| `src/services/clustering_service.py` | ClusteringService (Geohash 기반) |
+
+**수정된 파일**
+| 파일 | 변경 내용 |
+|------|-----------|
+| `src/schemas/event.py` | EventCluster, ClusterResponse 스키마 |
+| `src/api/v1/geodata.py` | GET /geodata/events/clusters 엔드포인트 |
+| `tests/api/test_geodata.py` | 10개 테스트 추가 |
+
+**클러스터링 전략**
+| Zoom | Precision | 그리드 크기 |
+|------|-----------|-------------|
+| 0-3 | 2 | ~625km |
+| 4-6 | 3 | ~156km |
+| 7-9 | 4 | ~39km |
+| 10-12 | 5 | ~4.9km |
+| 13-14 | 6 | ~1.2km |
+| 15+ | - | 클러스터링 없음 |
+
+**API 사용법**
+
+```bash
+GET /api/v1/geodata/events/clusters?zoom=8&is_active=true
+```
+
+### 테스트 현황
+
+- 전체 419개 테스트 통과
+- 신규 테스트: Offline Merge 18개, GeoJSON 9개, Clustering 10개
+
+---
+
+## 15. 다음 단계 추천 (Phase 8)
 
 **즉시 착수 가능**
 
-1. 실시간 WebSocket 업데이트 (이벤트 생성/수정 시 push)
-2. Offline merge job (기존 중복 Event 정리)
-3. Admin API (/admin/dedup/run 등)
+1. 프론트엔드 WebSocket 연동
+2. 클러스터링 API 프론트엔드 적용
+3. GeoJSON 다운로드 버튼 UI
 
 **선택적 확장**
 
-- `events.merged_into_id`, `events.is_canonical` 컬럼 추가 (중복 숨김)
-- GeoJSON export API (`GET /events/geojson`)
-- 이벤트 클러스터링 API (zoom level별)
+- 알림 설정 (이메일, Slack webhook)
+- 이벤트 타임라인 시각화
+- 통계 대시보드

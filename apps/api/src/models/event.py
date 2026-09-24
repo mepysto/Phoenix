@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import enum
-from datetime import datetime
-from typing import TYPE_CHECKING
+import json
+from datetime import UTC, datetime
+from typing import Any, TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     DateTime,
     Enum,
     Float,
@@ -20,7 +22,7 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from src.db.database import Base
 
@@ -101,6 +103,12 @@ class Event(Base):
     )
     glide_number: Mapped[str | None] = mapped_column(String(50))
 
+    # Merge tracking columns
+    merged_into_id: Mapped[UUID | None] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("events.id", ondelete="SET NULL"), nullable=True
+    )
+    is_canonical: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
     affected_area_geojson: Mapped[str | None] = mapped_column(Text)
     country_code: Mapped[str | None] = mapped_column(String(3))
     region: Mapped[str | None] = mapped_column(String(255))
@@ -111,16 +119,19 @@ class Event(Base):
     source_id: Mapped[str | None] = mapped_column(String(255))
     source_url: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
+        DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
     )
 
     admin_area: Mapped["AdminArea | None"] = relationship(back_populates="events")
     sources: Mapped[list["EventSource"]] = relationship(back_populates="event")
     layers: Mapped[list["GeoLayer"]] = relationship(back_populates="event")
     datasets: Mapped[list["Dataset"]] = relationship(back_populates="event")
+    merged_into: Mapped["Event | None"] = relationship(
+        "Event", remote_side="Event.id", foreign_keys=[merged_into_id]
+    )
 
     __table_args__ = (
         Index("idx_events_lat_lon", "latitude", "longitude"),
@@ -132,6 +143,9 @@ class Event(Base):
         Index("idx_events_geo_precision", "geo_precision"),
         Index("idx_events_admin_area", "admin_area_id"),
         Index("idx_events_glide", "glide_number"),
+        Index("idx_events_merged_into", "merged_into_id"),
+        Index("idx_events_is_canonical", "is_canonical"),
+        CheckConstraint("id != merged_into_id", name="chk_events_no_self_merge"),
     )
 
 
@@ -171,7 +185,7 @@ class EventSource(Base):
     external_id: Mapped[str | None] = mapped_column(String(255))
     raw_data: Mapped[dict | None] = mapped_column(JSONB)
     fetched_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
     event: Mapped["Event"] = relationship(back_populates="sources")
@@ -190,14 +204,42 @@ class GeoLayer(Base):
         PGUUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE")
     )
     layer_type: Mapped[str] = mapped_column(String(100), nullable=False)
-    geojson: Mapped[str] = mapped_column(Text, nullable=False)
+    geojson: Mapped[dict] = mapped_column(JSONB, nullable=False)
     properties: Mapped[dict | None] = mapped_column(JSONB)
     timestamp: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
     event: Mapped["Event"] = relationship(back_populates="layers")
+
+    @validates("geojson")
+    def validate_geojson_size(self, key: str, value: Any) -> dict:
+        """Validate GeoJSON payload: under 5MB, a JSON object with a "type"."""
+        max_size = 5 * 1024 * 1024  # 5MB
+
+        if isinstance(value, str):
+            if len(value.encode("utf-8")) > max_size:
+                raise ValueError("GeoJSON payload exceeds 5MB size limit")
+            try:
+                parsed_value = json.loads(value)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON string in GeoJSON: {e}") from e
+        elif isinstance(value, dict):
+            try:
+                serialized = json.dumps(value)
+            except (TypeError, ValueError) as e:
+                raise ValueError(f"GeoJSON is not JSON-serializable: {e}") from e
+            if len(serialized.encode("utf-8")) > max_size:
+                raise ValueError("GeoJSON payload exceeds 5MB size limit")
+            parsed_value = value
+        else:
+            raise ValueError("GeoJSON must be a dictionary or a valid JSON string")
+
+        # A JSON string may decode to a list/number/null; GeoJSON is always an object
+        if not isinstance(parsed_value, dict) or not isinstance(parsed_value.get("type"), str):
+            raise ValueError('GeoJSON must be a JSON object with a string "type" member')
+        return parsed_value
 
     __table_args__ = (Index("idx_geo_layers_event_id", "event_id"),)
 
@@ -215,7 +257,7 @@ class Dataset(Base):
     license: Mapped[str | None] = mapped_column(String(255))
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSONB)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
     event: Mapped["Event"] = relationship(back_populates="datasets")

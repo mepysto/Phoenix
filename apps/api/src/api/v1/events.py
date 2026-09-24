@@ -1,5 +1,6 @@
 """Events API endpoints for disaster event management."""
 
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
@@ -7,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import get_db
+from src.models.event import EventType, SeverityLevel
 from src.schemas.event import (
     EventDetailResponse,
     EventFilter,
@@ -32,10 +34,11 @@ def get_event_service(session: AsyncSession = Depends(get_db)) -> EventService:
 @router.get("", response_model=EventListResponse)
 async def list_events(
     event_service: Annotated[EventService, Depends(get_event_service)],
-    types: Annotated[list[str] | None, Query()] = None,
-    severities: Annotated[list[str] | None, Query()] = None,
-    start_date: str | None = None,
-    end_date: str | None = None,
+    q: Annotated[str | None, Query(min_length=1, max_length=100)] = None,
+    types: Annotated[list[EventType] | None, Query()] = None,
+    severities: Annotated[list[SeverityLevel] | None, Query()] = None,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
     min_lng: float | None = None,
     min_lat: float | None = None,
     max_lng: float | None = None,
@@ -44,7 +47,7 @@ async def list_events(
     center_lng: float | None = Query(default=None, ge=-180, le=180),
     radius_km: float | None = Query(default=None, gt=0, le=500),
     is_active: bool | None = None,
-    limit: int = Query(default=50, le=200),
+    limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ) -> EventListResponse:
     """List disaster events with filtering and pagination.
@@ -70,6 +73,7 @@ async def list_events(
         EventListResponse with paginated event data
     """
     filters = EventFilter(
+        q=q,
         types=types,
         severities=severities,
         start_date=start_date,

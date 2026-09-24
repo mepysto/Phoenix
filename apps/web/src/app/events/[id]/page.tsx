@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import dynamic from "next/dynamic";
 import {
   AlertTriangle,
@@ -17,7 +18,6 @@ import {
   Users,
   Clock,
   ArrowLeft,
-  ExternalLink,
   Calendar,
   Globe,
 } from "lucide-react";
@@ -39,7 +39,10 @@ const MiniMap = dynamic(() => import("@/components/map/MiniMap"), {
   loading: () => <div className="h-full w-full bg-gray-800 animate-pulse" />,
 });
 
-const EVENT_ICONS: Record<EventType, React.ReactNode> = {
+// Types without a dedicated icon fall back to `other`
+const EVENT_ICONS: Partial<Record<EventType, React.ReactNode>> & {
+  other: React.ReactNode;
+} = {
   earthquake: <Mountain className="h-6 w-6" />,
   flood: <Droplets className="h-6 w-6" />,
   wildfire: <Flame className="h-6 w-6" />,
@@ -142,6 +145,7 @@ export default function EventDetailPage() {
   }
 
   const typeColor = EVENT_TYPE_COLORS[event.type as EventType] || "#808080";
+  const position = getEventPosition(event);
   const severityColor =
     SEVERITY_COLORS[event.severity as SeverityLevel] || "#808080";
 
@@ -170,7 +174,7 @@ export default function EventDetailPage() {
                       color: typeColor,
                     }}
                   >
-                    {EVENT_ICONS[event.type as EventType]}
+                    {EVENT_ICONS[event.type as EventType] ?? EVENT_ICONS.other}
                   </div>
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -210,7 +214,13 @@ export default function EventDetailPage() {
 
               <div className="rounded-lg border border-gray-800 bg-gray-900 overflow-hidden">
                 <div className="h-64 lg:h-80">
-                  <MiniMap lat={event.location.lat} lng={event.location.lng} />
+                  {position ? (
+                    <MiniMap lat={position.lat} lng={position.lng} />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-sm text-gray-500">
+                      Location unavailable
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -236,16 +246,6 @@ export default function EventDetailPage() {
                             </div>
                           </div>
                         </div>
-                        {source.url && (
-                          <a
-                            href={source.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary-400 hover:text-primary-300"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -268,8 +268,7 @@ export default function EventDetailPage() {
                           <div>{event.location.country}</div>
                         )}
                         <div className="text-xs text-gray-500">
-                          {event.location.lat.toFixed(4)},{" "}
-                          {event.location.lng.toFixed(4)}
+                          {formatPosition(position, 4)}
                         </div>
                       </>
                     }

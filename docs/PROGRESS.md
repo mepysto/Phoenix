@@ -21,8 +21,9 @@
 | **Data Integration**     | 10/10    | Completed |
 | **Testing & QA**         | 6/6      | Completed |
 | **Documentation**        | 5/5      | Completed |
+| **Advanced Features**    | 10/10    | Completed |
 
-**Overall Progress**: 82/82 tasks (100%)
+**Overall Progress**: 92/92 tasks (100%)
 
 ---
 
@@ -145,7 +146,7 @@
 
 ### 4.2 Base Layers
 
-- [x] Dark 베이스맵 (CARTO)
+- [x] Dark 베이스맵 (Esri World Dark Gray, 키 불필요 — CARTO는 키 요구로 교체됨)
 - [x] 위성 영상 베이스맵 (Esri World Imagery)
 - [x] 2D/3D 모드 전환
 
@@ -222,7 +223,30 @@
 
 ---
 
-## Phase 7: Documentation
+## Phase 7: Advanced Features
+
+### 7.1 Offline Merge Job
+
+- [x] DB 마이그레이션 (merged_into_id, is_canonical)
+- [x] OfflineMergeService 구현
+- [x] CLI 스크립트 (scripts/offline_merge.py)
+- [x] Admin API endpoint
+
+### 7.2 GeoJSON Export
+
+- [x] GeoJSON FeatureCollection 스키마
+- [x] GET /geodata/events/geojson 엔드포인트
+- [x] 필터링 및 limit 지원
+
+### 7.3 Event Clustering
+
+- [x] ClusteringService (PostGIS ST_GeoHash)
+- [x] GET /geodata/events/clusters 엔드포인트
+- [x] Zoom level별 클러스터 크기 조정
+
+---
+
+## Phase 8: Documentation
 
 ### 7.1 Technical Documentation
 
@@ -252,6 +276,7 @@
 
 | Date       | Version | Changes                                                                |
 | ---------- | ------- | ---------------------------------------------------------------------- |
+| 2026-01-05 | 0.18.0  | Phase 7: Offline Merge Job, GeoJSON Export, Clustering API             |
 | 2025-12-29 | 0.16.0  | Copernicus EMS 피해 평가 데이터 수집 기능 추가 (DamageAssessment)      |
 | 2025-12-29 | 0.15.0  | 레이어 투명도 조절 슬라이더 추가 (7개 언어 i18n 지원)                  |
 | 2025-12-29 | 0.14.0  | OpenAPI TypeScript 타입 생성 및 type-safe API 클라이언트 설정          |
