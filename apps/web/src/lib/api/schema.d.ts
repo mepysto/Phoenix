@@ -469,6 +469,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tracks/satellites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Satellite Positions
+         * @description Sub-satellite points of Earth-observation satellites (CelesTrak, SGP4).
+         */
+        get: operations["satellite_positions_api_v1_tracks_satellites_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tracks/satellites/passes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Satellite Passes
+         * @description Upcoming passes of Earth-observation satellites over a place, soonest first.
+         */
+        get: operations["satellite_passes_api_v1_tracks_satellites_passes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/infrastructure": {
         parameters: {
             query?: never;
@@ -1085,6 +1125,50 @@ export interface components {
              * Format: uuid
              */
             event_id: string;
+        };
+        /** SatellitePass */
+        SatellitePass: {
+            /** Name */
+            name: string;
+            /** Norad Id */
+            norad_id: number;
+            /**
+             * Rise
+             * Format: date-time
+             */
+            rise: string;
+            /**
+             * Culmination
+             * Format: date-time
+             */
+            culmination: string;
+            /**
+             * Set
+             * Format: date-time
+             */
+            set: string;
+            /** Max Elevation Deg */
+            max_elevation_deg: number;
+            /** Daylight */
+            daylight: boolean;
+        };
+        /** SatellitePassesResponse */
+        SatellitePassesResponse: {
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+            /** Hours */
+            hours: number;
+            /** Min Elevation Deg */
+            min_elevation_deg: number;
+            /** Passes */
+            passes: components["schemas"]["SatellitePass"][];
         };
         /** SelectEvent */
         SelectEvent: {
@@ -1893,6 +1977,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentChatResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    satellite_positions_api_v1_tracks_satellites_get: {
+        parameters: {
+            query?: {
+                /** @description Instant (default now) */
+                at?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    satellite_passes_api_v1_tracks_satellites_passes_get: {
+        parameters: {
+            query: {
+                lat: number;
+                lng: number;
+                hours?: number;
+                /** @description Degrees above the horizon */
+                min_elevation?: number;
+                /** @description Only passes useful to optical imagers */
+                daylight_only?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SatellitePassesResponse"];
                 };
             };
             /** @description Validation Error */

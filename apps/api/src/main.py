@@ -18,6 +18,7 @@ from src.api.v1 import (
     infrastructure,
     sources,
     sync,
+    tracks,
     websocket,
 )
 from src.core.config import settings
@@ -88,6 +89,7 @@ app.include_router(sync.router, prefix="/api/v1/sync", tags=["Sync"])
 app.include_router(sources.router, prefix="/api/v1/sources", tags=["Sources"])
 app.include_router(hazards.router, prefix="/api/v1/hazards", tags=["Hazards"])
 app.include_router(agent.router, prefix="/api/v1/agent", tags=["Agent"])
+app.include_router(tracks.router, prefix="/api/v1/tracks", tags=["Tracks"])
 app.include_router(
     infrastructure.router, prefix="/api/v1/infrastructure", tags=["Infrastructure"]
 )

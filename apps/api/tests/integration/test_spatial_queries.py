@@ -9,8 +9,9 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from src.models.event import Event, EventType, SeverityLevel
-from src.repositories.event_repository import EventRepository, event_filter_conditions
+from src.repositories.event_repository import EventRepository
 from src.schemas.event import EventFilter
+from src.utils.geo import point_within_distance
 
 DB_URL = os.getenv("TEST_DATABASE_URL", "").replace("postgresql://", "postgresql+asyncpg://", 1)
 pytestmark = pytest.mark.skipif(not DB_URL, reason="TEST_DATABASE_URL not set")
@@ -54,9 +55,10 @@ async def test_regular_bbox(session):
 @pytest.mark.asyncio
 async def test_radius_search_uses_geography_index(session):
     await session.execute(text("SET LOCAL enable_seqscan = off"))
-    stmt = select(Event.id).where(
-        *event_filter_conditions(EventFilter(center_lat=35.0, center_lng=139.0, radius_km=200))
-    )
+    # The radius predicate alone: with the canonical filter too, a near-empty
+    # table lets the planner pick idx_events_is_canonical depending on stats
+    radius = point_within_distance(Event.location, 35.0, 139.0, 200_000)
+    stmt = select(Event.id).where(radius)
     sql = str(stmt.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}))
     plan = "\n".join((await session.execute(text("EXPLAIN " + sql))).scalars().all())
     assert "idx_events_location_geog" in plan, plan

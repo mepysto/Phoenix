@@ -23,6 +23,7 @@ dependencies = [
     "feedparser>=6.0.0",
     "defusedxml>=0.7.1",
     "anthropic>=1.8.0",  # map agent (optional at runtime: off without ANTHROPIC_API_KEY)
+    "skyfield>=1.55",  # satellite positions and pass prediction (SGP4)
     # PostGIS + Geo dependencies
     "geoalchemy2>=0.15.0",
     "shapely>=2.0.0",

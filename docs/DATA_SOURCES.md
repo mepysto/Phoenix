@@ -55,6 +55,14 @@ per map viewport (`GET /api/v1/infrastructure`), most significant first.
 The public Overpass API was not used: its policy says public instances must
 not be relied on as the backend of a public website.
 
+## Monitoring
+
+Moving objects relevant to a response, computed or relayed by the API (`/api/v1/tracks/*`).
+
+| Source | Layer | Licence | Commercial | Attribution / conditions | Refresh |
+|---|---|---|---|---|---|
+| **CelesTrak** (GP element sets, "Earth resources" group) | Earth-observation satellite positions and passes over an event (Sentinel, Landsat, WorldView, …), propagated with SGP4 | No explicit licence published; data originates from the US Space Force (18 SDS) | ❌ unconfirmed — non-commercial deployments only until verified | "Satellite orbits: CelesTrak". [Usage policy](https://celestrak.org/usage-policy.php): download each update at most once (we cache 6 h) and stop querying after errors (we pause 1 h) | 6 h orbits, 30 s positions |
+
 ## Removed sources
 
 | Source | Why |
