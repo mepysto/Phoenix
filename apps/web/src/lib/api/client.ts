@@ -320,6 +320,29 @@ export const viewAPI = {
   },
 };
 
+export type ApiAgentStatus = CamelCaseKeys<components["schemas"]["AgentStatus"]>;
+export type ApiAgentReply = CamelCaseKeys<components["schemas"]["AgentChatResponse"]>;
+export type ApiMapAction = ApiAgentReply["actions"][number];
+export type AgentChatBody = components["schemas"]["AgentChatRequest"];
+
+/** Map assistant (M4); status.enabled is false when the server has no model key */
+export const agentAPI = {
+  status: async (): Promise<ApiAgentStatus> => {
+    const { data, response } = await client.GET("/api/v1/agent/status");
+    if (!response.ok) throw new APIError(response.status, "Failed to fetch assistant status");
+    return data as unknown as ApiAgentStatus;
+  },
+
+  chat: async (body: AgentChatBody, signal?: AbortSignal): Promise<ApiAgentReply> => {
+    const { data, error, response } = await client.POST("/api/v1/agent/chat", { body, signal });
+    if (!response.ok) {
+      const detail = (error as { detail?: unknown } | undefined)?.detail;
+      throw new APIError(response.status, typeof detail === "string" ? detail : "Assistant request failed");
+    }
+    return data as unknown as ApiAgentReply;
+  },
+};
+
 export const healthAPI = {
   check: async (): Promise<{ status: string }> => {
     const { data, error } = await client.GET("/health");

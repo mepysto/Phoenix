@@ -159,4 +159,22 @@ export const zh: Translations = {
       context: "受影响地区附近的水坝和发电厂",
     },
   },
+  agent: {
+    open: "询问地图",
+    title: "地图助手",
+    placeholder: "询问灾害或地图…",
+    send: "发送",
+    thinking: "思考中…",
+    disabled: "此服务器未配置地图助手（需要 AI API 密钥）。",
+    budgetSession: "本次对话的令牌额度已用完。请稍后刷新页面继续。",
+    budgetDaily: "助手已达到今日使用上限。请明天再试。",
+    error: "助手暂时不可用。请重试。",
+    mapChanged: "地图已更新（{n}）",
+    usage: "已使用 {used} / {cap} 令牌",
+    suggestions: {
+      view: "当前视图中发生了什么？",
+      quakes: "显示过去一周的强烈地震",
+      brief: "播放最严重事件的简报",
+    },
+  },
 };

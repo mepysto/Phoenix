@@ -21,7 +21,8 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
   const brief = briefFromEvent(event, t.brief.captions);
 
   return (
-    <div className="absolute right-4 top-4 w-80 rounded-lg bg-gray-900/95 p-4 shadow-xl backdrop-blur">
+    // right-14 keeps the zoom/compass controls (top-right) clickable
+    <div className="absolute right-14 top-4 w-80 rounded-lg bg-gray-900/95 p-4 shadow-xl backdrop-blur">
       <div className="mb-2 flex items-start justify-between">
         <h3 className="font-semibold text-white">{event.title}</h3>
         <button onClick={onClose} className="text-gray-400 hover:text-white" aria-label={t.common.close}>

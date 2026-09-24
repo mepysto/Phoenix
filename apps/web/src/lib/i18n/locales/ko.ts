@@ -160,4 +160,22 @@ export const ko: Translations = {
       context: "피해 지역 인근의 댐과 발전소",
     },
   },
+  agent: {
+    open: "지도에 묻기",
+    title: "지도 어시스턴트",
+    placeholder: "재난이나 지도에 대해 물어보세요…",
+    send: "보내기",
+    thinking: "생각 중…",
+    disabled: "이 서버에는 지도 어시스턴트가 설정되어 있지 않습니다 (AI API 키 필요).",
+    budgetSession: "이 대화의 토큰 한도를 모두 사용했습니다. 나중에 페이지를 새로고침해 계속하세요.",
+    budgetDaily: "어시스턴트의 오늘 사용 한도에 도달했습니다. 내일 다시 시도해 주세요.",
+    error: "지금은 어시스턴트를 사용할 수 없습니다. 다시 시도해 주세요.",
+    mapChanged: "지도 변경됨 ({n})",
+    usage: "토큰 {used} / {cap} 사용",
+    suggestions: {
+      view: "현재 화면에서 무슨 일이 일어나고 있나요?",
+      quakes: "지난 일주일간의 강한 지진을 보여줘",
+      brief: "가장 심각한 재난의 브리프를 재생해줘",
+    },
+  },
 };

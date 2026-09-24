@@ -8,6 +8,7 @@ import { DEMO_EVENTS, DEMO_MODE } from "@/lib/demo/demoEvents";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useLiveEvents } from "@/hooks/useLiveEvents";
 import { useMapUrlState } from "@/hooks/useMapUrlState";
+import { AgentPanel } from "@/components/agent/AgentPanel";
 import { BriefPlayer } from "@/components/map/BriefPlayer";
 import { Timeline } from "@/components/map/Timeline";
 import { ViewSummary } from "@/components/map/ViewSummary";
@@ -98,6 +99,10 @@ function MapPageContent() {
       )}
       <div className="pointer-events-none absolute left-1/2 top-4 z-40 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2">
         <BriefPlayer />
+      </div>
+      {/* Bottom-right, above the scale bar and clear of the timeline */}
+      <div className="pointer-events-none absolute bottom-16 right-4 z-40 flex flex-col items-end md:bottom-36">
+        <AgentPanel onSelectEvent={(event) => setFocusEvent({ ...event })} />
       </div>
       <div className="pointer-events-none absolute left-4 top-[12.5rem] z-30">
         {/* A fresh object so picking the same event again flies there again */}

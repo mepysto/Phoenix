@@ -37,6 +37,7 @@ interface MapActions {
   requestCamera: (view: MapView) => void;
   /** Show exactly these overlay layers (registry layers only; base layers are untouched) */
   showOnlyOverlays: (ids: string[]) => void;
+  setOverlaysVisible: (show: string[], hide: string[]) => void;
 }
 
 type MapStore = MapState & MapActions;
@@ -150,6 +151,22 @@ const storeImpl: StateCreator<MapStore, [], []> = (set) => ({
 
   requestCamera: (view) => {
     set((state) => ({ cameraRequest: { view, seq: (state.cameraRequest?.seq ?? 0) + 1 } }));
+  },
+
+  setOverlaysVisible: (show, hide) => {
+    const on = new Set(show);
+    const off = new Set(hide);
+    set((state) => ({
+      layers: state.layers.map((layer) =>
+        !OVERLAY_IDS.has(layer.id)
+          ? layer
+          : on.has(layer.id)
+            ? { ...layer, visible: true }
+            : off.has(layer.id)
+              ? { ...layer, visible: false }
+              : layer,
+      ),
+    }));
   },
 
   showOnlyOverlays: (ids) => {

@@ -166,4 +166,24 @@ export interface Translations {
       context: string;
     };
   };
+  agent: {
+    open: string;
+    title: string;
+    placeholder: string;
+    send: string;
+    thinking: string;
+    disabled: string;
+    budgetSession: string;
+    budgetDaily: string;
+    error: string;
+    /** "Map updated ({n})" */
+    mapChanged: string;
+    /** "{used} / {cap} tokens used" */
+    usage: string;
+    suggestions: {
+      view: string;
+      quakes: string;
+      brief: string;
+    };
+  };
 }
