@@ -418,6 +418,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/agent/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Agent Status */
+        get: operations["agent_status_api_v1_agent_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Agent Usage */
+        get: operations["agent_usage_api_v1_agent_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Agent Chat */
+        post: operations["agent_chat_api_v1_agent_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/infrastructure": {
         parameters: {
             query?: never;
@@ -584,6 +635,53 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AgentChatRequest */
+        AgentChatRequest: {
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /** Messages */
+            messages: components["schemas"]["ChatMessage"][];
+            context?: components["schemas"]["MapContext"];
+        };
+        /** AgentChatResponse */
+        AgentChatResponse: {
+            /** Reply */
+            reply: string;
+            /** Actions */
+            actions: (components["schemas"]["FlyTo"] | components["schemas"]["SetLayers"] | components["schemas"]["SetEventFilters"] | components["schemas"]["SetTime"] | components["schemas"]["SelectEvent"] | components["schemas"]["PlayBrief"])[];
+            /** Tool Calls */
+            tool_calls: components["schemas"]["ToolCallRecord"][];
+            usage: components["schemas"]["AgentUsageInfo"];
+        };
+        /** AgentStatus */
+        AgentStatus: {
+            /** Enabled */
+            enabled: boolean;
+            /** Model */
+            model: string | null;
+            /** Session Cap */
+            session_cap: number;
+        };
+        /** AgentUsageInfo */
+        AgentUsageInfo: {
+            /** Session Tokens */
+            session_tokens: number;
+            /** Session Cap */
+            session_cap: number;
+        };
+        /** ChatMessage */
+        ChatMessage: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Content */
+            content: string;
+        };
         /** ClusterBBox */
         ClusterBBox: {
             /** Min Lat */
@@ -813,6 +911,23 @@ export interface components {
          * @enum {string}
          */
         EventType: "earthquake" | "flood" | "wildfire" | "hurricane" | "tsunami" | "volcano" | "war" | "pollution" | "drought" | "other" | "landslide" | "industrial" | "epidemic" | "storm" | "coldwave" | "heatwave" | "complex_emergency";
+        /** FlyTo */
+        FlyTo: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "fly_to";
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /**
+             * Zoom
+             * @default 5
+             */
+            zoom: number;
+        };
         /** GeoJSONFeature */
         GeoJSONFeature: {
             /**
@@ -895,6 +1010,32 @@ export interface components {
             /** Region */
             region?: string | null;
         };
+        /**
+         * MapContext
+         * @description What the user is looking at, sent with every message for grounding.
+         */
+        MapContext: {
+            /** Bbox */
+            bbox?: number[] | null;
+            /** Center Lat */
+            center_lat?: number | null;
+            /** Center Lng */
+            center_lng?: number | null;
+            /** Zoom */
+            zoom?: number | null;
+            /** At */
+            at?: string | null;
+            /** Visible Layers */
+            visible_layers?: string[];
+            /** Available Layers */
+            available_layers?: string[];
+            /** Types */
+            types?: components["schemas"]["EventType"][] | null;
+            /** Severities */
+            severities?: components["schemas"]["SeverityLevel"][] | null;
+            /** Selected Event Id */
+            selected_event_id?: string | null;
+        };
         /** MergeJobResponse */
         MergeJobResponse: {
             /** Status */
@@ -931,6 +1072,66 @@ export interface components {
             offset: number;
             /** Has More */
             has_more: boolean;
+        };
+        /** PlayBrief */
+        PlayBrief: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "play_brief";
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+        };
+        /** SelectEvent */
+        SelectEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "select_event";
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+        };
+        /** SetEventFilters */
+        SetEventFilters: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "set_event_filters";
+            /** Types */
+            types?: components["schemas"]["EventType"][] | null;
+            /** Severities */
+            severities?: components["schemas"]["SeverityLevel"][] | null;
+        };
+        /** SetLayers */
+        SetLayers: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "set_layers";
+            /** Show */
+            show?: string[];
+            /** Hide */
+            hide?: string[];
+        };
+        /** SetTime */
+        SetTime: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "set_time";
+            /** At */
+            at?: string | null;
         };
         /**
          * SeverityLevel
@@ -992,6 +1193,13 @@ export interface components {
             end: string;
             /** Buckets */
             buckets: components["schemas"]["TimelineBucket"][];
+        };
+        /** ToolCallRecord */
+        ToolCallRecord: {
+            /** Name */
+            name: string;
+            /** Ok */
+            ok: boolean;
         };
         /** ValidationError */
         ValidationError: {
@@ -1599,6 +1807,92 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    agent_status_api_v1_agent_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentStatus"];
+                };
+            };
+        };
+    };
+    agent_usage_api_v1_agent_usage_get: {
+        parameters: {
+            query: {
+                session_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    agent_chat_api_v1_agent_chat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentChatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentChatResponse"];
                 };
             };
             /** @description Validation Error */
