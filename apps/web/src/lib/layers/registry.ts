@@ -11,6 +11,7 @@ import type { ExpressionSpecification, LayerSpecification } from "maplibre-gl";
 import { API_URL } from "@/lib/api/client";
 import { COMMERCIAL_DEPLOYMENT, LABEL_FONT } from "@/lib/map/basemaps";
 import { bboxCenter, bboxRadiusKm } from "@/lib/map/geo";
+import { withViewsheds } from "@/lib/map/viewshed";
 
 export type LayerCategory = "weather" | "satellite" | "hazards" | "infrastructure" | "monitoring";
 
@@ -806,13 +807,23 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
       });
       const response = await fetch(`${API_URL}/api/v1/cameras?${params}`);
       if (!response.ok) throw new Error(`Cameras ${response.status}`);
-      return (await response.json()) as GeoJSON.FeatureCollection;
+      // Approximate coverage wedges drawn under the camera points
+      return withViewsheds((await response.json()) as GeoJSON.FeatureCollection);
     },
     styleLayers: (sourceId) => [
+      {
+        id: `${sourceId}-viewsheds`,
+        type: "fill",
+        source: sourceId,
+        minzoom: 12,
+        filter: ["==", ["get", "kind"], "viewshed"],
+        paint: { "fill-color": "#a78bfa", "fill-opacity": 0.18, "fill-outline-color": "#a78bfa" },
+      } as LayerSpecification,
       {
         id: `${sourceId}-points`,
         type: "circle",
         source: sourceId,
+        filter: ["==", ["geometry-type"], "Point"],
         paint: {
           "circle-color": "#a78bfa",
           "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 2.5, 12, 6],

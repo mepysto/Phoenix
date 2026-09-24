@@ -94,7 +94,7 @@ function MapPageContent() {
       {liveStatus !== "stopped" && (
         <div
           role="status"
-          className="pointer-events-none absolute left-4 top-[12.75rem] z-40 flex items-center gap-2 rounded-full bg-gray-900/90 px-3 py-1 text-xs text-gray-300"
+          className="pointer-events-none absolute left-4 top-[15.5rem] z-40 flex items-center gap-2 rounded-full bg-gray-900/90 px-3 py-1 text-xs text-gray-300"
         >
           <span
             aria-hidden="true"
@@ -121,7 +121,7 @@ function MapPageContent() {
       <div className="pointer-events-none absolute bottom-16 right-4 z-40 flex flex-col items-end md:bottom-36">
         <AgentPanel onSelectEvent={(event) => setFocusEvent({ ...event })} />
       </div>
-      <div className="pointer-events-none absolute left-4 top-[15.25rem] z-30">
+      <div className="pointer-events-none absolute left-4 top-[18rem] z-30">
         {/* A fresh object so picking the same event again flies there again */}
         <ViewSummary onSelect={(event) => setFocusEvent({ ...event })} />
       </div>

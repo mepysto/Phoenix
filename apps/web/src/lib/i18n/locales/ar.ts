@@ -208,6 +208,7 @@ export const ar: Translations = {
     updates: "تتحدث كل {n} دقيقة",
     unavailable: "الصورة غير متاحة الآن",
     notRecorded: "كاميرا عامة؛ لا يتم تسجيل الصور",
+    approxView: "القطاع المظلل على الخريطة يبين اتجاه الرؤية التقريبي فقط",
   },
   telemetry: {
     altitude: "الارتفاع",
