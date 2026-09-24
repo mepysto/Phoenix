@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.exceptions import DataSyncError, ExternalAPIError
 from src.db.database import async_session_maker
+from src.repositories.data_source_repository import DataSourceRepository
 from src.services.copernicus_service import CopernicusEMSService
 from src.services.gdacs_service import GDACSService
 from src.services.ingestion_service import IngestionService
@@ -80,6 +81,28 @@ class SchedulerService:
                 return
             yield session
 
+    async def _record_failure(self, source_name: str, error: Exception) -> None:
+        """Persist a failed sync so the source status panel can show it.
+
+        Best effort: a database outage must not crash the scheduler job.
+        """
+        try:
+            async with async_session_maker() as session:
+                repo = DataSourceRepository(session)
+                source = await repo.get_by_name(source_name)
+                if source is None:
+                    return  # never synced successfully; nothing to mark yet
+                await repo.update_sync_status(
+                    source.id,
+                    last_sync=datetime.now(timezone.utc),
+                    status="failed",
+                    # Public status endpoint shows this: exception type only
+                    error=type(error).__name__,
+                )
+                await session.commit()
+        except Exception:
+            logger.exception("Could not record %s sync failure", source_name)
+
     async def sync_gdacs(self) -> None:
         """
         Synchronize GDACS events with error handling and DB persistence.
@@ -122,6 +145,7 @@ class SchedulerService:
             )
 
         except DataSyncError as e:
+            await self._record_failure("GDACS", e)
             self._consecutive_failures += 1
             self._last_sync_error = str(e)
             logger.error(
@@ -135,6 +159,7 @@ class SchedulerService:
                 )
 
         except ExternalAPIError as e:
+            await self._record_failure("GDACS", e)
             self._consecutive_failures += 1
             self._last_sync_error = str(e)
             logger.error(
@@ -143,6 +168,7 @@ class SchedulerService:
             )
 
         except Exception as e:
+            await self._record_failure("GDACS", e)
             self._consecutive_failures += 1
             self._last_sync_error = str(e)
             logger.exception(
@@ -192,6 +218,7 @@ class SchedulerService:
             )
 
         except DataSyncError as e:
+            await self._record_failure("Copernicus", e)
             self._copernicus_consecutive_failures += 1
             self._last_copernicus_error = str(e)
             logger.error(
@@ -205,6 +232,7 @@ class SchedulerService:
                 )
 
         except ExternalAPIError as e:
+            await self._record_failure("Copernicus", e)
             self._copernicus_consecutive_failures += 1
             self._last_copernicus_error = str(e)
             logger.error(
@@ -213,6 +241,7 @@ class SchedulerService:
             )
 
         except Exception as e:
+            await self._record_failure("Copernicus", e)
             self._copernicus_consecutive_failures += 1
             self._last_copernicus_error = str(e)
             logger.exception(
@@ -265,6 +294,7 @@ class SchedulerService:
             )
 
         except DataSyncError as e:
+            await self._record_failure("USGS", e)
             self._usgs_consecutive_failures += 1
             self._last_usgs_error = str(e)
             logger.error(
@@ -278,6 +308,7 @@ class SchedulerService:
                 )
 
         except ExternalAPIError as e:
+            await self._record_failure("USGS", e)
             self._usgs_consecutive_failures += 1
             self._last_usgs_error = str(e)
             logger.error(
@@ -286,6 +317,7 @@ class SchedulerService:
             )
 
         except Exception as e:
+            await self._record_failure("USGS", e)
             self._usgs_consecutive_failures += 1
             self._last_usgs_error = str(e)
             logger.exception(
@@ -338,6 +370,7 @@ class SchedulerService:
             )
 
         except DataSyncError as e:
+            await self._record_failure("EONET", e)
             self._eonet_consecutive_failures += 1
             self._last_eonet_error = str(e)
             logger.error(
@@ -351,6 +384,7 @@ class SchedulerService:
                 )
 
         except ExternalAPIError as e:
+            await self._record_failure("EONET", e)
             self._eonet_consecutive_failures += 1
             self._last_eonet_error = str(e)
             logger.error(
@@ -359,6 +393,7 @@ class SchedulerService:
             )
 
         except Exception as e:
+            await self._record_failure("EONET", e)
             self._eonet_consecutive_failures += 1
             self._last_eonet_error = str(e)
             logger.exception(

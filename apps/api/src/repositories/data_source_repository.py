@@ -68,7 +68,7 @@ class DataSourceRepository(BaseRepository):
 
         Args:
             source_id: The UUID of the data source
-            last_sync: Timestamp of the sync attempt
+            last_sync: Time of the sync; stored only when it succeeded
             status: Status of the sync ('success', 'failed', etc.)
             error: Optional error message if sync failed
         """
@@ -87,7 +87,8 @@ class DataSourceRepository(BaseRepository):
                 update(DataSource)
                 .where(DataSource.id == source_id)
                 .values(
-                    last_sync=last_sync,
+                    # last_sync keeps the last *successful* sync: overwriting it
+                    # on failure made a source that always fails look fresh
                     last_sync_status=status,
                     last_sync_error=error,
                     consecutive_failures=DataSource.consecutive_failures + 1,
