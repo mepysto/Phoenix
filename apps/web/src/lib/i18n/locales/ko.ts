@@ -109,6 +109,8 @@ export const ko: Translations = {
     initializingGlobe: "지구본 초기화 중...",
     live: "실시간",
     reconnecting: "재연결 중…",
+    share: "화면 공유",
+    linkCopied: "링크 복사됨",
   },
   sources: {
     title: "데이터 소스",

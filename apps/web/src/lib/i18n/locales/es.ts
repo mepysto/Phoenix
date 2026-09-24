@@ -111,6 +111,8 @@ export const es: Translations = {
     initializingGlobe: "Inicializando globo...",
     live: "En vivo",
     reconnecting: "Reconectando…",
+    share: "Compartir vista",
+    linkCopied: "Enlace copiado",
   },
   sources: {
     title: "Fuentes de datos",

@@ -108,6 +108,8 @@ export const ar: Translations = {
     initializingGlobe: "جاري تهيئة الكرة الأرضية...",
     live: "مباشر",
     reconnecting: "جارٍ إعادة الاتصال…",
+    share: "مشاركة العرض",
+    linkCopied: "تم نسخ الرابط",
   },
   sources: {
     title: "مصادر البيانات",

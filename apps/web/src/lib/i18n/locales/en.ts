@@ -110,6 +110,8 @@ export const en: Translations = {
     initializingGlobe: "Initializing Globe...",
     live: "Live",
     reconnecting: "Reconnecting…",
+    share: "Share view",
+    linkCopied: "Link copied",
   },
   sources: {
     title: "Data sources",

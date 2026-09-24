@@ -23,6 +23,7 @@ import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import { applyBasemap, createBasemapStyle, LABEL_FONT } from "@/lib/map/basemaps";
+import type { MapView } from "@/lib/map/urlState";
 
 type DisasterEvent = ApiDisasterEvent;
 
@@ -31,6 +32,11 @@ interface GlobeViewerProps {
   onEventClick?: (event: DisasterEvent) => void;
   /** Fly to this event and open its card (e.g. from a /?event=<id> link) */
   focusEvent?: DisasterEvent | null;
+  /** Camera to start from (deep link); read once when the map is created */
+  initialView?: MapView;
+  initialProjection?: "globe" | "mercator";
+  /** Called after the camera settles or the projection changes */
+  onViewChange?: (view: MapView, projection: "globe" | "mercator") => void;
 }
 
 // Stable reference so effects depending on `events` do not re-run every render
@@ -48,6 +54,17 @@ function getMarkerSize(severity: SeverityLevel): number {
     critical: 12,
   };
   return sizes[severity] || 8;
+}
+
+function readView(map: MapLibreMap): MapView {
+  const center = map.getCenter();
+  return {
+    lng: center.lng,
+    lat: center.lat,
+    zoom: map.getZoom(),
+    bearing: map.getBearing(),
+    pitch: map.getPitch(),
+  };
 }
 
 function eventsToGeoJSON(events: DisasterEvent[]): GeoJSON.FeatureCollection {
@@ -81,6 +98,9 @@ export default function GlobeViewer({
   events = NO_EVENTS,
   onEventClick,
   focusEvent,
+  initialView,
+  initialProjection,
+  onViewChange,
 }: GlobeViewerProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
@@ -88,15 +108,13 @@ export default function GlobeViewer({
   const [selectedEvent, setSelectedEvent] = useState<DisasterEvent | null>(
     null,
   );
-  const { defaultProjection, defaultBasemap } = useSettingsStore();
+  const defaultProjection = useSettingsStore((s) => s.defaultProjection);
   const { t } = useTranslation();
-  const [is3D, setIs3D] = useState(defaultProjection === "globe");
+  const [is3D, setIs3D] = useState(
+    (initialProjection ?? defaultProjection) === "globe",
+  );
   const [mapReady, setMapReady] = useState(false);
-  const { basemap, toggleBasemap, setBasemap, layers } = useMapStore();
-
-  useEffect(() => {
-    setBasemap(defaultBasemap);
-  }, [defaultBasemap, setBasemap]);
+  const { basemap, toggleBasemap, layers } = useMapStore();
 
   const eventsRef = useRef<DisasterEvent[]>(events);
   useEffect(() => {
@@ -114,6 +132,11 @@ export default function GlobeViewer({
   useEffect(() => {
     is3DRef.current = is3D;
   }, [is3D]);
+  const initialViewRef = useRef(initialView);
+  const onViewChangeRef = useRef(onViewChange);
+  useEffect(() => {
+    onViewChangeRef.current = onViewChange;
+  }, [onViewChange]);
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -130,8 +153,20 @@ export default function GlobeViewer({
       map.current = new maplibregl.Map({
         container: mapContainer.current,
         style: createBasemapStyle(currentBasemap),
-        center: [0, 20],
-        zoom: 2,
+        center: initialViewRef.current
+          ? [initialViewRef.current.lng, initialViewRef.current.lat]
+          : [0, 20],
+        zoom: initialViewRef.current?.zoom ?? 2,
+        bearing: initialViewRef.current?.bearing ?? 0,
+        pitch: initialViewRef.current?.pitch ?? 0,
+      });
+
+      map.current.on("moveend", () => {
+        if (!map.current) return;
+        onViewChangeRef.current?.(
+          readView(map.current),
+          is3DRef.current ? "globe" : "mercator",
+        );
       });
 
       map.current.on("load", () => {
@@ -447,6 +482,18 @@ export default function GlobeViewer({
     return EVENT_TYPES.filter((type) => present.has(type));
   }, [events]);
 
+  // The URL already carries camera/basemap/filters (useMapUrlState)
+  const [linkCopied, setLinkCopied] = useState(false);
+  const copyViewLink = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      // Clipboard blocked (insecure context/permissions): the address bar has it
+    }
+  }, []);
+
   const toggleProjection = useCallback(() => {
     if (!map.current) return;
     const newIs3D = !is3D;
@@ -460,6 +507,7 @@ export default function GlobeViewer({
         type: newIs3D ? "globe" : "mercator",
       });
     }
+    onViewChangeRef.current?.(readView(map.current), newIs3D ? "globe" : "mercator");
   }, [is3D]);
 
   return (
@@ -487,6 +535,12 @@ export default function GlobeViewer({
           className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 transition-colors"
         >
           {basemap === "dark" ? t.map.satellite : t.map.dark}
+        </button>
+        <button
+          onClick={copyViewLink}
+          className="rounded-lg bg-gray-900/90 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur hover:bg-gray-800 transition-colors"
+        >
+          <span aria-live="polite">{linkCopied ? t.map.linkCopied : t.map.share}</span>
         </button>
       </div>
 
