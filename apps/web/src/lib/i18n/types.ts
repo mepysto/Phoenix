@@ -110,4 +110,13 @@ export interface Translations {
     live: string;
     reconnecting: string;
   };
+  sources: {
+    title: string;
+    fresh: string;
+    stale: string;
+    failing: string;
+    never: string;
+    /** Accessible summary, e.g. "USGS: Up to date" */
+    summary: string;
+  };
 }

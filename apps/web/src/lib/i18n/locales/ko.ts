@@ -110,4 +110,12 @@ export const ko: Translations = {
     live: "실시간",
     reconnecting: "재연결 중…",
   },
+  sources: {
+    title: "데이터 소스",
+    fresh: "최신",
+    stale: "지연됨",
+    failing: "오류",
+    never: "데이터 없음",
+    summary: "{name}: {status}",
+  },
 };

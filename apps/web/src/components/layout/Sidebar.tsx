@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import {
   Layers,
   Filter,
-  ChevronDown,
-  ChevronRight,
   AlertTriangle,
   Droplets,
   Flame,
@@ -26,6 +23,8 @@ import {
 import { useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { SourceStatusPanel } from "./SourceStatusPanel";
+import { FilterSection } from "./FilterSection";
 
 // Types without a dedicated icon fall back to `other`
 const EVENT_ICONS: Partial<Record<EventType, React.ReactNode>> & {
@@ -42,43 +41,6 @@ const EVENT_ICONS: Partial<Record<EventType, React.ReactNode>> & {
   drought: <Sun className="h-4 w-4" />,
   other: <AlertTriangle className="h-4 w-4" />,
 };
-
-interface FilterSectionProps {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}
-
-function FilterSection({
-  title,
-  icon,
-  children,
-  defaultOpen = true,
-}: FilterSectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <div className="border-b border-gray-800">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-4 py-3 hover:bg-gray-800/50 transition-colors"
-      >
-        <div className="flex items-center gap-2 text-sm font-medium text-white">
-          {icon}
-          {title}
-        </div>
-        {isOpen ? (
-          <ChevronDown className="h-4 w-4 text-gray-400" />
-        ) : (
-          <ChevronRight className="h-4 w-4 text-gray-400" />
-        )}
-      </button>
-      {isOpen && <div className="px-4 pb-4">{children}</div>}
-    </div>
-  );
-}
-
 
 const SEVERITY_LEVELS: SeverityLevel[] = ["low", "medium", "high", "critical"];
 
@@ -266,6 +228,8 @@ export function Sidebar() {
             ))}
           </div>
         </FilterSection>
+
+        <SourceStatusPanel />
       </div>
 
       <div className="border-t border-gray-800 px-4 py-3">

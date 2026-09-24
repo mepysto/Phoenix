@@ -112,4 +112,12 @@ export const es: Translations = {
     live: "En vivo",
     reconnecting: "Reconectando…",
   },
+  sources: {
+    title: "Fuentes de datos",
+    fresh: "Actualizado",
+    stale: "Retrasado",
+    failing: "Con fallos",
+    never: "Sin datos aún",
+    summary: "{name}: {status}",
+  },
 };

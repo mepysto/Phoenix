@@ -109,4 +109,12 @@ export const zh: Translations = {
     live: "实时",
     reconnecting: "正在重新连接…",
   },
+  sources: {
+    title: "数据来源",
+    fresh: "最新",
+    stale: "延迟",
+    failing: "故障",
+    never: "暂无数据",
+    summary: "{name}：{status}",
+  },
 };

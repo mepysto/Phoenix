@@ -109,4 +109,12 @@ export const ar: Translations = {
     live: "مباشر",
     reconnecting: "جارٍ إعادة الاتصال…",
   },
+  sources: {
+    title: "مصادر البيانات",
+    fresh: "محدّث",
+    stale: "متأخر",
+    failing: "متعطل",
+    never: "لا توجد بيانات بعد",
+    summary: "{name}: {status}",
+  },
 };

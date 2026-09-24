@@ -228,6 +228,19 @@ export const geodataAPI = {
   },
 };
 
+export type ApiSourceStatus = CamelCaseKeys<components["schemas"]["SourceStatus"]>;
+
+export const sourcesAPI = {
+  list: async (): Promise<ApiSourceStatus[]> => {
+    const { data, response } = await client.GET("/api/v1/sources");
+    // No error responses are declared for this endpoint, so check the status
+    if (!response.ok) {
+      throw new APIError(response.status, "Failed to fetch source status");
+    }
+    return data as unknown as ApiSourceStatus[];
+  },
+};
+
 export const healthAPI = {
   check: async (): Promise<{ status: string }> => {
     const { data, error } = await client.GET("/health");

@@ -111,4 +111,12 @@ export const en: Translations = {
     live: "Live",
     reconnecting: "Reconnecting…",
   },
+  sources: {
+    title: "Data sources",
+    fresh: "Up to date",
+    stale: "Delayed",
+    failing: "Failing",
+    never: "No data yet",
+    summary: "{name}: {status}",
+  },
 };
