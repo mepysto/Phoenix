@@ -145,4 +145,21 @@ export const es: Translations = {
     noneNearby: "No hay eventos cercanos",
     label: "Resumen de la vista actual",
   },
+  brief: {
+    play: "Reproducir resumen del desastre",
+    pause: "Pausa",
+    resume: "Reproducir",
+    prev: "Escena anterior",
+    next: "Escena siguiente",
+    share: "Copiar enlace del resumen",
+    linkCopied: "Enlace copiado",
+    close: "Cerrar resumen",
+    scene: "Escena {n} de {total}",
+    captions: {
+      before: "El día anterior: {title}",
+      onset: "Inicio: {title}",
+      now: "Situación actual",
+      context: "Presas y centrales eléctricas cerca de la zona afectada",
+    },
+  },
 };

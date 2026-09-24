@@ -147,4 +147,21 @@ export const fr: Translations = {
     noneNearby: "Aucun événement à proximité",
     label: "Résumé de la vue actuelle",
   },
+  brief: {
+    play: "Lire le brief de la catastrophe",
+    pause: "Pause",
+    resume: "Lecture",
+    prev: "Scène précédente",
+    next: "Scène suivante",
+    share: "Copier le lien du brief",
+    linkCopied: "Lien copié",
+    close: "Fermer le brief",
+    scene: "Scène {n} sur {total}",
+    captions: {
+      before: "La veille : {title}",
+      onset: "Début : {title}",
+      now: "La situation actuelle",
+      context: "Barrages et centrales électriques près de la zone touchée",
+    },
+  },
 };

@@ -37,7 +37,7 @@ export const ALL_SEVERITY_LEVELS: SeverityLevel[] = ["low", "medium", "high", "c
 const BASEMAPS: BasemapId[] = ["dark", "satellite"];
 const EVENT_ID = /^[0-9a-f-]{36}$/i;
 
-function parseView(raw: string | null): MapView | undefined {
+export function parseView(raw: string | null): MapView | undefined {
   if (!raw) return undefined;
   const parts = raw.split(",").map(Number);
   if (parts.length < 3 || parts.some((n) => !Number.isFinite(n))) return undefined;

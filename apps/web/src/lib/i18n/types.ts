@@ -147,4 +147,23 @@ export interface Translations {
     /** Accessible name of the summary region */
     label: string;
   };
+  brief: {
+    play: string;
+    pause: string;
+    resume: string;
+    prev: string;
+    next: string;
+    share: string;
+    linkCopied: string;
+    close: string;
+    /** "Scene {n} of {total}" */
+    scene: string;
+    /** Generated scene captions; {title} is the event title */
+    captions: {
+      before: string;
+      onset: string;
+      now: string;
+      context: string;
+    };
+  };
 }

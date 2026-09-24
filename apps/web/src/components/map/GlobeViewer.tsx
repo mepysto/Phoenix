@@ -16,15 +16,15 @@ import {
   EVENT_TYPE_COLORS,
   EVENT_TYPE_LABELS,
   EVENT_TYPES,
-  SEVERITY_COLORS,
 } from "@phoenix/shared/constants";
 import { useMapStore } from "@/store/mapStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
-import { formatPosition, getEventPosition } from "@/lib/eventPosition";
+import { getEventPosition } from "@/lib/eventPosition";
 import { applyBasemap, loadBasemapStyle, LABEL_FONT } from "@/lib/map/basemaps";
 import type { MapView } from "@/lib/map/urlState";
 import { currentViewport } from "@/lib/map/viewport";
+import { EventInfoPanel } from "./EventInfoPanel";
 import { useMapOverlays } from "./useMapOverlays";
 
 type DisasterEvent = ApiDisasterEvent;
@@ -160,6 +160,8 @@ export default function GlobeViewer({
       map.current = new maplibregl.Map({
         container: mapContainer.current,
         style,
+        // Collapsed to an (i) button: with several overlays the credits would cover the legend and timeline
+        attributionControl: { compact: true },
         center: initialViewRef.current
           ? [initialViewRef.current.lng, initialViewRef.current.lat]
           : [0, 20],
@@ -394,6 +396,14 @@ export default function GlobeViewer({
     };
   }, []);
 
+  // Camera moves requested from outside the map (Disaster Brief scenes)
+  const cameraRequest = useMapStore((s) => s.cameraRequest);
+  useEffect(() => {
+    if (!map.current || !mapReady || !cameraRequest) return;
+    const { lng, lat, zoom, bearing, pitch } = cameraRequest.view;
+    map.current.flyTo({ center: [lng, lat], zoom, bearing, pitch, duration: 3000, essential: true });
+  }, [cameraRequest, mapReady]);
+
   useEffect(() => {
     if (!map.current || !mapReady || !focusEvent) return;
     const position = getEventPosition(focusEvent);
@@ -594,50 +604,7 @@ export default function GlobeViewer({
       </div>
 
       {selectedEvent && (
-        <div className="absolute right-4 top-4 w-80 rounded-lg bg-gray-900/95 p-4 shadow-xl backdrop-blur">
-          <div className="mb-2 flex items-start justify-between">
-            <h3 className="font-semibold text-white">{selectedEvent.title}</h3>
-            <button
-              onClick={() => setSelectedEvent(null)}
-              className="text-gray-400 hover:text-white"
-              aria-label={t.common.close}
-            >
-              &times;
-            </button>
-          </div>
-          <p className="mb-3 text-sm text-gray-400">
-            {selectedEvent.description}
-          </p>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-500">{t.events.location}</span>
-              <span className="text-gray-300">
-                {selectedEvent.location.country ||
-                  formatPosition(getEventPosition(selectedEvent))}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">{t.events.severity}</span>
-              <span
-                className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                style={{
-                  backgroundColor:
-                    SEVERITY_COLORS[selectedEvent.severity as SeverityLevel],
-                }}
-              >
-                {selectedEvent.severity.toUpperCase()}
-              </span>
-            </div>
-            {selectedEvent.affectedPopulation && (
-              <div className="flex justify-between">
-                <span className="text-gray-500">{t.events.affected}</span>
-                <span className="text-gray-300">
-                  {selectedEvent.affectedPopulation.toLocaleString()}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+        <EventInfoPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
       )}
 
       <style jsx global>{`

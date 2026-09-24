@@ -142,4 +142,21 @@ export const zh: Translations = {
     noneNearby: "附近没有事件",
     label: "当前视图摘要",
   },
+  brief: {
+    play: "播放灾害简报",
+    pause: "暂停",
+    resume: "播放",
+    prev: "上一场景",
+    next: "下一场景",
+    share: "复制简报链接",
+    linkCopied: "链接已复制",
+    close: "关闭简报",
+    scene: "第 {n} / {total} 个场景",
+    captions: {
+      before: "前一天：{title}",
+      onset: "发生：{title}",
+      now: "当前状况",
+      context: "受影响地区附近的水坝和发电厂",
+    },
+  },
 };

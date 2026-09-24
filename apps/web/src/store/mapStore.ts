@@ -2,6 +2,7 @@ import { create, StateCreator } from "zustand";
 import { devtools, DevtoolsOptions } from "zustand/middleware";
 import type { ViewerConfig, LayerConfig } from "@phoenix/shared/types";
 import { LAYER_DEFINITIONS } from "@/lib/layers/registry";
+import type { MapView } from "@/lib/map/urlState";
 import type { MapViewport } from "@/lib/map/viewport";
 
 interface MapState {
@@ -14,6 +15,8 @@ interface MapState {
   basemap: "dark" | "satellite";
   /** Visible area after the last move; null until the map has loaded */
   viewport: MapViewport | null;
+  /** Camera move asked for by something other than the map (e.g. a brief); seq makes repeats distinct */
+  cameraRequest: { view: MapView; seq: number } | null;
 }
 
 interface MapActions {
@@ -31,9 +34,14 @@ interface MapActions {
   setBasemap: (basemap: "dark" | "satellite") => void;
   toggleBasemap: () => void;
   setViewport: (viewport: MapViewport) => void;
+  requestCamera: (view: MapView) => void;
+  /** Show exactly these overlay layers (registry layers only; base layers are untouched) */
+  showOnlyOverlays: (ids: string[]) => void;
 }
 
 type MapStore = MapState & MapActions;
+
+const OVERLAY_IDS = new Set(LAYER_DEFINITIONS.map((definition) => definition.id));
 
 const defaultLayers: LayerConfig[] = [
   {
@@ -76,6 +84,7 @@ const initialState: MapState = {
   is3D: true,
   center: { lng: 0, lat: 20 },
   viewport: null,
+  cameraRequest: null,
   zoom: 2,
   engine: "maplibre",
   basemap: "dark",
@@ -137,6 +146,19 @@ const storeImpl: StateCreator<MapStore, [], []> = (set) => ({
 
   setViewport: (viewport) => {
     set({ viewport });
+  },
+
+  requestCamera: (view) => {
+    set((state) => ({ cameraRequest: { view, seq: (state.cameraRequest?.seq ?? 0) + 1 } }));
+  },
+
+  showOnlyOverlays: (ids) => {
+    const wanted = new Set(ids);
+    set((state) => ({
+      layers: state.layers.map((layer) =>
+        OVERLAY_IDS.has(layer.id) ? { ...layer, visible: wanted.has(layer.id) } : layer,
+      ),
+    }));
   },
 
   setZoom: (zoom) => {

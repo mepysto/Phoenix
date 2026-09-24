@@ -8,6 +8,7 @@ import { DEMO_EVENTS, DEMO_MODE } from "@/lib/demo/demoEvents";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useLiveEvents } from "@/hooks/useLiveEvents";
 import { useMapUrlState } from "@/hooks/useMapUrlState";
+import { BriefPlayer } from "@/components/map/BriefPlayer";
 import { Timeline } from "@/components/map/Timeline";
 import { ViewSummary } from "@/components/map/ViewSummary";
 
@@ -95,6 +96,9 @@ function MapPageContent() {
           {liveStatus === "live" ? t.map.live : t.map.reconnecting}
         </div>
       )}
+      <div className="pointer-events-none absolute left-1/2 top-4 z-40 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2">
+        <BriefPlayer />
+      </div>
       <div className="pointer-events-none absolute left-4 top-[12.5rem] z-30">
         {/* A fresh object so picking the same event again flies there again */}
         <ViewSummary onSelect={(event) => setFocusEvent({ ...event })} />

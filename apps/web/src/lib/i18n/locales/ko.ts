@@ -143,4 +143,21 @@ export const ko: Translations = {
     noneNearby: "주변에 이벤트 없음",
     label: "현재 화면 요약",
   },
+  brief: {
+    play: "재난 브리프 재생",
+    pause: "일시정지",
+    resume: "재생",
+    prev: "이전 장면",
+    next: "다음 장면",
+    share: "브리프 링크 복사",
+    linkCopied: "링크 복사됨",
+    close: "브리프 닫기",
+    scene: "{total}개 중 {n}번째 장면",
+    captions: {
+      before: "발생 하루 전: {title}",
+      onset: "발생: {title}",
+      now: "현재 상황",
+      context: "피해 지역 인근의 댐과 발전소",
+    },
+  },
 };
