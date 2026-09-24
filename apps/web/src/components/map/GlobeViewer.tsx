@@ -24,6 +24,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import { applyBasemap, createBasemapStyle, LABEL_FONT } from "@/lib/map/basemaps";
 import type { MapView } from "@/lib/map/urlState";
+import { useRasterOverlays } from "./useRasterOverlays";
 
 type DisasterEvent = ApiDisasterEvent;
 
@@ -477,6 +478,8 @@ export default function GlobeViewer({
   }, [layers, mapReady]);
 
   // Only list types actually on the map, in the canonical order
+  useRasterOverlays(map, mapReady);
+
   const legendTypes = useMemo(() => {
     const present = new Set(events.map((e) => e.type as EventType));
     return EVENT_TYPES.filter((type) => present.has(type));

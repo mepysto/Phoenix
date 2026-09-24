@@ -1,6 +1,7 @@
 import { create, StateCreator } from "zustand";
 import { devtools, DevtoolsOptions } from "zustand/middleware";
 import type { ViewerConfig, LayerConfig } from "@phoenix/shared/types";
+import { LAYER_DEFINITIONS } from "@/lib/layers/registry";
 
 interface MapState {
   viewerConfig: ViewerConfig;
@@ -47,22 +48,17 @@ const defaultLayers: LayerConfig[] = [
     opacity: 1,
     order: 1,
   },
-  {
-    id: "buildings",
-    name: "3D Buildings",
-    type: "3d-tiles",
-    visible: false,
-    opacity: 1,
-    order: 50,
-  },
-  {
-    id: "population",
-    name: "Population Density",
-    type: "raster",
-    visible: false,
-    opacity: 0.7,
-    order: 10,
-  },
+  // Overlays from the layer registry, hidden until the user turns them on
+  ...LAYER_DEFINITIONS.map(
+    (definition, index): LayerConfig => ({
+      id: definition.id,
+      name: definition.source.name,
+      type: definition.kind,
+      visible: false,
+      opacity: definition.defaultOpacity,
+      order: 10 + index,
+    }),
+  ),
 ];
 
 const initialState: MapState = {
