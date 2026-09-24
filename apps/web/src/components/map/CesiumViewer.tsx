@@ -21,6 +21,7 @@ import { getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SATELLITE_SOURCE } from "@/lib/map/basemaps";
 import { useMapStore } from "@/store/mapStore";
+import { CesiumTracks } from "./CesiumTracks";
 import { EventInfoPanel } from "./EventInfoPanel";
 
 /**
@@ -100,6 +101,7 @@ export default function CesiumViewer({ events = NO_EVENTS, onEventClick }: Cesiu
         selectionIndicator={false}
       >
         <Buildings />
+        <CesiumTracks />
         {events.map((event) => {
           const position = getEventPosition(event);
           if (!position) return null;
