@@ -214,6 +214,9 @@ export const zh: Translations = {
     unavailable: "暂时无法获取图像",
     notRecorded: "公共摄像头；图像不会被记录",
     approxView: "地图上的阴影扇形仅表示大致拍摄方向",
+    liveVideo: "实时视频",
+    streamOffline: "视频流离线，显示最新图像",
+    liveDirect: "实时视频直接来自摄像头运营方，运营方可看到您的 IP 地址",
   },
   telemetry: {
     altitude: "高度",

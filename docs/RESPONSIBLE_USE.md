@@ -52,7 +52,10 @@ to support recovery. They are not for targeting.
   Snapshots pass through the API proxy (so viewers' addresses are not sent to
   camera operators) and are held in memory for about a minute. They are
   never recorded or archived, and no face or licence-plate recognition is
-  run on them.
+  run on them. Live video (where the operator publishes a stream) is played
+  by the viewer's browser straight from the operator, which therefore sees
+  the viewer's IP address; the camera card says so. Phoenix does not relay
+  or record it.
 - **Aircraft** from aircraft whose operators joined the FAA privacy
   programmes (PIA, LADD) are never shown.
 

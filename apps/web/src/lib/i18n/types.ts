@@ -223,6 +223,9 @@ export interface Translations {
     unavailable: string;
     notRecorded: string;
     approxView: string;
+    liveVideo: string;
+    streamOffline: string;
+    liveDirect: string;
   };
   telemetry: {
     altitude: string;

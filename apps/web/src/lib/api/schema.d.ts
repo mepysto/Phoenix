@@ -1286,6 +1286,8 @@ export interface components {
             source: string;
             /** Distance Km */
             distance_km: number;
+            /** Stream Url */
+            stream_url?: string | null;
         };
         /** NearbyEvent */
         NearbyEvent: {

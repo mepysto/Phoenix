@@ -10,13 +10,13 @@ from src.services.cameras.caltrans import Camera, parse_district
 from src.utils.safe_fetch import Fetched, UnsafeFetch
 
 
-def cctv(index, lat, lng, in_service="true", url=None, name="TV102 -- I-580 : West of SR-24"):
+def cctv(index, lat, lng, in_service="true", url=None, name="TV102 -- I-580 : West of SR-24", stream=""):
     return {"cctv": {
         "index": str(index),
         "inService": in_service,
         "location": {"locationName": name, "latitude": str(lat), "longitude": str(lng),
                      "direction": "West", "route": "I-580"},
-        "imageData": {"static": {"currentImageUpdateFrequency": "5",
+        "imageData": {"streamingVideoURL": stream, "static": {"currentImageUpdateFrequency": "5",
                                  "currentImageURL": url or f"https://cwwp2.dot.ca.gov/data/d4/cctv/image/{index}.jpg"}},
     }}
 
@@ -90,3 +90,14 @@ def test_snapshot_errors(client, monkeypatch):
     assert client.get("/api/v1/cameras/caltrans-d4-1/snapshot").status_code == 502
     assert client.get("/api/v1/cameras/caltrans-d4-99/snapshot").status_code == 404
     assert client.get("/api/v1/cameras/..%2F..%2Fetc/snapshot").status_code in (404, 422)
+
+
+def test_stream_urls_are_limited_to_caltrans_hls_playlists():
+    ok = "https://wzmedia.dot.ca.gov/D4/N101_at_Faith_St_POC.stream/playlist.m3u8"
+    cams = parse_district({"data": [
+        cctv(1, 37.8, -122.2, stream=ok),
+        cctv(2, 37.8, -122.2, stream="https://evil.example.com/playlist.m3u8"),
+        cctv(3, 37.8, -122.2, stream="http://wzmedia.dot.ca.gov/D4/x.stream/playlist.m3u8"),
+        cctv(4, 37.8, -122.2, stream="https://wzmedia.dot.ca.gov/D4/page.html"),
+    ]}, 4)
+    assert [c.stream_url for c in cams] == [ok, None, None, None]

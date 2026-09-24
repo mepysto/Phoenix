@@ -214,6 +214,9 @@ export const ar: Translations = {
     unavailable: "الصورة غير متاحة الآن",
     notRecorded: "كاميرا عامة؛ لا يتم تسجيل الصور",
     approxView: "القطاع المظلل على الخريطة يبين اتجاه الرؤية التقريبي فقط",
+    liveVideo: "فيديو مباشر",
+    streamOffline: "البث غير متاح؛ تُعرض أحدث صورة",
+    liveDirect: "يأتي الفيديو المباشر مباشرة من مشغل الكاميرا الذي يرى عنوان IP الخاص بك",
   },
   telemetry: {
     altitude: "الارتفاع",
