@@ -54,6 +54,7 @@ export const es: Translations = {
     dams: "Presas (Global Dam Watch)",
     hospitals: "Hospitales (OSM)",
     satellites: "Satélites de observación terrestre",
+    aircraft: "Aeronaves (ADS-B, zoom 5+)",
     opacity: "Opacidad",
     dataSource: "Datos: GDACS, Copernicus EMS",
     eventsCount: "eventos",

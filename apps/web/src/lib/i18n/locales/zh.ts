@@ -54,6 +54,7 @@ export const zh: Translations = {
     dams: "水坝 (Global Dam Watch)",
     hospitals: "医院 (OSM)",
     satellites: "对地观测卫星",
+    aircraft: "飞机（ADS-B，缩放 5+）",
     opacity: "透明度",
     dataSource: "数据来源: GDACS, Copernicus EMS",
     eventsCount: "个事件",

@@ -54,6 +54,7 @@ export const ar: Translations = {
     dams: "السدود (Global Dam Watch)",
     hospitals: "المستشفيات (OSM)",
     satellites: "أقمار رصد الأرض",
+    aircraft: "الطائرات (ADS-B، تكبير 5+)",
     opacity: "الشفافية",
     dataSource: "البيانات: GDACS, Copernicus EMS",
     eventsCount: "أحداث",

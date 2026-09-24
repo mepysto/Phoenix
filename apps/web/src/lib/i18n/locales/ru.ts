@@ -54,6 +54,7 @@ export const ru: Translations = {
     dams: "Плотины (Global Dam Watch)",
     hospitals: "Больницы (OSM)",
     satellites: "Спутники наблюдения Земли",
+    aircraft: "Воздушные суда (ADS-B, масштаб 5+)",
     opacity: "Прозрачность",
     dataSource: "Данные: GDACS, Copernicus EMS",
     eventsCount: "событий",

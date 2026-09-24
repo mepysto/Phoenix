@@ -62,6 +62,7 @@ Moving objects relevant to a response, computed or relayed by the API (`/api/v1/
 | Source | Layer | Licence | Commercial | Attribution / conditions | Refresh |
 |---|---|---|---|---|---|
 | **CelesTrak** (GP element sets, "Earth resources" group) | Earth-observation satellite positions and passes over an event (Sentinel, Landsat, WorldView, …), propagated with SGP4 | No explicit licence published; data originates from the US Space Force (18 SDS) | ❌ unconfirmed — non-commercial deployments only until verified | "Satellite orbits: CelesTrak". [Usage policy](https://celestrak.org/usage-policy.php): download each update at most once (we cache 6 h) and stop querying after errors (we pause 1 h) | 6 h orbits, 30 s positions |
+| **adsb.lol** (ADS-B aggregator) | Aircraft around the view (zoom 5+): callsign, type, altitude, speed, heading; military highlighted | ODbL | ✅ | "Aircraft: adsb.lol (ODbL)"; derived databases must stay ODbL. Keyless for now (maintainer asks production users to get in touch). Proxied and cached 10 s per ~50 km cell. **Aircraft in the FAA PIA/LADD privacy programmes are excluded.** | 15 s |
 
 ## Removed sources
 
