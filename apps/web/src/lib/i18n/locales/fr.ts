@@ -273,4 +273,20 @@ export const fr: Translations = {
       bicycle: "Vélo",
     },
   },
+  ops: {
+    label: "OPS",
+    follow: "Suivre",
+    following: "Suivi",
+    shortcuts: "Raccourcis clavier",
+    keys: {
+      o: "Console d'opérations (carte plein écran)",
+      l: "Afficher/masquer le panneau des couches",
+      "1": "Fond de carte sombre",
+      "2": "Fond de carte satellite",
+      v: "Mode d'affichage suivant",
+      "/": "Rechercher",
+      Escape: "Fermer la fiche ou l'itinéraire",
+      "?": "Cette aide",
+    },
+  },
 };

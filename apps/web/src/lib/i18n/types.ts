@@ -1,3 +1,4 @@
+import type { ShortcutKey } from "@/hooks/useKeyboardShortcuts";
 import type { ViewMode } from "@/lib/map/viewModes";
 import type { ShipCategory } from "@/lib/telemetry";
 import type { RouteMode } from "@/store/routeStore";
@@ -257,5 +258,12 @@ export interface Translations {
     noDetour: string;
     disclaimer: string;
     modes: Record<RouteMode, string>;
+  };
+  ops: {
+    label: string;
+    follow: string;
+    following: string;
+    shortcuts: string;
+    keys: Record<ShortcutKey, string>;
   };
 }

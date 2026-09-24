@@ -11,6 +11,10 @@ import { useMapUrlState } from "@/hooks/useMapUrlState";
 import { AgentPanel } from "@/components/agent/AgentPanel";
 import { BriefPlayer } from "@/components/map/BriefPlayer";
 import { FeatureInspector } from "@/components/map/FeatureInspector";
+import { OpsClock } from "@/components/map/OpsClock";
+import { ShortcutsHelp } from "@/components/map/ShortcutsHelp";
+import { useFollowCamera } from "@/hooks/useFollowCamera";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { RoutePlanner } from "@/components/map/RoutePlanner";
 import { Timeline } from "@/components/map/Timeline";
 import { ViewSummary } from "@/components/map/ViewSummary";
@@ -37,6 +41,8 @@ function MapPageContent() {
   const selectEvent = useEventStore((s) => s.selectEvent);
   const { t } = useTranslation();
   const liveStatus = useLiveEvents();
+  useKeyboardShortcuts();
+  useFollowCamera();
 
   // Demo data is opt-in only; an empty result or API error must stay visibly empty
   const useDemo = DEMO_MODE && events.length === 0 && !isLoading;
@@ -102,6 +108,10 @@ function MapPageContent() {
       <div className="pointer-events-none absolute left-1/2 top-4 z-40 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2">
         <BriefPlayer />
       </div>
+      <div className="pointer-events-none absolute bottom-[8.5rem] left-1/2 z-40 -translate-x-1/2 md:bottom-32">
+        <OpsClock />
+      </div>
+      <ShortcutsHelp />
       {/* Left column, above the legend */}
       <div className="pointer-events-none absolute bottom-44 left-4 z-30 flex flex-col gap-2">
         <FeatureInspector />

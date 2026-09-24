@@ -5,6 +5,7 @@ import { formatAge } from "@/components/layout/SourceStatusPanel";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { compassPoint, numberProp, shipCategory, stringProp } from "@/lib/telemetry";
 import { useMapStore } from "@/store/mapStore";
+import { useUiStore, type FollowTarget } from "@/store/uiStore";
 import { CameraViewer } from "./CameraViewer";
 import { TelemetryCard } from "./TelemetryCard";
 
@@ -15,9 +16,29 @@ export function FeatureInspector() {
   const { t, lang } = useTranslation();
   const inspected = useMapStore((s) => s.inspected);
   const setInspected = useMapStore((s) => s.setInspected);
+  const follow = useUiStore((s) => s.follow);
+  const setFollow = useUiStore((s) => s.setFollow);
   if (!inspected) return null;
 
-  const close = () => setInspected(null);
+  const close = () => {
+    setInspected(null);
+    setFollow(null);
+  };
+  /** Follow toggle for tracked objects that can be identified across refreshes */
+  const followButton = (target: FollowTarget | null) => {
+    if (!target) return undefined;
+    const active = follow?.layerId === target.layerId && follow.value === target.value;
+    return (
+      <button
+        type="button"
+        onClick={() => setFollow(active ? null : target)}
+        aria-pressed={active}
+        className={`rounded px-2 py-0.5 text-[11px] ${active ? "bg-emerald-700 text-white" : "border border-gray-600 text-gray-300 hover:bg-gray-800"}`}
+      >
+        {active ? t.ops.following : t.ops.follow}
+      </button>
+    );
+  };
   const p = inspected.properties;
   const number = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
   const heading = (deg: number | null) => (deg === null ? DASH : `${number.format(deg)}° ${compassPoint(deg)}`);
@@ -60,7 +81,14 @@ export function FeatureInspector() {
             { label: t.telemetry.heading, value: heading(numberProp(p.track_deg)) },
             { label: t.telemetry.lastSeen, value: seen === null ? DASH : `${number.format(seen)} s` },
           ]}
-          footer="ADS-B · adsb.lol"
+          footer={
+            <span className="flex items-center justify-between">
+              ADS-B · adsb.lol
+              {followButton(
+                p.generalised === true || !stringProp(p.hex) ? null : { layerId: "aircraft", key: "hex", value: stringProp(p.hex)! },
+              )}
+            </span>
+          }
           onClose={close}
         />
       );
@@ -80,7 +108,16 @@ export function FeatureInspector() {
             { label: t.telemetry.heading, value: heading(numberProp(p.heading_deg)) },
             { label: t.telemetry.lastSeen, value: formatAge(updated, lang) ?? DASH },
           ]}
-          footer="AIS · AISStream"
+          footer={
+            <span className="flex items-center justify-between">
+              AIS · AISStream
+              {followButton(
+                p.generalised === true || numberProp(p.mmsi) === null
+                  ? null
+                  : { layerId: "vessels", key: "mmsi", value: numberProp(p.mmsi)! },
+              )}
+            </span>
+          }
           onClose={close}
         />
       );

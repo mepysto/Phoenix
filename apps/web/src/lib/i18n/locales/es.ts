@@ -271,4 +271,20 @@ export const es: Translations = {
       bicycle: "Bicicleta",
     },
   },
+  ops: {
+    label: "OPS",
+    follow: "Seguir",
+    following: "Siguiendo",
+    shortcuts: "Atajos de teclado",
+    keys: {
+      o: "Consola de operaciones (mapa a pantalla completa)",
+      l: "Mostrar/ocultar el panel de capas",
+      "1": "Mapa base oscuro",
+      "2": "Mapa base satelital",
+      v: "Siguiente modo de vista",
+      "/": "Buscar",
+      Escape: "Cerrar tarjeta o ruta",
+      "?": "Esta ayuda",
+    },
+  },
 };

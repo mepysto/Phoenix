@@ -270,4 +270,20 @@ export const en: Translations = {
       bicycle: "Bicycle",
     },
   },
+  ops: {
+    label: "OPS",
+    follow: "Follow",
+    following: "Following",
+    shortcuts: "Keyboard shortcuts",
+    keys: {
+      o: "Operations console (full-screen map)",
+      l: "Show/hide the layer panel",
+      "1": "Dark basemap",
+      "2": "Satellite basemap",
+      v: "Next view mode",
+      "/": "Search",
+      Escape: "Close card or route",
+      "?": "This help",
+    },
+  },
 };
