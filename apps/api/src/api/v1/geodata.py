@@ -7,7 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import get_db
 from src.models.event import EventType, SeverityLevel
-from src.schemas.event import ClusterResponse, EventFilter, GeoJSONFeatureCollection
+from src.schemas.event import (
+    ClusterResponse,
+    EventFilter,
+    GeoJSONFeatureCollection,
+    NearbyResponse,
+    ViewSummary,
+)
 from src.services.clustering_service import ClusteringService
 from src.services.event_service import EventService
 
@@ -82,3 +88,44 @@ async def get_events_geojson(
         include_properties=include_properties,
         limit=limit,
     )
+
+
+def _view_filter(
+    types: list[EventType] | None, severities: list[SeverityLevel] | None, at: datetime | None, **bbox: float | None
+) -> EventFilter:
+    # A past instant has its own "ongoing" test; otherwise only active events
+    return EventFilter(types=types, severities=severities, at=at, is_active=None if at else True, **bbox)
+
+
+@router.get("/summary", response_model=ViewSummary)
+async def get_view_summary(
+    event_service: Annotated[EventService, Depends(get_event_service)],
+    min_lng: float | None = Query(default=None, ge=-180, le=180),
+    min_lat: float | None = Query(default=None, ge=-90, le=90),
+    max_lng: float | None = Query(default=None, ge=-180, le=180),
+    max_lat: float | None = Query(default=None, ge=-90, le=90),
+    types: Annotated[list[EventType] | None, Query()] = None,
+    severities: Annotated[list[SeverityLevel] | None, Query()] = None,
+    at: datetime | None = Query(default=None, description="Events ongoing at this time"),
+) -> ViewSummary:
+    """Totals for the current map view (omit the bbox for the whole world)."""
+    filters = _view_filter(
+        types, severities, at, min_lng=min_lng, min_lat=min_lat, max_lng=max_lng, max_lat=max_lat
+    )
+    return await event_service.summarize_view(filters)
+
+
+@router.get("/nearby", response_model=NearbyResponse)
+async def get_nearby_events(
+    event_service: Annotated[EventService, Depends(get_event_service)],
+    lat: float = Query(..., ge=-90, le=90),
+    lng: float = Query(..., ge=-180, le=180),
+    radius_km: float = Query(default=1000, gt=0, le=5000),
+    limit: int = Query(default=20, ge=1, le=50),
+    types: Annotated[list[EventType] | None, Query()] = None,
+    severities: Annotated[list[SeverityLevel] | None, Query()] = None,
+    at: datetime | None = Query(default=None, description="Events ongoing at this time"),
+) -> NearbyResponse:
+    """Events around a point, nearest first."""
+    filters = _view_filter(types, severities, at)
+    return await event_service.nearby(filters, lat, lng, radius_km, limit)

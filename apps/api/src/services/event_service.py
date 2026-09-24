@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.event import Event
 from src.repositories.event_repository import EventRepository
+from src.repositories.event_view_repository import EventViewRepository
 from src.schemas.event import (
     DataSourceRef,
     DisplayPoint,
@@ -17,7 +18,10 @@ from src.schemas.event import (
     GeoJSONFeatureCollection,
     GeoLayerResponse,
     Location,
+    NearbyEvent,
+    NearbyResponse,
     Pagination,
+    ViewSummary,
 )
 
 
@@ -135,6 +139,37 @@ class EventService:
                 "returned": len(features),
                 "generated_at": datetime.now(timezone.utc).isoformat(),
             },
+        )
+
+    async def summarize_view(self, filters: EventFilter) -> ViewSummary:
+        """Totals for the events matching a map view."""
+        counts, population, last_updated = await EventViewRepository(self.session).summarize(filters)
+        by_severity: dict[str, int] = {}
+        by_type: dict[str, int] = {}
+        for (event_type, severity), n in counts.items():
+            by_severity[severity] = by_severity.get(severity, 0) + n
+            by_type[event_type] = by_type.get(event_type, 0) + n
+        return ViewSummary(
+            total=sum(counts.values()),
+            by_severity=by_severity,
+            by_type=by_type,
+            affected_population=population,
+            last_updated=last_updated,
+        )
+
+    async def nearby(
+        self, filters: EventFilter, lat: float, lng: float, radius_km: float, limit: int
+    ) -> NearbyResponse:
+        """Events around a point, nearest first."""
+        rows = await EventViewRepository(self.session).nearest(filters, lat, lng, radius_km, limit)
+        return NearbyResponse(
+            center_lat=lat,
+            center_lng=lng,
+            radius_km=radius_km,
+            data=[
+                NearbyEvent(event=self._to_response(event), distance_km=round(meters / 1000, 1))
+                for event, meters in rows
+            ],
         )
 
     def _to_response(self, event: Event) -> EventResponse:
