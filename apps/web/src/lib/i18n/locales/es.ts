@@ -162,4 +162,22 @@ export const es: Translations = {
       context: "Presas y centrales eléctricas cerca de la zona afectada",
     },
   },
+  agent: {
+    open: "Preguntar al mapa",
+    title: "Asistente del mapa",
+    placeholder: "Pregunta sobre desastres o el mapa…",
+    send: "Enviar",
+    thinking: "Pensando…",
+    disabled: "El asistente del mapa no está configurado en este servidor (necesita una clave de API de IA).",
+    budgetSession: "Esta conversación agotó su presupuesto de tokens. Recarga la página más tarde para continuar.",
+    budgetDaily: "El asistente alcanzó el límite de uso de hoy. Inténtalo de nuevo mañana.",
+    error: "El asistente no está disponible ahora. Inténtalo de nuevo.",
+    mapChanged: "Mapa actualizado ({n})",
+    usage: "{used} / {cap} tokens usados",
+    suggestions: {
+      view: "¿Qué está pasando en la vista actual?",
+      quakes: "Muestra los terremotos fuertes de la última semana",
+      brief: "Reproduce el resumen del evento más grave",
+    },
+  },
 };

@@ -164,4 +164,22 @@ export const fr: Translations = {
       context: "Barrages et centrales électriques près de la zone touchée",
     },
   },
+  agent: {
+    open: "Interroger la carte",
+    title: "Assistant cartographique",
+    placeholder: "Posez une question sur les catastrophes ou la carte…",
+    send: "Envoyer",
+    thinking: "Réflexion…",
+    disabled: "L'assistant n'est pas configuré sur ce serveur (il faut une clé d'API d'IA).",
+    budgetSession: "Cette conversation a épuisé son budget de jetons. Rechargez la page plus tard pour continuer.",
+    budgetDaily: "L'assistant a atteint la limite d'utilisation du jour. Réessayez demain.",
+    error: "L'assistant est indisponible pour le moment. Réessayez.",
+    mapChanged: "Carte mise à jour ({n})",
+    usage: "{used} / {cap} jetons utilisés",
+    suggestions: {
+      view: "Que se passe-t-il dans la vue actuelle ?",
+      quakes: "Montre les forts séismes de la semaine passée",
+      brief: "Lance le brief de l'événement le plus grave",
+    },
+  },
 };

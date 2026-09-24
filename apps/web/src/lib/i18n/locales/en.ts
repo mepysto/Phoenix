@@ -161,4 +161,22 @@ export const en: Translations = {
       context: "Dams and power plants near the affected area",
     },
   },
+  agent: {
+    open: "Ask the map",
+    title: "Map assistant",
+    placeholder: "Ask about disasters or the map…",
+    send: "Send",
+    thinking: "Thinking…",
+    disabled: "The map assistant is not set up on this server (it needs an AI API key).",
+    budgetSession: "This conversation has used its token budget. Reload the page later to continue.",
+    budgetDaily: "The assistant has reached today's usage limit. Please try again tomorrow.",
+    error: "The assistant is unavailable right now. Please try again.",
+    mapChanged: "Map updated ({n})",
+    usage: "{used} / {cap} tokens used",
+    suggestions: {
+      view: "What's happening in the current view?",
+      quakes: "Show strong earthquakes from the past week",
+      brief: "Play the brief for the most severe event",
+    },
+  },
 };
