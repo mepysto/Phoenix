@@ -24,6 +24,12 @@ const nextConfig: NextConfig = {
     },
   },
   webpack: (config, { isServer }) => {
+    // Cesium's SPZ (Gaussian splat) decoder inlines WebAssembly as a string the
+    // minifier breaks; Phoenix does not use splats (see src/lib/cesium/spzStub.ts)
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@spz-loader/core": path.join(process.cwd(), "src/lib/cesium/spzStub.ts"),
+    };
     if (!isServer) {
       config.optimization = {
         ...config.optimization,

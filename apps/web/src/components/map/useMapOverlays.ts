@@ -177,7 +177,8 @@ function applyDisplay(map: MapLibreMap, state: OverlayState, visible: boolean, o
     const property = OPACITY_PROPERTY[layer.type as LayerSpecification["type"]];
     if (property) {
       const value = (state.baseOpacity.get(layerId) ?? 1) * opacity;
-      map.setPaintProperty(layerId, property, value);
+      // The property name is chosen per layer type at runtime (MapLibre 6 types it per key)
+      map.setPaintProperty(layerId, property as Parameters<MapLibreMap["setPaintProperty"]>[1], value);
       // Outlines fade too (hollow markers such as dams are mostly outline)
       if (layer.type === "circle") map.setPaintProperty(layerId, "circle-stroke-opacity", value);
     }
