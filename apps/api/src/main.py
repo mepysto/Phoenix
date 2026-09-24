@@ -9,7 +9,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
-from src.api.v1 import admin, events, geodata, hazards, sources, sync, websocket
+from src.api.v1 import (
+    admin,
+    events,
+    geodata,
+    hazards,
+    infrastructure,
+    sources,
+    sync,
+    websocket,
+)
 from src.core.config import settings
 from src.core.exceptions import DataSyncError, ExternalAPIError
 from src.core.security import verify_api_key
@@ -77,6 +86,9 @@ app.include_router(geodata.router, prefix="/api/v1/geodata", tags=["GeoData"])
 app.include_router(sync.router, prefix="/api/v1/sync", tags=["Sync"])
 app.include_router(sources.router, prefix="/api/v1/sources", tags=["Sources"])
 app.include_router(hazards.router, prefix="/api/v1/hazards", tags=["Hazards"])
+app.include_router(
+    infrastructure.router, prefix="/api/v1/infrastructure", tags=["Infrastructure"]
+)
 app.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
 app.include_router(
     admin.router,

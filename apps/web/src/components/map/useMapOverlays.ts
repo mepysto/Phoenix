@@ -7,7 +7,12 @@ import type {
   Map as MapLibreMap,
   RasterTileSource,
 } from "maplibre-gl";
-import { LAYER_DEFINITIONS, type LayerDefinition } from "@/lib/layers/registry";
+import {
+  LAYER_DEFINITIONS,
+  type GeoJsonLayerDefinition,
+  type LayerDefinition,
+  type Viewport,
+} from "@/lib/layers/registry";
 import { useMapStore } from "@/store/mapStore";
 
 /** Overlays sit above the basemap but below event markers */
@@ -57,7 +62,9 @@ export function useMapOverlays(mapRef: RefObject<MapLibreMap | null>, mapReady: 
       }
       const current = state;
 
-      if (visible && !map.getSource(sourceIdFor(definition.id)) && !current.loading) {
+      const added =
+        definition.kind === "style" ? current.layerIds.length > 0 : !!map.getSource(sourceIdFor(definition.id));
+      if (visible && !added && !current.loading) {
         current.loading = true;
         void addOverlay(map, definition, current)
           .then(() => applyDisplay(map, current, true, opacity))
@@ -68,8 +75,9 @@ export function useMapOverlays(mapRef: RefObject<MapLibreMap | null>, mapReady: 
 
       applyDisplay(map, current, visible, opacity);
 
-      if (visible && definition.refreshMs && !current.timer) {
-        current.timer = setInterval(() => void refreshOverlay(map, definition), definition.refreshMs);
+      const refreshMs = "refreshMs" in definition ? definition.refreshMs : undefined;
+      if (visible && refreshMs && !current.timer) {
+        current.timer = setInterval(() => void refreshOverlay(map, definition), refreshMs);
       } else if (!visible && current.timer) {
         clearInterval(current.timer);
         current.timer = null;
@@ -77,12 +85,68 @@ export function useMapOverlays(mapRef: RefObject<MapLibreMap | null>, mapReady: 
     }
   }, [layers, mapReady, mapRef]);
 
+  // Viewport-driven layers re-query after the map settles
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const onMoveEnd = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        const visibleIds = new Set(
+          useMapStore.getState().layers.filter((l) => l.visible).map((l) => l.id),
+        );
+        for (const definition of LAYER_DEFINITIONS) {
+          if (definition.kind === "geojson" && definition.viewportDriven && visibleIds.has(definition.id)) {
+            void refreshOverlay(map, definition);
+          }
+        }
+      }, VIEWPORT_DEBOUNCE_MS);
+    };
+    map.on("moveend", onMoveEnd);
+    return () => {
+      map.off("moveend", onMoveEnd);
+      if (timer) clearTimeout(timer);
+    };
+  }, [mapReady, mapRef]);
+
   useEffect(() => {
     const current = states.current;
     return () => {
       for (const state of current.values()) if (state.timer) clearInterval(state.timer);
     };
   }, []);
+}
+
+const VIEWPORT_DEBOUNCE_MS = 400;
+const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
+
+function currentViewport(map: MapLibreMap): Viewport {
+  const bounds = map.getBounds();
+  let west = bounds.getWest();
+  let east = bounds.getEast();
+  // Zoomed out past a full world width (or a wrapped globe): query everything
+  if (east - west >= 360) {
+    west = -180;
+    east = 180;
+  }
+  const wrap = (lng: number) => ((((lng + 180) % 360) + 360) % 360) - 180;
+  return {
+    bbox: [
+      west === -180 ? -180 : wrap(west),
+      Math.max(bounds.getSouth(), -90),
+      east === 180 ? 180 : wrap(east),
+      Math.min(bounds.getNorth(), 90),
+    ],
+    zoom: map.getZoom(),
+  };
+}
+
+/** Viewport data for a GeoJSON layer; empty below its minimum zoom */
+async function loadGeoJson(map: MapLibreMap, definition: GeoJsonLayerDefinition) {
+  const viewport = currentViewport(map);
+  if (definition.minZoom !== undefined && viewport.zoom < definition.minZoom) return EMPTY;
+  return definition.loadData(viewport);
 }
 
 function applyDisplay(map: MapLibreMap, state: OverlayState, visible: boolean, opacity: number) {
@@ -113,11 +177,15 @@ async function addOverlay(map: MapLibreMap, definition: LayerDefinition, state: 
         attribution: definition.source.attribution,
       });
       styleLayers = [{ id: sourceId, type: "raster", source: sourceId }];
-    } else {
-      const data = await definition.loadData();
+    } else if (definition.kind === "geojson") {
+      const data = await loadGeoJson(map, definition);
       if (map.getSource(sourceId)) return;
       map.addSource(sourceId, { type: "geojson", data, attribution: definition.source.attribution });
       styleLayers = definition.styleLayers(sourceId);
+    } else {
+      // Draw from the basemap's own source; nothing to download
+      if (!map.getSource(definition.basemapSource)) return;
+      styleLayers = definition.styleLayers(definition.basemapSource);
     }
     for (const layer of styleLayers) {
       const property = OPACITY_PROPERTY[layer.type];
@@ -138,8 +206,8 @@ async function refreshOverlay(map: MapLibreMap, definition: LayerDefinition) {
     if (definition.kind === "raster") {
       const { tiles } = await definition.resolveTiles(new Date());
       (source as RasterTileSource | undefined)?.setTiles(tiles);
-    } else {
-      (source as GeoJSONSource | undefined)?.setData(await definition.loadData());
+    } else if (definition.kind === "geojson") {
+      (source as GeoJSONSource | undefined)?.setData(await loadGeoJson(map, definition));
     }
   } catch (error) {
     // Keep the last good data rather than blanking the layer

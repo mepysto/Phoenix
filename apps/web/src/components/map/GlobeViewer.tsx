@@ -348,6 +348,10 @@ export default function GlobeViewer({
           }
         });
 
+        if (process.env.NODE_ENV !== "production") {
+          // Debug/E2E handle (dev builds only): window.__phoenixMap.getStyle() etc.
+          (window as unknown as { __phoenixMap?: MapLibreMap }).__phoenixMap = map.current;
+        }
         setMapReady(true);
       });
 

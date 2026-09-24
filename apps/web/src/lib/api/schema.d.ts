@@ -334,6 +334,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/infrastructure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Infrastructure In View
+         * @description Dams and power plants in the viewport as GeoJSON, most significant
+         *     first (MW / dam height). `truncated` means zoom in to see the rest.
+         */
+        get: operations["infrastructure_in_view_api_v1_infrastructure_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/status": {
         parameters: {
             query?: never;
@@ -1281,6 +1302,44 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    infrastructure_in_view_api_v1_infrastructure_get: {
+        parameters: {
+            query: {
+                min_lng: number;
+                min_lat: number;
+                max_lng: number;
+                max_lat: number;
+                kinds?: ("dam" | "power_plant")[] | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
