@@ -217,6 +217,7 @@ export const ru: Translations = {
     course: "Путевой угол",
     lastSeen: "Последний отчёт",
     military: "Военное",
+    generalised: "Военное · позиция обобщена (зона конфликта)",
     position: "Положение",
     launchTime: "Время запуска (NET)",
     status: "Статус",

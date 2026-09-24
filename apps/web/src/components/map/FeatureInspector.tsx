@@ -46,7 +46,11 @@ export function FeatureInspector() {
         <TelemetryCard
           icon={<Plane className={`h-4 w-4 ${military ? "text-orange-400" : "text-slate-200"}`} />}
           title={stringProp(p.callsign) ?? stringProp(p.hex) ?? DASH}
-          subtitle={[stringProp(p.type), military ? t.telemetry.military : null].filter(Boolean).join(" · ") || undefined}
+          subtitle={
+            p.generalised === true
+              ? t.telemetry.generalised
+              : [stringProp(p.type), military ? t.telemetry.military : null].filter(Boolean).join(" · ") || undefined
+          }
           rows={[
             {
               label: t.telemetry.altitude,
@@ -69,7 +73,7 @@ export function FeatureInspector() {
         <TelemetryCard
           icon={<Ship className="h-4 w-4 text-teal-300" />}
           title={stringProp(p.name) ?? `MMSI ${numberProp(p.mmsi) ?? DASH}`}
-          subtitle={category ? t.telemetry.shipTypes[category] : undefined}
+          subtitle={p.generalised === true ? t.telemetry.generalised : category ? t.telemetry.shipTypes[category] : undefined}
           rows={[
             { label: t.telemetry.speed, value: speed === null ? DASH : `${speed.toFixed(1)} kn` },
             { label: t.telemetry.course, value: heading(numberProp(p.course_deg)) },

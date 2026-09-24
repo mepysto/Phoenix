@@ -215,6 +215,7 @@ export const ko: Translations = {
     course: "침로",
     lastSeen: "마지막 보고",
     military: "군용",
+    generalised: "군용 · 위치 일반화됨 (분쟁 지역)",
     position: "위치",
     launchTime: "발사 시각 (NET)",
     status: "상태",

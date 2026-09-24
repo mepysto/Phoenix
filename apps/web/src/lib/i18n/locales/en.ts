@@ -216,6 +216,7 @@ export const en: Translations = {
     course: "Course",
     lastSeen: "Last report",
     military: "Military",
+    generalised: "Military · position generalised (conflict zone)",
     position: "Position",
     launchTime: "Launch time (NET)",
     status: "Status",

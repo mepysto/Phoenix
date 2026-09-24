@@ -70,6 +70,14 @@ Moving objects relevant to a response, computed or relayed by the API (`/api/v1/
 | **Radio Browser** (community directory) | Local radio stations near an event (event card): stream, language, and whether the station passed its last health check (off air = possible outage) | "Completely free and open source; may be used in free and non-free software" | ✅ | Identifying User-Agent required. Searches proxied and cached 1 h per ~10 km cell; audio is streamed by the browser directly from the station (only https streams play in-page) | On request |
 | **Valhalla** routing (FOSSGIS public demo server; OpenStreetMap data) | Relief/evacuation routes from the event card, with active high/critical hazard zones and fires along the way | Routes derived from OSM data (ODbL); server under fair use | ✅ | "Routing © OpenStreetMap contributors, Valhalla". **Before a public deployment, announce the app in Valhalla's GitHub Discussions** as the operators ask; requests carry `X-Client-Id`. The demo server caps avoided areas at 10 km circumference, too small for disaster zones: set `VALHALLA_URL` to a self-hosted Valhalla (and raise `VALHALLA_MAX_EXCLUDE_CIRCUMFERENCE_M`) to route around hazards | On request |
 
+## Considered and not used
+
+| Source | Why |
+|---|---|
+| PeeringDB (data-centre facilities) | The acceptable-use policy forbids reproducing or transmitting the data without prior permission. |
+| Blitzortung (lightning) | Data may not be redistributed on public websites without the network's permission. |
+| Public Overpass API (OSM surveillance cameras, military sites) | Its policy says public instances must not be relied on as a website backend; these layers need a self-hosted Overpass. |
+
 ## Removed sources
 
 | Source | Why |
