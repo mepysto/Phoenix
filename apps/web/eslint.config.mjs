@@ -18,6 +18,7 @@ const config = [
       "node_modules/**",
       "next-env.d.ts",
       "src/lib/api/schema.d.ts", // generated
+      "public/cesium/**", // copied Cesium runtime (scripts/copy-cesium-assets.mjs)
       "coverage/**",
       "playwright-report/**",
       "test-results/**",

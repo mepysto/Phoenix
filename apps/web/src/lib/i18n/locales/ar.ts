@@ -124,6 +124,9 @@ export const ar: Translations = {
     reconnecting: "جارٍ إعادة الاتصال…",
     share: "مشاركة العرض",
     linkCopied: "تم نسخ الرابط",
+    engine3d: "محرك ثلاثي الأبعاد",
+    engine2d: "خريطة ثنائية الأبعاد",
+    engine3dKeyless: "ثلاثي الأبعاد بدون مفتاح: صور أقمار صناعية على كرة ملساء. رمز Cesium ion يضيف التضاريس والمباني.",
     viewMode: "وضع العرض",
     viewModes: {
       normal: "عرض عادي",

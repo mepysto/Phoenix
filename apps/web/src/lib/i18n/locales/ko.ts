@@ -125,6 +125,9 @@ export const ko: Translations = {
     reconnecting: "재연결 중…",
     share: "화면 공유",
     linkCopied: "링크 복사됨",
+    engine3d: "3D 엔진",
+    engine2d: "2D 지도",
+    engine3dKeyless: "키 없는 3D: 매끈한 지구 위 위성 영상. Cesium ion 토큰을 넣으면 지형과 건물이 추가됩니다.",
     viewMode: "보기 모드",
     viewModes: {
       normal: "기본 보기",

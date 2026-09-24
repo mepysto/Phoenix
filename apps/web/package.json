@@ -15,7 +15,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "generate:types": "openapi-typescript http://localhost:28000/openapi.json -o src/lib/api/schema.d.ts",
-    "generate:types:local": "openapi-typescript openapi.json -o src/lib/api/schema.d.ts"
+    "generate:types:local": "openapi-typescript openapi.json -o src/lib/api/schema.d.ts",
+    "predev": "node scripts/copy-cesium-assets.mjs",
+    "prebuild": "node scripts/copy-cesium-assets.mjs"
   },
   "dependencies": {
     "@phoenix/shared": "workspace:*",

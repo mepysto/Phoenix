@@ -126,6 +126,9 @@ export const en: Translations = {
     reconnecting: "Reconnecting…",
     share: "Share view",
     linkCopied: "Link copied",
+    engine3d: "3D engine",
+    engine2d: "2D map",
+    engine3dKeyless: "3D without a key: satellite imagery on a smooth globe. A Cesium ion token adds terrain and buildings.",
     viewMode: "View mode",
     viewModes: {
       normal: "Normal view",

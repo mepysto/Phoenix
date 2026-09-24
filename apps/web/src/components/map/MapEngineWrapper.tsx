@@ -48,16 +48,10 @@ export default function MapEngineWrapper({
   onViewChange,
 }: MapEngineWrapperProps) {
   const engine = useMapStore((s) => s.engine);
-  const viewerConfig = useMapStore((s) => s.viewerConfig);
 
   if (engine === "cesium") {
     return (
-      <CesiumViewer
-        events={events}
-        onEventClick={onEventClick}
-        showTerrain={viewerConfig.terrain.enabled}
-        showBuildings={viewerConfig.buildings.enabled}
-      />
+      <CesiumViewer events={events} onEventClick={onEventClick} />
     );
   }
 

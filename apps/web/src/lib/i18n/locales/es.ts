@@ -127,6 +127,9 @@ export const es: Translations = {
     reconnecting: "Reconectando…",
     share: "Compartir vista",
     linkCopied: "Enlace copiado",
+    engine3d: "Motor 3D",
+    engine2d: "Mapa 2D",
+    engine3dKeyless: "3D sin clave: imágenes satelitales sobre un globo liso. Un token de Cesium ion añade relieve y edificios.",
     viewMode: "Modo de vista",
     viewModes: {
       normal: "Vista normal",
