@@ -268,4 +268,20 @@ export const zh: Translations = {
       bicycle: "自行车",
     },
   },
+  ops: {
+    label: "OPS",
+    follow: "跟随",
+    following: "跟随中",
+    shortcuts: "键盘快捷键",
+    keys: {
+      o: "运营控制台（全屏地图）",
+      l: "显示/隐藏图层面板",
+      "1": "深色底图",
+      "2": "卫星底图",
+      v: "下一个视图模式",
+      "/": "搜索",
+      Escape: "关闭卡片或路线",
+      "?": "此帮助",
+    },
+  },
 };

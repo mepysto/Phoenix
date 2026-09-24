@@ -23,6 +23,7 @@ import {
 } from "@phoenix/shared/constants";
 import { useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
+import { useUiStore } from "@/store/uiStore";
 import { LAYER_DEFINITIONS_BY_ID } from "@/lib/layers/registry";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SourceStatusPanel } from "./SourceStatusPanel";
@@ -168,7 +169,9 @@ export function Sidebar() {
   const toggleLayer = useMapStore((s) => s.toggleLayer);
   const setLayerOpacity = useMapStore((s) => s.setLayerOpacity);
   const { t } = useTranslation();
+  const hidden = useUiStore((s) => s.sidebarHidden || s.opsMode);
 
+  if (hidden) return null;
   return (
     <aside className="hidden lg:flex w-72 flex-col border-r border-gray-800 bg-gray-900">
       <div className="flex items-center gap-2 border-b border-gray-800 px-4 py-3">

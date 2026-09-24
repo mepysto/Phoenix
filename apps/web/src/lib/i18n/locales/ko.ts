@@ -269,4 +269,20 @@ export const ko: Translations = {
       bicycle: "자전거",
     },
   },
+  ops: {
+    label: "OPS",
+    follow: "추적",
+    following: "추적 중",
+    shortcuts: "키보드 단축키",
+    keys: {
+      o: "운영 콘솔 (전체 화면 지도)",
+      l: "레이어 패널 표시/숨기기",
+      "1": "어두운 기본 지도",
+      "2": "위성 기본 지도",
+      v: "다음 보기 모드",
+      "/": "검색",
+      Escape: "카드 또는 경로 닫기",
+      "?": "이 도움말",
+    },
+  },
 };
