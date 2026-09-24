@@ -33,18 +33,40 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+async def _start_ais_stream() -> None:
+    from websockets.asyncio.client import connect
+
+    from src.db.database import async_session_maker
+    from src.services.tracks.vessels import STREAM_URL, VesselStream
+
+    assert settings.aisstream_api_key is not None
+    stream = VesselStream(
+        api_key=settings.aisstream_api_key.get_secret_value(),
+        sessions=async_session_maker,
+        connect=lambda: connect(STREAM_URL, compression="deflate", open_timeout=10),
+        max_boxes=settings.ais_max_boxes,
+        box_degrees=settings.ais_box_degrees,
+    )
+    await stream.run_forever()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Starting Phoenix API...")
     initial_sync: asyncio.Task[None] | None = None
+    ais_stream: asyncio.Task[None] | None = None
+    if settings.scheduler_enabled and settings.aisstream_api_key:
+        # One AIS connection per deployment: it lives with the scheduler
+        ais_stream = asyncio.create_task(_start_ais_stream())
     if settings.scheduler_enabled:
         # Initial sync runs in the background: a slow or unreachable feed must
         # not block startup (it took up to ~47s with retries).
         initial_sync = asyncio.create_task(scheduler_service.sync_gdacs())
         scheduler_service.start(sync_interval_minutes=5)
     yield
-    if initial_sync is not None and not initial_sync.done():
-        initial_sync.cancel()
+    for task in (initial_sync, ais_stream):
+        if task is not None and not task.done():
+            task.cancel()
     if settings.scheduler_enabled:
         scheduler_service.stop()
     logger.info("Phoenix API shutdown complete")

@@ -529,6 +529,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tracks/vessels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vessels In View
+         * @description Ships (AIS) reported in the last 30 min around active high/critical events.
+         *
+         *     `enabled` is false when the server has no AISStream key (the list is then empty).
+         */
+        get: operations["vessels_in_view_api_v1_tracks_vessels_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/infrastructure": {
         parameters: {
             query?: never;
@@ -2088,6 +2110,42 @@ export interface operations {
                 lng: number;
                 /** @description Nautical miles */
                 radius_nm?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vessels_in_view_api_v1_tracks_vessels_get: {
+        parameters: {
+            query: {
+                min_lng: number;
+                min_lat: number;
+                max_lng: number;
+                max_lat: number;
             };
             header?: never;
             path?: never;

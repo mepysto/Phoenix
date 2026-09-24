@@ -213,4 +213,6 @@ uvloop==0.22.1
 watchfiles==1.3.0
     # via uvicorn
 websockets==17.1
-    # via uvicorn
+    # via
+    #   phoenix-api (pyproject.toml)
+    #   uvicorn
