@@ -51,6 +51,7 @@ const EVENT_ICONS: Partial<Record<EventType, React.ReactNode>> & {
 };
 
 function EventCard({ event }: { event: DisasterEvent }) {
+  const { t, lang } = useTranslation();
   const typeColor = EVENT_TYPE_COLORS[event.type as EventType] || "#808080";
   const severityColor =
     SEVERITY_COLORS[event.severity as SeverityLevel] || "#808080";
@@ -71,7 +72,7 @@ function EventCard({ event }: { event: DisasterEvent }) {
           <div className="flex-1">
             <h3 className="font-medium text-white">{event.title}</h3>
             <p className="mt-1 text-sm text-gray-400 line-clamp-2">
-              {event.description || "No description available"}
+              {event.description || t.detail.noDescription}
             </p>
           </div>
         </div>
@@ -85,15 +86,15 @@ function EventCard({ event }: { event: DisasterEvent }) {
             {event.location.country || formatPosition(getEventPosition(event))}
           </span>
         </div>
-        {event.affectedPopulation && (
+        {event.affectedPopulation != null && event.affectedPopulation > 0 && (
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
-            <span>{event.affectedPopulation.toLocaleString()} affected</span>
+            <span>{t.detail.affectedCount.replace("{n}", event.affectedPopulation.toLocaleString(lang))}</span>
           </div>
         )}
         <div className="flex items-center gap-1">
           <Clock className="h-4 w-4" />
-          <span>{new Date(event.startDate).toLocaleDateString()}</span>
+          <span>{new Date(event.startDate).toLocaleDateString(lang)}</span>
         </div>
       </div>
 
@@ -102,17 +103,17 @@ function EventCard({ event }: { event: DisasterEvent }) {
           className="rounded-full px-2 py-0.5 text-xs font-medium"
           style={{ backgroundColor: `${typeColor}20`, color: typeColor }}
         >
-          {EVENT_TYPE_LABELS[event.type as EventType]}
+          {t.sidebar[event.type as EventType] ?? event.type}
         </span>
         <span
           className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
           style={{ backgroundColor: severityColor }}
         >
-          {event.severity.toUpperCase()}
+          {t.sidebar[event.severity as SeverityLevel] ?? event.severity}
         </span>
         {event.isActive && (
           <span className="rounded-full bg-green-900/50 px-2 py-0.5 text-xs font-medium text-green-400">
-            Active
+            {t.detail.active}
           </span>
         )}
       </div>
@@ -202,7 +203,7 @@ function EventsPageContent() {
                   >
                     {EVENT_ICONS[type] ?? EVENT_ICONS.other}
                   </span>
-                  {EVENT_TYPE_LABELS[type]}
+                  {t.sidebar[type] ?? EVENT_TYPE_LABELS[type]}
                 </button>
               ))}
             </div>

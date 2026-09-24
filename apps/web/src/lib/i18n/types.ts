@@ -131,6 +131,7 @@ export interface Translations {
     reconnecting: string;
     share: string;
     linkCopied: string;
+    demo: string;
     engine3d: string;
     engine2d: string;
     engine3dKeyless: string;
@@ -273,5 +274,32 @@ export interface Translations {
     following: string;
     shortcuts: string;
     keys: Record<ShortcutKey, string>;
+  };
+  detail: {
+    loading: string;
+    notFound: string;
+    notFoundBody: string;
+    back: string;
+    active: string;
+    noDescription: string;
+    locationUnavailable: string;
+    dataSources: string;
+    details: string;
+    location: string;
+    affectedPopulation: string;
+    startDate: string;
+    endDate: string;
+    lastUpdated: string;
+    actions: string;
+    affectedCount: string;
+  };
+  errors: {
+    notFoundTitle: string;
+    notFoundBody: string;
+    home: string;
+    errorTitle: string;
+    errorBody: string;
+    errorId: string;
+    retry: string;
   };
 }

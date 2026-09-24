@@ -80,7 +80,7 @@ function MapPageContent() {
       )}
       {useDemo && (
         <div className="absolute left-1/2 top-4 z-50 -translate-x-1/2 rounded-lg bg-amber-700/90 px-4 py-2 text-sm text-white">
-          Demo mode — sample data, not real events
+          {t.map.demo}
         </div>
       )}
       <MapEngineWrapper

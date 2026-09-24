@@ -484,10 +484,11 @@ const ALL_LAYER_DEFINITIONS: LayerDefinition[] = [
         type: "circle",
         source: sourceId,
         paint: {
-          "circle-color": "#22d3ee",
-          "circle-radius": ["interpolate", ["linear"], ["coalesce", ["get", "height_m"], 10], 10, 2.5, 150, 8],
-          "circle-stroke-color": "#0e7490",
-          "circle-stroke-width": 1,
+          // Hollow rings, so dams stay distinct from hydro plants (solid blue dots)
+          "circle-color": "#0f172a",
+          "circle-radius": ["interpolate", ["linear"], ["coalesce", ["get", "height_m"], 10], 10, 3, 150, 8],
+          "circle-stroke-color": "#22d3ee",
+          "circle-stroke-width": 2,
         },
       } as LayerSpecification,
       INFRASTRUCTURE_LABEL(sourceId, 8),
