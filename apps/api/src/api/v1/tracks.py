@@ -1,4 +1,4 @@
-"""Moving things worth watching during a response (M5): satellites for now."""
+"""Moving things worth watching during a response (M5): satellites and aircraft."""
 
 from datetime import UTC, datetime
 from typing import Annotated, Any
@@ -6,6 +6,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Query, Response
 from pydantic import BaseModel
 
+from src.services.tracks.aircraft import MAX_RADIUS_NM, aircraft_service
 from src.services.tracks.satellites import CACHE_TTL_SECONDS, satellite_service
 
 router = APIRouter()
@@ -67,3 +68,15 @@ async def satellite_passes(
         min_elevation_deg=min_elevation,
         passes=[SatellitePass(**p.__dict__) for p in upcoming],
     )
+
+
+@router.get("/aircraft")
+async def aircraft_around(
+    response: Response,
+    lat: float = Query(..., ge=-90, le=90),
+    lng: float = Query(..., ge=-180, le=180),
+    radius_nm: float = Query(default=100, gt=0, le=MAX_RADIUS_NM, description="Nautical miles"),
+) -> dict[str, Any]:
+    """Aircraft (ADS-B, adsb.lol) around a point; privacy-programme aircraft are excluded."""
+    response.headers["Cache-Control"] = "public, max-age=10"
+    return await aircraft_service.around(lat, lng, radius_nm)
