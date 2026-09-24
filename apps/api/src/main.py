@@ -6,6 +6,7 @@ from typing import AsyncGenerator
 from fastapi import Depends, FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
@@ -100,6 +101,8 @@ async def upstream_error_handler(request: Request, exc: ExternalAPIError) -> JSO
     return JSONResponse(status_code=502, content={"detail": "Upstream data source unavailable"})
 
 
+# GeoJSON layers (fires, cables, cameras, ShakeMaps) compress 4-5x
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,

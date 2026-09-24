@@ -53,6 +53,7 @@ export const ru: Translations = {
     powerPlants: "Электростанции (WRI)",
     dams: "Плотины (Global Dam Watch)",
     hospitals: "Больницы (OSM)",
+    submarineCables: "Подводные кабели",
     satellites: "Спутники наблюдения Земли",
     aircraft: "Воздушные суда (ADS-B, масштаб 5+)",
     vessels: "Суда у зон бедствий (AIS, масштаб 4+)",

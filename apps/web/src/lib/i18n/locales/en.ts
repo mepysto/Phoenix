@@ -53,6 +53,7 @@ export const en: Translations = {
     powerPlants: "Power Plants (WRI)",
     dams: "Dams (Global Dam Watch)",
     hospitals: "Hospitals (OSM)",
+    submarineCables: "Submarine cables",
     satellites: "Earth-observation satellites",
     aircraft: "Aircraft (ADS-B, zoom 5+)",
     vessels: "Ships near disasters (AIS, zoom 4+)",

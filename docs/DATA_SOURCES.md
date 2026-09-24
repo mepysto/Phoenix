@@ -51,6 +51,7 @@ per map viewport (`GET /api/v1/infrastructure`), most significant first.
 | **WRI Global Power Plant Database** v1.3 | ~35,000 power plants (capacity, fuel) | CC BY 4.0 | ✅ | "Power plants: WRI Global Power Plant Database (CC BY 4.0)". Frozen since 2021. | Static |
 | **Global Dam Watch** v1 (EU JRC open-data mirror) | ~41,000 dams (height, reservoir, use) | CC BY 4.0, © European Union | ✅ | "Dams: Global Dam Watch (CC BY 4.0)"; reuse must credit the source and indicate changes | Static |
 | **OpenStreetMap (via OpenFreeMap)** | Hospitals (zoom 14+; OpenMapTiles omits them at lower zooms) | ODbL | ✅ | "© OpenStreetMap contributors" (drawn from the basemap's vector tiles; no extra requests) | Weekly |
+| **TeleGeography Submarine Cable Map** | ~730 submarine cables and ~1,900 landing stations (communications recovery after coastal disasters) | CC BY-NC-SA 3.0 | ❌ non-commercial only | "Submarine cables: TeleGeography (CC BY-NC-SA 3.0)"; derivatives share alike. Proxied, cached 1 day, coordinates rounded to ~100 m | Daily |
 
 The public Overpass API was not used: its policy says public instances must
 not be relied on as the backend of a public website.

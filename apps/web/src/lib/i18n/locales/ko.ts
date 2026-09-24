@@ -53,6 +53,7 @@ export const ko: Translations = {
     powerPlants: "발전소 (WRI)",
     dams: "댐 (Global Dam Watch)",
     hospitals: "병원 (OSM)",
+    submarineCables: "해저 케이블",
     satellites: "지구관측 위성",
     aircraft: "항공기 (ADS-B, 줌 5+)",
     vessels: "재난 인근 선박 (AIS, 줌 4+)",

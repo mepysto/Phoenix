@@ -58,6 +58,7 @@ export interface Translations {
     powerPlants: string;
     dams: string;
     hospitals: string;
+    submarineCables: string;
     satellites: string;
     aircraft: string;
     vessels: string;

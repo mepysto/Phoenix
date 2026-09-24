@@ -53,6 +53,7 @@ export const ar: Translations = {
     powerPlants: "محطات الطاقة (WRI)",
     dams: "السدود (Global Dam Watch)",
     hospitals: "المستشفيات (OSM)",
+    submarineCables: "الكابلات البحرية",
     satellites: "أقمار رصد الأرض",
     aircraft: "الطائرات (ADS-B، تكبير 5+)",
     vessels: "السفن قرب الكوارث (AIS، تكبير 4+)",
