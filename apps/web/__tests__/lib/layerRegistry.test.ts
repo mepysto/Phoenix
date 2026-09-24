@@ -55,6 +55,30 @@ describe("layer registry", () => {
     expect((labels as { filter?: unknown }).filter).toEqual(["==", ["%", ["get", "mmi"], 1], 0]);
   });
 
+  it("infrastructure layers query the viewport and hospitals reuse the basemap", () => {
+    const plants = LAYER_DEFINITIONS_BY_ID.get("power-plants")!;
+    const dams = LAYER_DEFINITIONS_BY_ID.get("dams")!;
+    const hospitals = LAYER_DEFINITIONS_BY_ID.get("hospitals")!;
+    for (const layer of [plants, dams]) {
+      if (layer.kind !== "geojson") throw new Error("expected geojson");
+      expect(layer.viewportDriven).toBe(true);
+      expect(layer.minZoom).toBeGreaterThan(0); // never fetch 76k assets for the globe
+    }
+    expect(hospitals.kind).toBe("style");
+  });
+
+  it("infrastructure requests carry the viewport bbox and kind", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
+    vi.stubGlobal("fetch", fetchMock);
+    const plants = LAYER_DEFINITIONS_BY_ID.get("power-plants")!;
+    if (plants.kind !== "geojson") throw new Error("expected geojson");
+    await plants.loadData({ bbox: [170, -30, -170, 0], zoom: 5 });
+    const url = new URL(fetchMock.mock.calls[0]![0] as string);
+    expect(Object.fromEntries(url.searchParams)).toMatchObject({
+      min_lng: "170", max_lng: "-170", min_lat: "-30", max_lat: "0", kinds: "power_plant",
+    });
+  });
+
   it("radar uses the newest RainViewer frame", async () => {
     vi.stubGlobal(
       "fetch",

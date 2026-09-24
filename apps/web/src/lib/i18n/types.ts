@@ -50,6 +50,9 @@ export interface Translations {
     nightLights: string;
     cyclones: string;
     shakemaps: string;
+    powerPlants: string;
+    dams: string;
+    hospitals: string;
     opacity: string;
     // Footer
     dataSource: string;

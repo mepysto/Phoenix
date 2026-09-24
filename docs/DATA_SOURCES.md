@@ -40,6 +40,20 @@ A unit test fails if a registry source is missing from this file.
 | **USGS ShakeMap** | Shaking-intensity contours (MMI IV+) of the past week's M4.5+ earthquakes | U.S. Government public domain | ✅ | "Shaking intensity: USGS ShakeMap"; aggregated and cached by the API | 10 min |
 | **NASA GIBS** — VIIRS SNPP Day/Night Band | Night lights (power-outage indicator) | NASA open data (no restrictions) | ✅ | "Imagery © NASA GIBS / ESDIS" | Daily |
 
+## Infrastructure (reference data)
+
+Imported into PostGIS by `python -m scripts.import_infrastructure` and served
+per map viewport (`GET /api/v1/infrastructure`), most significant first.
+
+| Source | Layer | Licence | Commercial | Attribution / conditions | Updated |
+|---|---|---|---|---|---|
+| **WRI Global Power Plant Database** v1.3 | ~35,000 power plants (capacity, fuel) | CC BY 4.0 | ✅ | "Power plants: WRI Global Power Plant Database (CC BY 4.0)". Frozen since 2021. | Static |
+| **Global Dam Watch** v1 (EU JRC open-data mirror) | ~41,000 dams (height, reservoir, use) | CC BY 4.0, © European Union | ✅ | "Dams: Global Dam Watch (CC BY 4.0)"; reuse must credit the source and indicate changes | Static |
+| **OpenStreetMap (via OpenFreeMap)** | Hospitals (zoom 14+; OpenMapTiles omits them at lower zooms) | ODbL | ✅ | "© OpenStreetMap contributors" (drawn from the basemap's vector tiles; no extra requests) | Weekly |
+
+The public Overpass API was not used: its policy says public instances must
+not be relied on as the backend of a public website.
+
 ## Removed sources
 
 | Source | Why |
