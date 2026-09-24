@@ -56,6 +56,9 @@ export interface Translations {
     hospitals: string;
     satellites: string;
     aircraft: string;
+    vessels: string;
+    /** Tooltip on layers that need an API key on the server */
+    keyRequired: string;
     opacity: string;
     // Footer
     dataSource: string;

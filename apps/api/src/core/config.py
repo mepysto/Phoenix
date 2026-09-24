@@ -44,6 +44,14 @@ class Settings(BaseSettings):
     agent_session_token_cap: int = 200_000
     agent_daily_token_cap: int = 5_000_000
 
+    # Ships (M5, AISStream). Off unless a key is set. One stream per
+    # deployment (it runs where the scheduler runs); AISStream allows only
+    # 3 connections per account.
+    aisstream_api_key: SecretStr | None = None
+    # Boxes watched around active high/critical events (degrees half-width)
+    ais_max_boxes: int = 20
+    ais_box_degrees: float = 3.0
+
     @model_validator(mode="after")
     def reject_insecure_production(self) -> "Settings":
         if self.environment == "production":

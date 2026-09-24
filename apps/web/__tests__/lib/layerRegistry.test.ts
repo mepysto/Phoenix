@@ -10,16 +10,19 @@ import {
 const radar = LAYER_DEFINITIONS_BY_ID.get("radar") as RasterLayerDefinition;
 const clouds = LAYER_DEFINITIONS_BY_ID.get("clouds-infrared") as RasterLayerDefinition;
 
+const KEYED_LAYERS = ["vessels"];
+
 describe("layer registry", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("every layer declares provenance and is keyless for now", () => {
+  it("every layer declares provenance; only known layers need a server key", () => {
     for (const layer of LAYER_DEFINITIONS) {
       expect(layer.source.name, layer.id).toBeTruthy();
       expect(layer.source.license, layer.id).toBeTruthy();
       expect(layer.source.attribution, layer.id).toBeTruthy();
       expect(typeof layer.source.commercialUse, layer.id).toBe("boolean");
-      expect(layer.auth, layer.id).toBe("keyless");
+      // Keys are upgrades, not gates: a new keyed layer must be a deliberate choice
+      expect(layer.auth === "keyless" || KEYED_LAYERS.includes(layer.id), layer.id).toBe(true);
     }
     expect(new Set(LAYER_DEFINITIONS.map((l) => l.id)).size).toBe(LAYER_DEFINITIONS.length);
   });

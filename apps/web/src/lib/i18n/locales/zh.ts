@@ -55,6 +55,8 @@ export const zh: Translations = {
     hospitals: "医院 (OSM)",
     satellites: "对地观测卫星",
     aircraft: "飞机（ADS-B，缩放 5+）",
+    vessels: "灾区附近船舶（AIS，缩放 4+）",
+    keyRequired: "需要在服务器上配置 API 密钥",
     opacity: "透明度",
     dataSource: "数据来源: GDACS, Copernicus EMS",
     eventsCount: "个事件",

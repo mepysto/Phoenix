@@ -55,6 +55,8 @@ export const ar: Translations = {
     hospitals: "المستشفيات (OSM)",
     satellites: "أقمار رصد الأرض",
     aircraft: "الطائرات (ADS-B، تكبير 5+)",
+    vessels: "السفن قرب الكوارث (AIS، تكبير 4+)",
+    keyRequired: "يتطلب مفتاح API على الخادم",
     opacity: "الشفافية",
     dataSource: "البيانات: GDACS, Copernicus EMS",
     eventsCount: "أحداث",

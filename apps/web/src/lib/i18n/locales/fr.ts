@@ -55,6 +55,8 @@ export const fr: Translations = {
     hospitals: "Hôpitaux (OSM)",
     satellites: "Satellites d'observation de la Terre",
     aircraft: "Aéronefs (ADS-B, zoom 5+)",
+    vessels: "Navires près des catastrophes (AIS, zoom 4+)",
+    keyRequired: "Nécessite une clé d'API sur le serveur",
     opacity: "Opacité",
     dataSource: "Données: GDACS, Copernicus EMS",
     eventsCount: "événements",

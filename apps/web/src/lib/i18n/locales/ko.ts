@@ -55,6 +55,8 @@ export const ko: Translations = {
     hospitals: "병원 (OSM)",
     satellites: "지구관측 위성",
     aircraft: "항공기 (ADS-B, 줌 5+)",
+    vessels: "재난 인근 선박 (AIS, 줌 4+)",
+    keyRequired: "서버에 API 키가 필요합니다",
     opacity: "투명도",
     dataSource: "데이터: GDACS, Copernicus EMS",
     eventsCount: "개 이벤트",
