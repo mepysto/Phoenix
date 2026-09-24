@@ -98,3 +98,6 @@ pnpm-debug.log*
 # Misc
 *.pem
 .cache/
+
+# Local AI tooling state (claude-flow / ruflo)
+.claude-flow/
