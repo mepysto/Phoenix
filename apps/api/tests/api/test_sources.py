@@ -58,3 +58,14 @@ def test_endpoint_lists_sources_and_hides_error_unless_failing(client: TestClien
     assert [s["name"] for s in body] == ["GDACS", "usgs"]  # case-insensitive order
     assert body[0]["status"] == "failing" and body[0]["last_error"] == "ExternalAPIError"
     assert body[1]["status"] == "fresh" and body[1]["last_error"] is None
+
+
+def test_cyclones_endpoint_returns_geojson_with_cache_header(client: TestClient) -> None:
+    fc = {"type": "FeatureCollection", "features": [], "active_storms": 0, "stale": False}
+    with patch(
+        "src.api.v1.hazards.nhc_cyclone_service.get_cyclones", AsyncMock(return_value=fc)
+    ):
+        response = client.get("/api/v1/hazards/cyclones")
+    assert response.status_code == 200
+    assert response.json()["type"] == "FeatureCollection"
+    assert "max-age" in response.headers["cache-control"]
