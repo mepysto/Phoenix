@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
+import { configureMaplibreWorker } from "@/lib/map/maplibreWorker";
 import { DARK_STYLE_URL } from "@/lib/map/basemaps";
+
+configureMaplibreWorker(maplibregl);
 
 interface MiniMapProps {
   lat: number;

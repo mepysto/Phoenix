@@ -16,20 +16,20 @@
     "test:e2e:headed": "playwright test --headed",
     "generate:types": "openapi-typescript http://localhost:28000/openapi.json -o src/lib/api/schema.d.ts",
     "generate:types:local": "openapi-typescript openapi.json -o src/lib/api/schema.d.ts",
-    "predev": "node scripts/copy-cesium-assets.mjs",
-    "prebuild": "node scripts/copy-cesium-assets.mjs"
+    "predev": "node scripts/copy-map-assets.mjs",
+    "prebuild": "node scripts/copy-map-assets.mjs"
   },
   "dependencies": {
     "@phoenix/shared": "workspace:*",
-    "cesium": "^1.136.0",
+    "cesium": "^1.145.0",
     "hls.js": "^1.7.3",
     "lucide-react": "^0.468.0",
-    "maplibre-gl": "^5.0.0",
-    "next": "^15.1.2",
+    "maplibre-gl": "^6.11.1",
+    "next": "^15.5.26",
     "openapi-fetch": "^0.15.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "resium": "^1.19.2",
+    "resium": "^1.26.0",
     "zustand": "^5.0.2"
   },
   "devDependencies": {
@@ -45,7 +45,7 @@
     "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.17.0",
-    "eslint-config-next": "^15.1.2",
+    "eslint-config-next": "^15.5.26",
     "jsdom": "^27.4.0",
     "openapi-typescript": "^7.4.4",
     "postcss": "^8.4.49",

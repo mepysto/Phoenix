@@ -16,6 +16,7 @@ import { applyBasemap, loadBasemapStyle } from "@/lib/map/basemaps";
 import type { MapView } from "@/lib/map/urlState";
 import { currentViewport } from "@/lib/map/viewport";
 import { setMapInstance } from "@/lib/map/mapInstance";
+import { configureMaplibreWorker } from "@/lib/map/maplibreWorker";
 import { addEventLayers, eventsToGeoJSON, readView } from "@/lib/map/eventLayers";
 import { viewModeFilter } from "@/lib/map/viewModes";
 import { EventInfoPanel } from "./EventInfoPanel";
@@ -94,6 +95,7 @@ export default function GlobeViewer({
 
     const initMap = async () => {
       const maplibregl = await import("maplibre-gl");
+      configureMaplibreWorker(maplibregl);
       maplibreRef.current = maplibregl;
 
       // Unmounted (or StrictMode's first pass cleaned up) while loading
