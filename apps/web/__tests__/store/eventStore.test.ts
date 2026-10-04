@@ -43,6 +43,7 @@ import { APIError, eventsAPI } from "@/lib/api/client";
 import {
   ALL_EVENT_TYPES,
   ALL_SEVERITIES,
+  NEW_EVENT_TTL_MS,
   useEventStore,
 } from "@/store/eventStore";
 
@@ -55,6 +56,7 @@ const resetStore = () => {
     filter: {},
     visibleTypes: new Set(ALL_EVENT_TYPES),
     visibleSeverities: new Set(ALL_SEVERITIES),
+    newEvents: {},
     pagination: {
       total: 0,
       limit: 50,
@@ -340,6 +342,74 @@ describe("eventStore", () => {
       });
       expect(eventsAPI.get).not.toHaveBeenCalled();
       expect(eventsAPI.list).toHaveBeenCalled();
+    });
+  });
+
+  describe("new-event marks (live arrivals)", () => {
+    const ev = (id: string, over: Record<string, unknown> = {}) => ({
+      id,
+      type: "flood",
+      severity: "low",
+      isActive: true,
+      startDate: "2026-09-01T00:00:00Z",
+      title: id,
+      ...over,
+    });
+    const marked = () => Object.keys(useEventStore.getState().newEvents).sort();
+
+    it("marks events that appear, not ones that were only updated", async () => {
+      useEventStore.setState({ events: [ev("old")] as never });
+      vi.mocked(eventsAPI.get).mockImplementation(async (id: string) => ev(id) as never);
+
+      await act(async () => {
+        await useEventStore.getState().applyEventChanges(["old", "new"]);
+      });
+
+      expect(marked()).toEqual(["new"]);
+    });
+
+    it("does not mark an arrival that the visible filters hide", async () => {
+      useEventStore.setState({ events: [ev("a")] as never, visibleSeverities: new Set(["low"]) as never });
+      vi.mocked(eventsAPI.get).mockResolvedValue(ev("hidden", { severity: "critical" }) as never);
+
+      await act(async () => {
+        await useEventStore.getState().applyEventChanges(["hidden"]);
+      });
+
+      expect(marked()).toEqual([]);
+    });
+
+    it("marks arrivals found by a large-batch refetch, but not a first load", async () => {
+      const ids = Array.from({ length: 21 }, (_, i) => `e${i}`);
+      const page = (list: string[]) => ({
+        data: list.map((id) => ev(id)),
+        pagination: { total: list.length, limit: 200, offset: 0, hasMore: false },
+      });
+
+      vi.mocked(eventsAPI.list).mockResolvedValueOnce(page(["a"]) as never);
+      await act(async () => {
+        await useEventStore.getState().applyEventChanges(ids);
+      });
+      expect(marked()).toEqual([]);
+
+      vi.mocked(eventsAPI.list).mockResolvedValueOnce(page(["a", "b"]) as never);
+      await act(async () => {
+        await useEventStore.getState().applyEventChanges(ids);
+      });
+      expect(marked()).toEqual(["b"]);
+    });
+
+    it("clears the mark when the user opens the event", () => {
+      useEventStore.setState({ newEvents: { a: Date.now(), b: Date.now() } });
+      act(() => useEventStore.getState().selectEvent(ev("a") as never));
+      expect(marked()).toEqual(["b"]);
+    });
+
+    it("expires marks after the TTL", () => {
+      const now = 1_000_000_000;
+      useEventStore.setState({ newEvents: { stale: now - NEW_EVENT_TTL_MS, fresh: now - 1000 } });
+      act(() => useEventStore.getState().pruneNewEvents(now));
+      expect(marked()).toEqual(["fresh"]);
     });
   });
 });

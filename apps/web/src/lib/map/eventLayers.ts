@@ -36,7 +36,13 @@ export function readView(map: MapLibreMap): MapView {
   };
 }
 
-export function eventsToGeoJSON(events: DisasterEvent[]): GeoJSON.FeatureCollection {
+/** Map layer that rings events which just arrived from live updates */
+export const NEW_EVENTS_LAYER = "events-new";
+
+export function eventsToGeoJSON(
+  events: DisasterEvent[],
+  newIds: ReadonlySet<string> = new Set(),
+): GeoJSON.FeatureCollection {
   const features: GeoJSON.Feature[] = [];
   for (const event of events) {
     const position = getEventPosition(event);
@@ -57,6 +63,7 @@ export function eventsToGeoJSON(events: DisasterEvent[]): GeoJSON.FeatureCollect
         size: getMarkerSize(event.severity as SeverityLevel),
         affectedPopulation: event.affectedPopulation || 0,
         country: event.location.country || "",
+        isNew: newIds.has(event.id),
       },
     });
   }
@@ -154,6 +161,21 @@ export function addEventLayers(
         "circle-color": ["get", "color"],
         "circle-opacity": 0.3,
         "circle-stroke-width": 0,
+      },
+    });
+
+    // Radius and opacity are driven per frame by useNewEventPulse
+    map.addLayer({
+      id: NEW_EVENTS_LAYER,
+      type: "circle",
+      source: "events",
+      filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "isNew"], true]],
+      paint: {
+        "circle-radius": ["+", ["get", "size"], 6],
+        "circle-color": "rgba(0,0,0,0)",
+        "circle-stroke-color": ["get", "color"],
+        "circle-stroke-width": 2,
+        "circle-stroke-opacity": 0.9,
       },
     });
 

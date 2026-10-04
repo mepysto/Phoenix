@@ -34,6 +34,8 @@ interface EventState {
     offset: number;
     hasMore: boolean;
   };
+  /** Events that appeared on the map from live updates: id -> arrival (ms) */
+  newEvents: Record<string, number>;
 }
 
 interface EventActions {
@@ -47,6 +49,11 @@ interface EventActions {
   clearFilters: () => void;
   /** Apply live change notifications (ids from the WebSocket stream) */
   applyEventChanges: (eventIds: string[]) => Promise<void>;
+  /** The user has seen this new event (opened it) */
+  dismissNewEvent: (id: string) => void;
+  clearNewEvents: () => void;
+  /** Forget new-event marks older than NEW_EVENT_TTL_MS */
+  pruneNewEvents: (now?: number) => void;
 }
 
 type EventStore = EventState & EventActions;
@@ -58,6 +65,15 @@ export const MAX_EVENTS = 2000;
 let latestRequestId = 0;
 /** Above this many changed ids, refetch the list instead of each event */
 const MAX_INDIVIDUAL_FETCHES = 20;
+/** How long a live arrival stays marked as new */
+export const NEW_EVENT_TTL_MS = 10 * 60_000;
+
+function withNew(marks: Record<string, number>, ids: string[], now: number): Record<string, number> {
+  if (ids.length === 0) return marks;
+  const next = { ...marks };
+  for (const id of ids) next[id] = now;
+  return next;
+}
 
 function matchesVisibleFilters(
   event: ApiDisasterEvent,
@@ -85,6 +101,7 @@ const initialState: EventState = {
     offset: 0,
     hasMore: false,
   },
+  newEvents: {},
 };
 
 const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
@@ -145,6 +162,7 @@ const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
 
   selectEvent: (event) => {
     set({ selectedEvent: event });
+    if (event) get().dismissNewEvent(event.id);
   },
 
   setFilter: (newFilter) => {
@@ -194,12 +212,18 @@ const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
     // Large batches (a full sync) or an active text search: one refresh is
     // cheaper and keeps server-side filtering authoritative.
     if (eventIds.length > MAX_INDIVIDUAL_FETCHES || filter.q) {
+      const before = new Set(get().events.map((e) => e.id));
       await get().fetchEvents();
+      // Nothing loaded before means this is a first load, not arrivals
+      if (before.size === 0) return;
+      const arrived = get().events.map((e) => e.id).filter((id) => !before.has(id));
+      set((state) => ({ newEvents: withNew(state.newEvents, arrived, Date.now()) }));
       return;
     }
     const results = await Promise.allSettled(eventIds.map((id) => eventsAPI.get(id)));
     set((state) => {
       const byId = new Map(state.events.map((e) => [e.id, e]));
+      const arrived: string[] = [];
       results.forEach((result, i) => {
         const id = eventIds[i]!;
         if (result.status === "rejected") {
@@ -208,14 +232,33 @@ const storeImpl: StateCreator<EventStore, [], []> = (set, get) => ({
           return;
         }
         const event = result.value;
-        if (matchesVisibleFilters(event, state)) byId.set(id, event);
-        else byId.delete(id); // e.g. severity changed out of the visible set
+        if (matchesVisibleFilters(event, state)) {
+          if (!byId.has(id)) arrived.push(id);
+          byId.set(id, event);
+        } else byId.delete(id); // e.g. severity changed out of the visible set
       });
       const events = [...byId.values()].sort(
         (a, b) => Date.parse(b.startDate) - Date.parse(a.startDate),
       );
-      return { events };
+      return { events, newEvents: withNew(state.newEvents, arrived, Date.now()) };
     });
+  },
+
+  dismissNewEvent: (id) => {
+    if (!(id in get().newEvents)) return;
+    set((state) => {
+      const rest = { ...state.newEvents };
+      delete rest[id];
+      return { newEvents: rest };
+    });
+  },
+
+  clearNewEvents: () => set({ newEvents: {} }),
+
+  pruneNewEvents: (now = Date.now()) => {
+    const marks = get().newEvents;
+    const kept = Object.entries(marks).filter(([, at]) => now - at < NEW_EVENT_TTL_MS);
+    if (kept.length !== Object.keys(marks).length) set({ newEvents: Object.fromEntries(kept) });
   },
 
   clearFilters: () => {
