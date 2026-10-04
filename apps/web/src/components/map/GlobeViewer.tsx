@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import type {
   Map as MapLibreMap,
   NavigationControl,
@@ -8,6 +8,7 @@ import type {
   GeoJSONSource,
 } from "maplibre-gl";
 import type { ApiDisasterEvent } from "@/lib/api/client";
+import { useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -24,6 +25,7 @@ import { MapControls } from "./MapControls";
 import { MapLegend } from "./MapLegend";
 import { ViewModeFilters } from "./ViewModeFilters";
 import { useMapOverlays } from "./useMapOverlays";
+import { useNewEventPulse } from "./useNewEventPulse";
 
 type DisasterEvent = ApiDisasterEvent;
 
@@ -223,14 +225,18 @@ export default function GlobeViewer({
     }
   }, [focusEvent, mapReady]);
 
+  const newEvents = useEventStore((s) => s.newEvents);
+  const newIds = useMemo(() => new Set(Object.keys(newEvents)), [newEvents]);
+  useNewEventPulse(map, mapReady, newIds.size > 0);
+
   useEffect(() => {
     if (!map.current || !mapReady) return;
 
     const source = map.current.getSource("events") as GeoJSONSource | undefined;
     if (source) {
-      source.setData(eventsToGeoJSON(events));
+      source.setData(eventsToGeoJSON(events, newIds));
     }
-  }, [events, mapReady]);
+  }, [events, newIds, mapReady]);
 
   useEffect(() => {
     if (!map.current || !mapReady) return;

@@ -129,6 +129,10 @@ export interface Translations {
     initializingGlobe: string;
     live: string;
     reconnecting: string;
+    /** Badge for live arrivals; {n} = count */
+    newEvents: string;
+    showNewest: string;
+    dismissNew: string;
     share: string;
     linkCopied: string;
     demo: string;
