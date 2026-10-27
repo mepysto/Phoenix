@@ -15,7 +15,7 @@ dependencies = [
     "pydantic>=2.10.0",
     "pydantic-settings>=2.6.0",
     "alembic>=1.14.0",
-    "httpx>=0.28.0",
+    "httpx>=0.28.1",
     "redis>=5.2.0",
     "apscheduler>=3.10.0",
     "python-multipart>=0.0.18",
@@ -40,7 +40,7 @@ dev = [
     "black>=24.10.0",
     "ruff>=0.8.0",
     "mypy>=1.13.0",
-    "httpx>=0.28.0",
+    "httpx>=0.28.1",
 ]
 
 [tool.ruff]
