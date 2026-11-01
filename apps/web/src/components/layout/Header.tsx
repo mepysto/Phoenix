@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Menu, Search, Settings, X } from "lucide-react";
+import { Bell, LogOut, Menu, Search, Settings, X } from "lucide-react";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { usePathname } from "next/navigation";
@@ -96,6 +96,15 @@ export function Header() {
               {t.common.about}
             </Link>
           </nav>
+          <Link
+            href="/alerts"
+            aria-label={t.alerts.title}
+            title={t.alerts.title}
+            aria-current={isActive("/alerts") ? "page" : undefined}
+            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+          >
+            <Bell className="h-5 w-5" aria-hidden="true" />
+          </Link>
           {status === "signed-in" && me ? (
             <div className="flex items-center gap-1">
               <Link

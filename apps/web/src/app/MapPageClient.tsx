@@ -7,6 +7,7 @@ import { useEventStore } from "@/store/eventStore";
 import { DEMO_EVENTS, DEMO_MODE } from "@/lib/demo/demoEvents";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useLiveEvents } from "@/hooks/useLiveEvents";
+import { useAreaAlerts } from "@/hooks/useAreaAlerts";
 import { NewEventsBadge } from "@/components/map/NewEventsBadge";
 import { useMapUrlState } from "@/hooks/useMapUrlState";
 import { AgentPanel } from "@/components/agent/AgentPanel";
@@ -41,6 +42,7 @@ function MapPageContent() {
   const selectEvent = useEventStore((s) => s.selectEvent);
   const { t } = useTranslation();
   const liveStatus = useLiveEvents();
+  useAreaAlerts();
   useKeyboardShortcuts();
   useFollowCamera();
 
