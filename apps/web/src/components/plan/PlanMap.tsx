@@ -4,17 +4,11 @@ import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
 import { DARK_STYLE_URL } from "@/lib/map/basemaps";
 import { configureMaplibreWorker } from "@/lib/map/maplibreWorker";
+import { KIND_COLORS } from "./kindColors";
 import { SPHERE, type ItemKind, type PlanItem } from "@/lib/sphere";
 
 configureMaplibreWorker(maplibregl);
 
-export const KIND_COLORS: Record<ItemKind, string> = {
-  tent: "#c9d3e2",
-  tap: "#38bdf8",
-  toilet: "#a78bfa",
-  health: "#34d0ac",
-  distribution: "#f5b83d",
-};
 
 // Used when the basemap style cannot be fetched (offline, blocked, slow
 // field links): the plan still works on a plain background with the scale.

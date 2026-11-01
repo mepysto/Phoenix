@@ -19,7 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
-import { KIND_COLORS } from "@/components/plan/PlanMap";
+import { KIND_COLORS } from "@/components/plan/kindColors";
 import { eventsAPI } from "@/lib/api/client";
 import { getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
