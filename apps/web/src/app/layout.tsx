@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono, Sora } from "next/font/google";
 import "./globals.css";
 import { SettingsProvider } from "@/components/providers/SettingsProvider";
+import { ServiceWorker } from "@/components/providers/ServiceWorker";
 
 // Sora: geometric and open at small sizes, with a wide stance for headings
 const sora = Sora({
@@ -33,6 +34,7 @@ export default function RootLayout({
         className={`${sora.variable} ${geistMono.variable} antialiased`}
       >
         <SettingsProvider>{children}</SettingsProvider>
+        <ServiceWorker />
       </body>
     </html>
   );

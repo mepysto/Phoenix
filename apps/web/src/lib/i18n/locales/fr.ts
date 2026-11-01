@@ -713,4 +713,15 @@ export const fr: Translations = {
     view: "Voir le plan de site",
     saveFailed: "Enregistrement impossible. Vérifiez la connexion et réessayez.",
   },
+  push: {
+    title: "Alertes quand Phoenix est fermé",
+    body: "Recevez des alertes même sans onglet Phoenix ouvert. L'activation envoie vos zones au serveur Phoenix, arrondies à environ 10 km ; la désactivation les supprime.",
+    on: "Activer",
+    off: "Désactiver",
+    isOn: "Activé pour {n} zones",
+    unavailable: "Ce serveur Phoenix n'a pas configuré les alertes onglet fermé.",
+    unsupported: "Ce navigateur ne prend pas en charge les alertes onglet fermé.",
+    needArea: "Ajoutez d'abord une zone.",
+    failed: "Impossible de modifier ce réglage. Réessayez.",
+  },
 };

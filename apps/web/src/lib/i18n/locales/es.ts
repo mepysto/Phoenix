@@ -711,4 +711,15 @@ export const es: Translations = {
     view: "Ver plan de sitio",
     saveFailed: "No se pudo guardar. Compruebe la conexión e inténtelo de nuevo.",
   },
+  push: {
+    title: "Alertas con Phoenix cerrado",
+    body: "Reciba avisos aunque no tenga Phoenix abierto. Al activarlo, sus zonas se envían al servidor de Phoenix redondeadas a unos 10 km; al desactivarlo se borran.",
+    on: "Activar",
+    off: "Desactivar",
+    isOn: "Activado para {n} zonas",
+    unavailable: "Este servidor de Phoenix no tiene configuradas las alertas con la pestaña cerrada.",
+    unsupported: "Este navegador no admite alertas con la pestaña cerrada.",
+    needArea: "Añada primero una zona.",
+    failed: "No se pudo cambiar el ajuste. Inténtelo de nuevo.",
+  },
 };

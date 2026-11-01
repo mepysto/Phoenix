@@ -26,8 +26,12 @@ certifi==2026.7.22
     #   pyogrio
     #   pyproj
     #   skyfield
+cffi==2.1.1
+    # via cryptography
 click==8.5.0
     # via uvicorn
+cryptography==50.0.2
+    # via phoenix-api (pyproject.toml)
 defusedxml==0.7.1
     # via phoenix-api (pyproject.toml)
 docstring-parser==0.18.0
@@ -89,6 +93,8 @@ packaging==26.3
     #   pyogrio
 pandas==3.0.6
     # via geopandas
+pycparser==3.12
+    # via cffi
 pydantic==2.13.5
     # via
     #   phoenix-api (pyproject.toml)

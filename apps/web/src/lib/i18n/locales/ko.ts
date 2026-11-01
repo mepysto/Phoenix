@@ -709,4 +709,15 @@ export const ko: Translations = {
     view: "배치 계획 보기",
     saveFailed: "저장하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
   },
+  push: {
+    title: "Phoenix를 닫아도 받는 알림",
+    body: "Phoenix 탭이 열려 있지 않아도 알림을 받습니다. 켜면 지정한 지역이 약 10 km 단위로 반올림되어 Phoenix 서버로 전송되고, 끄면 삭제됩니다.",
+    on: "켜기",
+    off: "끄기",
+    isOn: "지역 {n}곳에 대해 켜짐",
+    unavailable: "이 Phoenix 서버에는 닫힌 탭 알림이 설정되어 있지 않습니다.",
+    unsupported: "이 브라우저는 닫힌 탭 알림을 지원하지 않습니다.",
+    needArea: "먼저 지역을 추가하세요.",
+    failed: "설정을 바꾸지 못했습니다. 다시 시도하세요.",
+  },
 };

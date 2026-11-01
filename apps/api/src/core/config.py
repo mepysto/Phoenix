@@ -92,6 +92,11 @@ class Settings(BaseSettings):
     # the flow works without mail. Ignored when ENVIRONMENT=production.
     auth_dev_return_link: bool = False
 
+    # Closed-tab alerts (Web Push). Off unless a VAPID key is set; generate
+    # one with `python -m scripts.gen_vapid_keys`.
+    vapid_private_key: SecretStr | None = None
+    vapid_subject: str = "mailto:ops@example.org"
+
     @property
     def secure_cookies(self) -> bool:
         return self.public_web_url.startswith("https://")

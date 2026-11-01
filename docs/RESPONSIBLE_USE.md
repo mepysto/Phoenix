@@ -71,8 +71,16 @@ non-commercial use only, and must check the remaining terms itself.
 
 - API keys live **only on the server** and are never sent to browsers. Layers
   that need a key show as locked until an operator configures one.
-- Phoenix has no user accounts in its public map and sets no tracking cookies.
-  Settings are stored in the viewer's own browser.
+- The public map needs no account and sets no tracking cookies. Settings
+  are stored in the viewer's own browser.
+- Accounts exist only for needs, offers and site plans, by emailed sign-in
+  link. A connection's contact addresses are shared only after both sides
+  approve it.
+- Area alerts keep watch areas in the browser. Only if someone turns on
+  alerts while Phoenix is closed are their areas sent to the server,
+  rounded to about 10 km and tied to no account; turning it off deletes
+  them. Push messages are encrypted end to end (RFC 8291), and the server
+  only sends to the browser vendors' push services.
 
 ## 6. Reporting concerns
 

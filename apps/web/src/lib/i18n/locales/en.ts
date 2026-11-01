@@ -710,4 +710,15 @@ export const en: Translations = {
     view: "View site plan",
     saveFailed: "Could not save. Check your connection and try again.",
   },
+  push: {
+    title: "Alerts when Phoenix is closed",
+    body: "Get notified even when no Phoenix tab is open. Turning this on sends your areas to the Phoenix server, rounded to about 10 km; turning it off deletes them.",
+    on: "Turn on",
+    off: "Turn off",
+    isOn: "On for {n} areas",
+    unavailable: "This Phoenix server has not set up closed-tab alerts.",
+    unsupported: "This browser does not support closed-tab alerts.",
+    needArea: "Add an area first.",
+    failed: "Could not change the setting. Try again.",
+  },
 };

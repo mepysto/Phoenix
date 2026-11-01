@@ -675,4 +675,15 @@ export interface Translations {
     view: string;
     saveFailed: string;
   };
+  push: {
+    title: string;
+    body: string;
+    on: string;
+    off: string;
+    isOn: string;
+    unavailable: string;
+    unsupported: string;
+    needArea: string;
+    failed: string;
+  };
 }

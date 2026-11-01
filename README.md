@@ -12,6 +12,7 @@ Phoenix는 전 세계의 재난, 전쟁, 환경오염 현황을 실시간 3D 디
 - Hazard, weather, infrastructure and monitoring layers; timeline playback; Disaster Brief story mode; map assistant
 - **Situation report** per event in the reader's language, every line traced to a data field
 - **Before/after** satellite comparison (NASA GIBS daily VIIRS imagery)
+- **Damage assessment** per event from Copernicus EMS rapid mapping (destroyed / damaged / possibly damaged)
 
 **Act** — connect needs with help (Phase 2)
 - Sign in with an emailed link, no passwords
@@ -21,10 +22,11 @@ Phoenix는 전 세계의 재난, 전쟁, 환경오염 현황을 실시간 3D 디
 - Organisations publish **progress updates** on each event
 
 **Plan** — check a relief site against standards
-- Lay out tents, water taps, toilets and health posts on the map; live checks against the **Sphere** minimum standards; auto-layout; shareable links
+- Lay out tents, water taps, toilets and health posts on the map; live checks against the **Sphere** minimum standards; auto-layout
+- Save plans with full version history, fork others' plans, attach a plan to an organisation's need
 
 **Reach** — beyond the main app
-- **Area alerts** with browser notifications · **/lite** text-only page for slow connections · **/embed** live map for other sites
+- **Area alerts**, also when Phoenix is closed (Web Push, opt-in) · installable app with an offline **/lite** text page · **/embed** live map for other sites
 - Seven UI languages (the six UN languages plus Korean), RTL for Arabic
 
 ## Tech Stack

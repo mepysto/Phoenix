@@ -19,9 +19,12 @@ Phase 1 and the God's Eye View track (M0–M7, PR #1–#38) are complete; see
 - [x] Relief site planner against Sphere minimum standards (PRD FR-4.1, FR-4.3 basic)
 - [x] Area alerts, /lite text page, /embed widget (Master plan F, PRD NFR-6)
 
-Still open: Web Push alerts when the tab is closed (needs a service worker and VAPID keys), AI damage
-assessment (FR-5.1), design versioning and forks (FR-4.2), reputation system (FR-6.2), funding and
-logistics tracking (FR-7.3, out of scope for now).
+- [x] Copernicus EMS damage assessments per event (FR-5.1, expert grading; no Phoenix model)
+- [x] Site plans saved with version history, forks, attached to needs (FR-4.2)
+- [x] Closed-tab area alerts (Web Push, opt-in) and an installable app with offline /lite (NFR-6)
+
+Still open: Phoenix's own AI damage model (FR-5.1 beyond Copernicus grading), reputation and
+verified-partner badges (FR-6.2), funding and logistics tracking (FR-7.3, out of scope for now).
 
 ## Overview
 

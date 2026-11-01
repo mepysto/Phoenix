@@ -14,6 +14,13 @@ import {
 import { Header } from "@/components/layout/Header";
 import type { SeverityLevel } from "@/lib/api/client";
 import { RADIUS_CHOICES } from "@/lib/alerts";
+import {
+  pushState,
+  syncAreas,
+  turnOff,
+  turnOn,
+  type PushState,
+} from "@/lib/push";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { newId } from "@/lib/sphere";
 import { useAlertStore } from "@/store/alertStore";
@@ -44,6 +51,31 @@ function AlertsContent() {
   const params = useSearchParams();
   const { areas, recent, addArea, removeArea } = useAlertStore();
   const [perm, askPermission] = useNotificationPermission();
+  const [push, setPush] = useState<PushState | "busy" | null>(null);
+  const [pushError, setPushError] = useState(false);
+  useEffect(() => {
+    pushState()
+      .then(setPush)
+      .catch(() => setPush("unsupported"));
+  }, []);
+  // Keep the server's copy of the areas current while closed-tab alerts are on
+  useEffect(() => {
+    if (push === "on")
+      void syncAreas(areas, lang).catch(() => setPushError(true));
+    // Only when the areas change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [areas]);
+  const togglePush = async () => {
+    setPushError(false);
+    const was = push;
+    setPush("busy");
+    try {
+      setPush(was === "on" ? await turnOff() : await turnOn(areas, lang));
+    } catch {
+      setPushError(true);
+      setPush(was);
+    }
+  };
   const [name, setName] = useState(params.get("name") ?? "");
   const [lat, setLat] = useState(params.get("lat") ?? "");
   const [lng, setLng] = useState(params.get("lng") ?? "");
@@ -132,6 +164,55 @@ function AlertsContent() {
               </button>
             )}
           </div>
+
+          <section
+            className="mt-3 rounded-xl border border-gray-800 bg-gray-900 px-4 py-3"
+            aria-labelledby="push-title"
+          >
+            <div className="flex flex-wrap items-center gap-3">
+              <h2
+                id="push-title"
+                className="flex-1 text-sm font-medium text-gray-100"
+              >
+                {t.push.title}
+              </h2>
+              {(push === "on" || push === "off" || push === "busy") && (
+                <button
+                  type="button"
+                  className={
+                    push === "on"
+                      ? "btn-ghost py-1.5 text-xs"
+                      : "btn-primary py-1.5 text-xs"
+                  }
+                  disabled={
+                    push === "busy" || (push === "off" && areas.length === 0)
+                  }
+                  aria-pressed={push === "on"}
+                  onClick={() => void togglePush()}
+                >
+                  {push === "on" ? t.push.off : t.push.on}
+                </button>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-gray-400">
+              {push === "on"
+                ? t.push.isOn.replace("{n}", String(areas.length))
+                : push === "unavailable"
+                  ? t.push.unavailable
+                  : push === "unsupported"
+                    ? t.push.unsupported
+                    : push === "blocked"
+                      ? a.blocked
+                      : areas.length === 0
+                        ? t.push.needArea
+                        : t.push.body}
+            </p>
+            {pushError && (
+              <p role="alert" className="mt-1 text-xs text-ember-300">
+                {t.push.failed}
+              </p>
+            )}
+          </section>
 
           <h2 className="mt-8 text-sm font-semibold text-gray-300">
             {a.recent}

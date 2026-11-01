@@ -708,4 +708,15 @@ export const zh: Translations = {
     view: "查看营地规划",
     saveFailed: "保存失败，请检查网络后重试。",
   },
+  push: {
+    title: "关闭 Phoenix 时的提醒",
+    body: "即使没有打开 Phoenix 标签页也能收到提醒。开启后，你的区域会以约 10 公里精度发送到 Phoenix 服务器；关闭后即删除。",
+    on: "开启",
+    off: "关闭",
+    isOn: "已为 {n} 个区域开启",
+    unavailable: "此 Phoenix 服务器尚未配置关闭标签页提醒。",
+    unsupported: "此浏览器不支持关闭标签页提醒。",
+    needArea: "请先添加区域。",
+    failed: "无法更改设置，请重试。",
+  },
 };

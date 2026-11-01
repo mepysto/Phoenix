@@ -30,12 +30,16 @@ certifi==2026.7.22
     #   pyogrio
     #   pyproj
     #   skyfield
+cffi==2.1.1
+    # via cryptography
 click==8.5.0
     # via
     #   black
     #   uvicorn
 coverage==7.16.1
     # via pytest-cov
+cryptography==50.0.2
+    # via phoenix-api (pyproject.toml)
 defusedxml==0.7.1
     # via phoenix-api (pyproject.toml)
 docstring-parser==0.18.0
@@ -50,7 +54,7 @@ geoalchemy2==0.20.0
     # via phoenix-api (pyproject.toml)
 geojson==3.3.0
     # via phoenix-api (pyproject.toml)
-geopandas==1.1.4
+geopandas==1.2.0
     # via phoenix-api (pyproject.toml)
 greenlet==3.5.6
     # via sqlalchemy
@@ -119,6 +123,8 @@ pluggy==1.6.0
     # via
     #   pytest
     #   pytest-cov
+pycparser==3.12
+    # via cffi
 pydantic==2.13.5
     # via
     #   phoenix-api (pyproject.toml)

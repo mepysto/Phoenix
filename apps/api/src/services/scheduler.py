@@ -62,6 +62,7 @@ JOBS = {
     "eonet": "EONET",
     "firms": "NASA FIRMS",
     "damage": "Copernicus",
+    "push": "Web Push",
 }
 
 Work = Callable[[AsyncSession], Awaitable[dict[str, Any]]]
@@ -223,6 +224,25 @@ class SchedulerService:
 
         await self._run("damage", work)
 
+    async def sync_push(self) -> None:
+        """Send closed-tab area alerts for new events (only when VAPID is set)."""
+        import httpx
+
+        from src.core.config import get_settings
+        from src.services.push.alerts import dispatch
+        from src.services.push.webpush import VapidKeys
+
+        settings = get_settings()
+        if settings.vapid_private_key is None:
+            return
+        keys = VapidKeys.from_private(settings.vapid_private_key.get_secret_value())
+
+        async def work(session: AsyncSession) -> dict[str, Any]:
+            async with httpx.AsyncClient(timeout=10, follow_redirects=False) as client:
+                return await dispatch(session, keys, settings.vapid_subject, client)
+
+        await self._run("push", work)
+
     # --- lifecycle ----------------------------------------------------------
 
     def start(self, sync_interval_minutes: int = 5) -> None:
@@ -236,6 +256,7 @@ class SchedulerService:
             (self.sync_firms, 30, "NASA FIRMS Active Fires"),  # files refresh every few hours
             # Rapid-mapping products appear over days; one request per activation
             (self.sync_damage, 360, "Copernicus EMS Damage Assessments"),
+            (self.sync_push, 2, "Closed-tab area alerts (Web Push)"),
         ]
         for job, minutes, name in schedule:
             self._scheduler.add_job(
