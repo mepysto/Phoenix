@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, Search, Settings, X } from "lucide-react";
+import { LogOut, Menu, Search, Settings, X } from "lucide-react";
+import { useEffect } from "react";
+import { useAuthStore } from "@/store/authStore";
 import { usePathname } from "next/navigation";
 import { PhoenixMark } from "@/components/brand/PhoenixMark";
 import { useState, useCallback } from "react";
@@ -11,6 +13,10 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
+  const { me, status, refresh, logout } = useAuthStore();
+  useEffect(() => {
+    if (status === "unknown") void refresh();
+  }, [status, refresh]);
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && !!pathname?.startsWith(href));
   const navClass = (href: string) =>
@@ -83,10 +89,38 @@ export function Header() {
             <Link href="/events" className={navClass("/events")} aria-current={isActive("/events") ? "page" : undefined}>
               {t.common.events}
             </Link>
+            <Link href="/connect" className={navClass("/connect")} aria-current={isActive("/connect") ? "page" : undefined}>
+              {t.connect.nav}
+            </Link>
             <Link href="/about" className={navClass("/about")} aria-current={isActive("/about") ? "page" : undefined}>
               {t.common.about}
             </Link>
           </nav>
+          {status === "signed-in" && me ? (
+            <div className="flex items-center gap-1">
+              <Link
+                href="/connect/mine"
+                title={me.email}
+                aria-label={`${t.auth.account}: ${me.email}`}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-400/20 text-sm font-semibold uppercase text-primary-100 ring-1 ring-primary-400/40 hover:bg-primary-400/30"
+              >
+                {me.email.charAt(0)}
+              </Link>
+              <button
+                type="button"
+                onClick={() => void logout()}
+                aria-label={t.auth.signOut}
+                title={t.auth.signOut}
+                className="rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white"
+              >
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          ) : status === "signed-out" ? (
+            <Link href="/login" className="hidden rounded-full border border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-200 hover:bg-gray-800 sm:inline-flex">
+              {t.auth.signIn}
+            </Link>
+          ) : null}
           <Link
             href="/settings"
             className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
@@ -126,6 +160,20 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               {t.common.events}
+            </Link>
+            <Link
+              href="/connect"
+              className="px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {t.connect.nav}
+            </Link>
+            <Link
+              href={status === "signed-in" ? "/connect/mine" : "/login"}
+              className="px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {status === "signed-in" ? t.connect.mine.title : t.auth.signIn}
             </Link>
             <Link
               href="/about"

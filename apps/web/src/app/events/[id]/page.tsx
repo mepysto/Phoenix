@@ -33,6 +33,7 @@ import { Header } from "@/components/layout/Header";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { ConfidenceRing, LifecycleTrack } from "@/components/trust/EventTrust";
 import { SitrepPanel } from "@/components/event/SitrepPanel";
+import { EventCommunity } from "@/components/event/EventCommunity";
 
 const BeforeAfterCompare = dynamic(
   () => import("@/components/event/BeforeAfterCompare").then((m) => m.BeforeAfterCompare),
@@ -329,6 +330,7 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
+              <EventCommunity eventId={event.id} />
               <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">
                   {t.detail.actions}
@@ -340,6 +342,12 @@ export default function EventDetailPage() {
                   >
                     <Globe className="h-4 w-4" />
                     {t.common.viewOnMap}
+                  </Link>
+                  <Link
+                    href={`/connect?event=${event.id}`}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-200 transition-colors hover:bg-gray-800"
+                  >
+                    {t.connect.offerHelp}
                   </Link>
                 </div>
               </div>

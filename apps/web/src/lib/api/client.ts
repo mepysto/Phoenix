@@ -22,7 +22,7 @@ function snakeToCamel(str: string): string {
   return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
-function transformKeys<T>(obj: unknown): T {
+export function transformKeys<T>(obj: unknown): T {
   if (obj === null || obj === undefined) {
     return obj as T;
   }

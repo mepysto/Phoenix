@@ -89,6 +89,11 @@ def test_full_flow(world):
         json={"name": "Water Relief", "org_type": "local_partner", "primary_email": "Contact@WaterRelief.test"},
     ).json()
     assert org["status"] == "pending"
+    again = alice.post(
+        "/api/v1/community/orgs",
+        json={"name": "water relief", "org_type": "local_partner", "primary_email": "x@waterrelief.test"},
+    )
+    assert again.status_code == 409
     need_body = {
         "org_id": org["id"], "event_id": event_id, "title": "Water purification kits",
         "categories": ["water", "sanitation"], "priority": "critical", "quantity": 100, "unit": "kits",

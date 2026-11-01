@@ -144,11 +144,14 @@ class CommunityService:
 
     async def apply_org(self, viewer: Viewer, data: s.OrgCreate) -> s.OrgSummary:
         assert viewer.user is not None
+        name = data.name.strip()
+        if any(org.name.lower() == name.lower() for org, _ in viewer.roles.values()):
+            raise Conflict("You are already a member of an organisation with this name")
         pending = sum(1 for org, _ in viewer.roles.values() if org.status == OrgStatus.pending)
         if pending >= MAX_PENDING_ORGS_PER_USER:
             raise Conflict("You already have applications waiting for review")
         org = Org(
-            name=data.name.strip(),
+            name=name,
             org_type=data.org_type,
             primary_email=normalize_email(data.primary_email),
             website=data.website,
