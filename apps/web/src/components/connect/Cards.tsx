@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
+  LayoutGrid,
   Building2,
   ChevronDown,
   Handshake,
@@ -237,6 +239,15 @@ export function NeedCard({
         </div>
       </dl>
 
+      {need.planId && (
+        <Link
+          href={`/plan?id=${need.planId}`}
+          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary-300 hover:underline"
+        >
+          <LayoutGrid className="h-4 w-4" aria-hidden="true" />
+          {t.plans.view}
+        </Link>
+      )}
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"

@@ -12,6 +12,7 @@ from src.models.community import (
     UserSession,
 )
 from src.models.fire import FireDetection
+from src.models.plan import PlanVisibility, SitePlan, SitePlanVersion
 from src.models.infrastructure import InfrastructureAsset
 from src.models.vessel import VesselPosition
 from src.models.event import (
@@ -28,6 +29,9 @@ from src.models.event import (
 )
 
 __all__ = [
+    "PlanVisibility",
+    "SitePlan",
+    "SitePlanVersion",
     "Connect",
     "Disclosure",
     "MagicLinkToken",

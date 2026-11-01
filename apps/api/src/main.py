@@ -15,6 +15,7 @@ from src.api.v1 import (
     agent,
     auth,
     community,
+    plans,
     cameras,
     radio,
     routing,
@@ -141,6 +142,7 @@ app.include_router(
 )
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
 app.include_router(community.router, prefix="/api/v1/community", tags=["Community"])
+app.include_router(plans.router, prefix="/api/v1/plans", tags=["Plans"])
 app.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
 app.include_router(
     admin.router,

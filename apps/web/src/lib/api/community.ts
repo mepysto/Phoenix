@@ -191,3 +191,23 @@ export const communityAPI = {
       json: body,
     }),
 };
+
+// --- site plans ---------------------------------------------------------------
+
+export type PlanOut = Camel<S["PlanOut"]>;
+export type PlanSummary = Camel<S["PlanSummary"]>;
+export type PlanItemsWire = S["PlanContent"]["items"];
+
+export const plansAPI = {
+  list: (f: { eventId?: string; mine?: boolean } = {}) =>
+    call<{ data: PlanSummary[] }>(`/api/v1/plans${qs({ event_id: f.eventId, mine: f.mine })}`),
+  get: (id: string, version?: number) => call<PlanOut>(`/api/v1/plans/${id}${qs({ version })}`),
+  create: (body: S["PlanCreate"]) => call<PlanOut>("/api/v1/plans", { method: "POST", json: body }),
+  saveVersion: (id: string, body: S["PlanContent"]) =>
+    call<PlanOut>(`/api/v1/plans/${id}/versions`, { method: "POST", json: body }),
+  update: (id: string, body: S["PlanUpdate"]) => call<PlanOut>(`/api/v1/plans/${id}`, { method: "PATCH", json: body }),
+  fork: (id: string, version?: number) =>
+    call<PlanOut>(`/api/v1/plans/${id}/fork`, { method: "POST", json: { version } }),
+  attachToNeed: (needId: string, planId: string | null) =>
+    call<Need>(`/api/v1/community/needs/${needId}`, { method: "PATCH", json: { plan_id: planId } }),
+};

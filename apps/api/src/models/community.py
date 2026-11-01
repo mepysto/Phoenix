@@ -220,6 +220,10 @@ class Need(Base):
     status: Mapped[NeedStatus] = mapped_column(
         Enum(NeedStatus, name="need_status"), nullable=False, default=NeedStatus.open
     )
+    # A public site plan showing how this need would be met (optional)
+    plan_id: Mapped[UUID | None] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("site_plans.id", ondelete="SET NULL")
+    )
     visibility: Mapped[NeedVisibility] = mapped_column(
         Enum(NeedVisibility, name="need_visibility"), nullable=False, default=NeedVisibility.public
     )

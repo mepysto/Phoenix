@@ -1078,6 +1078,82 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Plans */
+        get: operations["list_plans_api_v1_plans_get"];
+        put?: never;
+        /** Create Plan */
+        post: operations["create_plan_api_v1_plans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plans/{plan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Plan */
+        get: operations["get_plan_api_v1_plans__plan_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Plan */
+        patch: operations["update_plan_api_v1_plans__plan_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/plans/{plan_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save Version
+         * @description Save the current layout as the plan's next version (author only).
+         */
+        post: operations["save_version_api_v1_plans__plan_id__versions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plans/{plan_id}/fork": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Fork Plan
+         * @description Copy a version into a new plan you own, to propose changes.
+         */
+        post: operations["fork_plan_api_v1_plans__plan_id__fork_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/status": {
         parameters: {
             query?: never;
@@ -1989,6 +2065,8 @@ export interface components {
             place_name: string | null;
             status: components["schemas"]["NeedStatus"];
             visibility: components["schemas"]["NeedVisibility"];
+            /** Plan Id */
+            plan_id?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -2027,6 +2105,8 @@ export interface components {
             quantity?: number | null;
             /** Beneficiaries */
             beneficiaries?: number | null;
+            /** Plan Id */
+            plan_id?: string | null;
         };
         /**
          * NeedVisibility
@@ -2223,6 +2303,152 @@ export interface components {
             /** Has More */
             has_more: boolean;
         };
+        /** PlanContent */
+        PlanContent: {
+            /** Population */
+            population: number;
+            /** Items */
+            items: [
+                number,
+                number,
+                number
+            ][];
+            /** Note */
+            note?: string | null;
+        };
+        /** PlanCreate */
+        PlanCreate: {
+            /** Population */
+            population: number;
+            /** Items */
+            items: [
+                number,
+                number,
+                number
+            ][];
+            /** Note */
+            note?: string | null;
+            /** Title */
+            title: string;
+            /** Event Id */
+            event_id?: string | null;
+            /** @default public */
+            visibility: components["schemas"]["PlanVisibility"];
+        };
+        /** PlanFork */
+        PlanFork: {
+            /** Version */
+            version?: number | null;
+            /** Title */
+            title?: string | null;
+        };
+        /** PlanList */
+        PlanList: {
+            /** Data */
+            data: components["schemas"]["PlanSummary"][];
+        };
+        /** PlanOut */
+        PlanOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Event Id */
+            event_id: string | null;
+            visibility: components["schemas"]["PlanVisibility"];
+            /** Latest Version */
+            latest_version: number;
+            /** Population */
+            population: number;
+            /** Item Count */
+            item_count: number;
+            /** Forked From Id */
+            forked_from_id: string | null;
+            /** Is Mine */
+            is_mine: boolean;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Forked From Version */
+            forked_from_version: number | null;
+            /** Version */
+            version: number;
+            /** Items */
+            items: [
+                number,
+                number,
+                number
+            ][];
+            /** Note */
+            note: string | null;
+            /** Versions */
+            versions: components["schemas"]["PlanVersionMeta"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** PlanSummary */
+        PlanSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Event Id */
+            event_id: string | null;
+            visibility: components["schemas"]["PlanVisibility"];
+            /** Latest Version */
+            latest_version: number;
+            /** Population */
+            population: number;
+            /** Item Count */
+            item_count: number;
+            /** Forked From Id */
+            forked_from_id: string | null;
+            /** Is Mine */
+            is_mine: boolean;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** PlanUpdate */
+        PlanUpdate: {
+            /** Title */
+            title?: string | null;
+            visibility?: components["schemas"]["PlanVisibility"] | null;
+        };
+        /** PlanVersionMeta */
+        PlanVersionMeta: {
+            /** Number */
+            number: number;
+            /** Population */
+            population: number;
+            /** Item Count */
+            item_count: number;
+            /** Note */
+            note: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * PlanVisibility
+         * @enum {string}
+         */
+        PlanVisibility: "public" | "private";
         /** PlayBrief */
         PlayBrief: {
             /**
@@ -4453,6 +4679,209 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DisclosureOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_plans_api_v1_plans_get: {
+        parameters: {
+            query?: {
+                event_id?: string | null;
+                mine?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_plan_api_v1_plans_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_plan_api_v1_plans__plan_id__get: {
+        parameters: {
+            query?: {
+                version?: number | null;
+            };
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_plan_api_v1_plans__plan_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_version_api_v1_plans__plan_id__versions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanContent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fork_plan_api_v1_plans__plan_id__fork_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanFork"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
                 };
             };
             /** @description Validation Error */

@@ -650,4 +650,29 @@ export interface Translations {
     product: string;
     sitrep: string;
   };
+  plans: {
+    titleField: string;
+    untitled: string;
+    save: string;
+    saveVersion: string;
+    saved: string;
+    fork: string;
+    forked: string;
+    version: string;
+    latest: string;
+    note: string;
+    signInToSave: string;
+    readOnly: string;
+    forkedFrom: string;
+    attach: string;
+    attachPick: string;
+    attached: string;
+    noNeeds: string;
+    listTitle: string;
+    none: string;
+    start: string;
+    summary: string;
+    view: string;
+    saveFailed: string;
+  };
 }

@@ -154,6 +154,8 @@ class NeedUpdate(BaseModel):
     status: NeedStatus | None = None
     quantity: int | None = Field(default=None, gt=0)
     beneficiaries: int | None = Field(default=None, ge=0)
+    # Attach a public site plan (null detaches)
+    plan_id: UUID | None = None
 
 
 class NeedOut(BaseModel):
@@ -174,6 +176,7 @@ class NeedOut(BaseModel):
     place_name: str | None
     status: NeedStatus
     visibility: NeedVisibility
+    plan_id: UUID | None = None
     created_at: datetime
     updated_at: datetime
     can_edit: bool = False

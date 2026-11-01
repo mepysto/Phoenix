@@ -393,3 +393,17 @@ export function decodePlan(s: string): Plan | null {
     return null;
   }
 }
+
+const KIND_ORDER: ItemKind[] = ["tent", "tap", "toilet", "health", "distribution"];
+
+/** Items in the API's compact form: [kindIndex, lat, lng] */
+export function toWire(items: PlanItem[]): [number, number, number][] {
+  return items.map((i) => [KIND_ORDER.indexOf(i.kind), +i.lat.toFixed(6), +i.lng.toFixed(6)]);
+}
+
+export function fromWire(rows: [number, number, number][]): PlanItem[] {
+  return rows.flatMap(([k, lat, lng]) => {
+    const kind = KIND_ORDER[k];
+    return kind ? [{ id: newId(), kind, lat, lng }] : [];
+  });
+}

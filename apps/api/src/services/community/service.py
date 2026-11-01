@@ -253,6 +253,7 @@ class CommunityService:
             place_name=need.place_name,
             status=need.status,
             visibility=need.visibility,
+            plan_id=need.plan_id,
             created_at=need.created_at,
             updated_at=need.updated_at,
             can_edit=viewer.admin or viewer.member_of_approved(need.org_id),
@@ -327,7 +328,13 @@ class CommunityService:
         need = await self._get_need(viewer, need_id)
         if not (viewer.admin or viewer.member_of_approved(need.org_id)):
             raise Forbidden("Only the organisation's members can change this need")
-        for key, value in data.model_dump(exclude_unset=True).items():
+        changes = data.model_dump(exclude_unset=True)
+        if changes.get("plan_id") is not None:
+            from src.services.plan_service import PlanService
+
+            if not await PlanService(self.session).is_public(changes["plan_id"]):
+                raise NotFound("Plan not found or not public")
+        for key, value in changes.items():
             setattr(need, key, value)
         await self.session.flush()
         await self.session.refresh(need)

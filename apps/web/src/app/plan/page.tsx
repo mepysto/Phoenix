@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { KIND_COLORS } from "@/components/plan/kindColors";
+import { PlanSaveBar } from "@/components/plan/PlanSaveBar";
+import { plansAPI, type PlanOut } from "@/lib/api/community";
 import { eventsAPI } from "@/lib/api/client";
 import { getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -28,6 +30,7 @@ import {
   decodePlan,
   encodePlan,
   evaluate,
+  fromWire,
   newId,
   waterLitresPerDay,
   type ItemKind,
@@ -101,7 +104,9 @@ function KpiRow({ kpi, lang }: { kpi: Kpi; lang: string }) {
 function Planner() {
   const { t, lang } = useTranslation();
   const params = useSearchParams();
-  const eventId = params.get("event");
+  const planId = params.get("id");
+  const [plan, setPlan] = useState<PlanOut | null>(null);
+  const eventId = params.get("event") ?? plan?.eventId ?? null;
   const [center, setCenter] = useState({ lat: 24.89, lng: 91.87 });
   const [eventTitle, setEventTitle] = useState<string | null>(null);
   const [population, setPopulation] = useState(1000);
@@ -111,8 +116,36 @@ function Planner() {
   const [fitSignal, setFitSignal] = useState(0);
   const [copied, setCopied] = useState(false);
 
+  /** Show a saved plan's version; keep its id in the address */
+  const applyPlan = useCallback((next: PlanOut, fit: boolean) => {
+    setPlan(next);
+    setPopulation(next.population);
+    const loaded = fromWire(next.items as [number, number, number][]);
+    setItems(loaded);
+    const first = loaded[0];
+    if (fit && first) {
+      setCenter({ lat: first.lat, lng: first.lng });
+      setFitSignal((n) => n + 1);
+    }
+    const v =
+      next.version !== next.latestVersion ? `&version=${next.version}` : "";
+    window.history.replaceState(null, "", `/plan?id=${next.id}${v}`);
+  }, []);
+
+  useEffect(() => {
+    if (!planId) return;
+    const version = Number(params.get("version")) || undefined;
+    plansAPI
+      .get(planId, version)
+      .then((p) => applyPlan(p, true))
+      .catch(() => {});
+    // Load once per plan id
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planId]);
+
   // A shared plan in the URL hash wins; otherwise centre on the event
   useEffect(() => {
+    if (planId) return;
     const hash =
       typeof window !== "undefined"
         ? window.location.hash.match(/plan=([\w-]+)/)
@@ -130,6 +163,8 @@ function Planner() {
       .get(eventId)
       .then((e) => {
         setEventTitle(e.title);
+        // A saved plan keeps its own site and population
+        if (planId) return;
         const p = getEventPosition(e);
         if (p && !shared) setCenter(p);
         if (!shared && e.affectedPopulation && e.affectedPopulation > 0) {
@@ -143,14 +178,16 @@ function Planner() {
         }
       })
       .catch(() => {});
+    // planId only changes with navigation, which remounts the page
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
-  // Keep the share link current without adding history entries
+  // Keep the share link current without adding history entries (unsaved plans)
   useEffect(() => {
-    if (items.length === 0) return;
+    if (items.length === 0 || plan) return;
     const url = `${window.location.pathname}${window.location.search}#plan=${encodePlan({ population, items })}`;
     window.history.replaceState(null, "", url);
-  }, [items, population]);
+  }, [items, population, plan]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -321,6 +358,22 @@ function Planner() {
           />
           {t.plan.reach}
         </label>
+
+        <PlanSaveBar
+          plan={plan}
+          items={items}
+          population={population}
+          eventId={eventId}
+          defaultTitle={
+            eventTitle ? `${eventTitle} — ${t.plan.title}` : t.plans.untitled
+          }
+          onPlan={(next) =>
+            applyPlan(
+              next,
+              next.id !== plan?.id || next.version !== plan?.version,
+            )
+          }
+        />
 
         <div className="mt-6 flex items-baseline justify-between">
           <h2 className="text-sm font-semibold text-gray-200">Sphere</h2>

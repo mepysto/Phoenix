@@ -2,9 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { HandHeart, Megaphone } from "lucide-react";
+import { HandHeart, LayoutGrid, Megaphone } from "lucide-react";
 import { CategoryIcon } from "@/components/connect/CategoryIcon";
-import { communityAPI, type Disclosure, type Need } from "@/lib/api/community";
+import {
+  communityAPI,
+  plansAPI,
+  type Disclosure,
+  type Need,
+  type PlanSummary,
+} from "@/lib/api/community";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { approvedOrgs, useAuthStore } from "@/store/authStore";
 
@@ -22,6 +28,7 @@ export function EventCommunity({ eventId }: { eventId: string }) {
   const orgs = useMemo(() => approvedOrgs(me), [me]);
   const [needs, setNeeds] = useState<Need[] | null>(null);
   const [updates, setUpdates] = useState<Disclosure[] | null>(null);
+  const [plans, setPlans] = useState<PlanSummary[] | null>(null);
   const [form, setForm] = useState({ orgId: "", title: "", body: "" });
   const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +37,10 @@ export function EventCommunity({ eventId }: { eventId: string }) {
       .needs({ eventId, status: "open", limit: 5 })
       .then((r) => setNeeds(r.data))
       .catch(() => setNeeds([]));
+    plansAPI
+      .list({ eventId })
+      .then((r) => setPlans(r.data))
+      .catch(() => setPlans([]));
     communityAPI
       .disclosures(eventId)
       .then((r) => setUpdates(r.data))
@@ -109,6 +120,56 @@ export function EventCommunity({ eventId }: { eventId: string }) {
                     />
                   ))}
                 </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section
+        className="rounded-xl border border-gray-800 bg-gray-900 p-6"
+        aria-labelledby="plans-title"
+      >
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <h2
+            id="plans-title"
+            className="flex items-center gap-2 text-lg font-semibold text-white"
+          >
+            <LayoutGrid
+              className="h-5 w-5 text-primary-400"
+              aria-hidden="true"
+            />
+            {t.plans.listTitle}
+          </h2>
+          <Link
+            href={`/plan?event=${eventId}`}
+            className="text-sm font-medium text-primary-300 hover:underline"
+          >
+            {t.plans.start}
+          </Link>
+        </div>
+        {plans === null ? (
+          <div className="h-12 animate-pulse rounded-lg bg-gray-800" />
+        ) : plans.length === 0 ? (
+          <p className="text-sm text-gray-400">{t.plans.none}</p>
+        ) : (
+          <ul className="space-y-2">
+            {plans.slice(0, 6).map((pl) => (
+              <li key={pl.id}>
+                <Link
+                  href={`/plan?id=${pl.id}`}
+                  className="block rounded-lg bg-gray-950/60 px-3 py-2.5 hover:bg-gray-800"
+                >
+                  <p className="text-sm font-medium text-gray-100">
+                    {pl.title}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {t.plans.summary
+                      .replace("{people}", pl.population.toLocaleString(lang))
+                      .replace("{items}", pl.itemCount.toLocaleString(lang))
+                      .replace("{v}", String(pl.latestVersion))}
+                  </p>
+                </Link>
               </li>
             ))}
           </ul>
