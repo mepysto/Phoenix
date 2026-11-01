@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.utils.trust import compute_trust
 from src.models.event import Event
 from src.repositories.event_repository import EventRepository
 from src.repositories.event_view_repository import EventViewRepository
@@ -218,6 +219,13 @@ class EventService:
             end_date=event.end_date,
             is_active=event.is_active,
             sources=sources,
+            trust=compute_trust(
+                source_names=[s.name for s in sources],
+                is_active=event.is_active,
+                start_date=event.start_date,
+                end_date=event.end_date,
+                updated_at=event.updated_at,
+            ),
             created_at=event.created_at,
             updated_at=event.updated_at,
         )

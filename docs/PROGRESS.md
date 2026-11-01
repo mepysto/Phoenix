@@ -1,9 +1,30 @@
 # Phoenix - Phase 1 MVP Development Progress
 
-> **Last Updated**: 2025-12-28  
-> **Target Completion**: Phase 1 MVP
+> **Last Updated**: 2026-11-01  
+> **Status**: Phase 1 MVP and Track 0/G done; Phase 2 (needs/offers) MVP shipped
 
 ---
+
+## 2026-11 update — from "see" to "act"
+
+Phase 1 and the God's Eye View track (M0–M7, PR #1–#38) are complete; see
+[GODS_EYE_ADOPTION_PLAN.md](./GODS_EYE_ADOPTION_PLAN.md). This round added:
+
+- [x] Event confidence score and lifecycle stage (Master plan A-2, A-3), derived on read
+- [x] Situation report per event, 7 languages, no language model
+- [x] Before/after satellite comparison (PRD FR-3.2)
+- [x] New visual identity, 3D intro globe, accessibility fixes (WCAG AA contrast, focus handling)
+- [x] Sign-in by emailed link; organisations with admin approval (PRD FR-8.1, basic)
+- [x] Needs, offers, explainable matching, two-sided connections, disclosures (PRD FR-7.1–7.3, Phase 2 plan)
+- [x] Relief site planner against Sphere minimum standards (PRD FR-4.1, FR-4.3 basic)
+- [x] Area alerts, /lite text page, /embed widget (Master plan F, PRD NFR-6)
+
+- [x] Copernicus EMS damage assessments per event (FR-5.1, expert grading; no Phoenix model)
+- [x] Site plans saved with version history, forks, attached to needs (FR-4.2)
+- [x] Closed-tab area alerts (Web Push, opt-in) and an installable app with offline /lite (NFR-6)
+
+Still open: Phoenix's own AI damage model (FR-5.1 beyond Copernicus grading), reputation and
+verified-partner badges (FR-6.2), funding and logistics tracking (FR-7.3, out of scope for now).
 
 ## Overview
 

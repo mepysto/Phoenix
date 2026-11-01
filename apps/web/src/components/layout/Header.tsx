@@ -2,12 +2,29 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Globe, Menu, Search, Settings, X } from "lucide-react";
+import { Bell, LogOut, Menu, Search, Settings, X } from "lucide-react";
+import { useEffect } from "react";
+import { useAuthStore } from "@/store/authStore";
+import { usePathname } from "next/navigation";
+import { PhoenixMark } from "@/components/brand/PhoenixMark";
 import { useState, useCallback } from "react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
+  const { me, status, refresh, logout } = useAuthStore();
+  useEffect(() => {
+    if (status === "unknown") void refresh();
+  }, [status, refresh]);
+  const isActive = (href: string) =>
+    pathname === href || (href !== "/" && !!pathname?.startsWith(href));
+  const navClass = (href: string) =>
+    `relative py-1 text-sm transition-colors after:absolute after:inset-x-0 after:-bottom-[17px] after:h-0.5 after:rounded-full ${
+      isActive(href)
+        ? "text-white after:bg-primary-400"
+        : "text-gray-400 hover:text-white after:bg-transparent"
+    }`;
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -24,7 +41,7 @@ export function Header() {
 
   return (
     <>
-      <header className="flex h-14 items-center justify-between border-b border-gray-800 bg-gray-900 px-4">
+      <header className="relative z-50 flex h-14 items-center justify-between border-b border-gray-800 bg-gray-950 px-4">
         <div className="flex items-center gap-4">
           <button
             className="lg:hidden p-2 hover:bg-gray-800 rounded"
@@ -38,9 +55,9 @@ export function Header() {
               <Menu className="h-5 w-5" />
             )}
           </button>
-          <Link href="/" className="flex items-center gap-2">
-            <Globe className="h-6 w-6 text-primary-500" />
-            <span className="text-xl font-bold text-white">Phoenix</span>
+          <Link href="/" className="flex items-center gap-2 text-gray-100">
+            <PhoenixMark className="h-7 w-7" />
+            <span className="text-lg font-semibold tracking-tight text-white">Phoenix</span>
           </Link>
         </div>
 
@@ -49,33 +66,70 @@ export function Header() {
           className="hidden md:flex flex-1 max-w-md mx-8"
         >
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+            <label htmlFor="global-search" className="sr-only">
+              {t.common.search}
+            </label>
             <input
               id="global-search"
-              type="text"
+              type="search"
               placeholder={t.common.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 pl-10 pr-4 text-sm text-white placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-full border border-gray-700 bg-gray-900 py-2 pl-10 pr-4 text-sm text-white placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
             />
           </div>
         </form>
 
         <div className="flex items-center gap-2">
           <nav className="hidden md:flex items-center gap-6 mr-4">
-            <Link
-              href="/events"
-              className="text-sm text-gray-300 hover:text-white transition-colors"
-            >
+            <Link href="/" className={navClass("/")} aria-current={isActive("/") ? "page" : undefined}>
+              {t.common.home}
+            </Link>
+            <Link href="/events" className={navClass("/events")} aria-current={isActive("/events") ? "page" : undefined}>
               {t.common.events}
             </Link>
-            <Link
-              href="/about"
-              className="text-sm text-gray-300 hover:text-white transition-colors"
-            >
+            <Link href="/connect" className={navClass("/connect")} aria-current={isActive("/connect") ? "page" : undefined}>
+              {t.connect.nav}
+            </Link>
+            <Link href="/about" className={navClass("/about")} aria-current={isActive("/about") ? "page" : undefined}>
               {t.common.about}
             </Link>
           </nav>
+          <Link
+            href="/alerts"
+            aria-label={t.alerts.title}
+            title={t.alerts.title}
+            aria-current={isActive("/alerts") ? "page" : undefined}
+            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+          >
+            <Bell className="h-5 w-5" aria-hidden="true" />
+          </Link>
+          {status === "signed-in" && me ? (
+            <div className="flex items-center gap-1">
+              <Link
+                href="/connect/mine"
+                title={me.email}
+                aria-label={`${t.auth.account}: ${me.email}`}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-400/20 text-sm font-semibold uppercase text-primary-100 ring-1 ring-primary-400/40 hover:bg-primary-400/30"
+              >
+                {me.email.charAt(0)}
+              </Link>
+              <button
+                type="button"
+                onClick={() => void logout()}
+                aria-label={t.auth.signOut}
+                title={t.auth.signOut}
+                className="rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white"
+              >
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          ) : status === "signed-out" ? (
+            <Link href="/login" className="hidden rounded-full border border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-200 hover:bg-gray-800 sm:inline-flex">
+              {t.auth.signIn}
+            </Link>
+          ) : null}
           <Link
             href="/settings"
             className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
@@ -92,7 +146,8 @@ export function Header() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
-                type="text"
+                type="search"
+                aria-label={t.common.search}
                 placeholder={t.common.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -114,6 +169,20 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               {t.common.events}
+            </Link>
+            <Link
+              href="/connect"
+              className="px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {t.connect.nav}
+            </Link>
+            <Link
+              href={status === "signed-in" ? "/connect/mine" : "/login"}
+              className="px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {status === "signed-in" ? t.connect.mine.title : t.auth.signIn}
             </Link>
             <Link
               href="/about"

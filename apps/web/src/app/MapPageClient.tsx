@@ -7,6 +7,7 @@ import { useEventStore } from "@/store/eventStore";
 import { DEMO_EVENTS, DEMO_MODE } from "@/lib/demo/demoEvents";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useLiveEvents } from "@/hooks/useLiveEvents";
+import { useAreaAlerts } from "@/hooks/useAreaAlerts";
 import { NewEventsBadge } from "@/components/map/NewEventsBadge";
 import { useMapUrlState } from "@/hooks/useMapUrlState";
 import { AgentPanel } from "@/components/agent/AgentPanel";
@@ -19,17 +20,16 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { RoutePlanner } from "@/components/map/RoutePlanner";
 import { Timeline } from "@/components/map/Timeline";
 import { ViewSummary } from "@/components/map/ViewSummary";
+import { IntroGlobe } from "@/components/brand/IntroGlobe";
+import { PhoenixMark } from "@/components/brand/PhoenixMark";
 
 const MapEngineWrapper = dynamic(
   () => import("@/components/map/MapEngineWrapper"),
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full w-full items-center justify-center bg-gray-900">
-        <div className="text-center">
-          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary-500 border-t-transparent mx-auto" />
-          <p className="text-gray-400">Loading Map Viewer...</p>
-        </div>
+      <div className="flex h-full w-full items-center justify-center bg-gray-950">
+        <PhoenixMark className="h-10 w-10 animate-pulse text-gray-300" />
       </div>
     ),
   },
@@ -42,6 +42,7 @@ function MapPageContent() {
   const selectEvent = useEventStore((s) => s.selectEvent);
   const { t } = useTranslation();
   const liveStatus = useLiveEvents();
+  useAreaAlerts();
   useKeyboardShortcuts();
   useFollowCamera();
 
@@ -75,7 +76,7 @@ function MapPageContent() {
   return (
     <main className="relative flex-1">
       {error && (
-        <div className="absolute left-1/2 top-4 z-50 -translate-x-1/2 rounded-lg bg-red-900/90 px-4 py-2 text-sm text-white">
+        <div role="alert" className="absolute left-1/2 top-4 z-50 -translate-x-1/2 rounded-lg border border-ember-600/60 bg-gray-950/95 px-4 py-2 text-sm text-ember-300">
           Failed to load events: {error}
         </div>
       )}
@@ -96,14 +97,18 @@ function MapPageContent() {
         {liveStatus !== "stopped" && (
           <div
             role="status"
-            className="flex items-center gap-2 rounded-full bg-gray-900/90 px-3 py-1 text-xs text-gray-300"
+            className="hud-panel flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-gray-200"
           >
-            <span
-              aria-hidden="true"
-              className={`h-2 w-2 rounded-full ${
-                liveStatus === "live" ? "bg-green-500" : "animate-pulse bg-amber-500"
-              }`}
-            />
+            <span aria-hidden="true" className="relative flex h-2 w-2">
+              {liveStatus === "live" && (
+                <span className="absolute inset-0 animate-ring-pulse rounded-full bg-primary-400" />
+              )}
+              <span
+                className={`relative h-2 w-2 rounded-full ${
+                  liveStatus === "live" ? "bg-primary-400" : "animate-pulse bg-amber-400"
+                }`}
+              />
+            </span>
             {liveStatus === "live" ? t.map.live : t.map.reconnecting}
           </div>
         )}
@@ -141,19 +146,17 @@ function MapPageContent() {
       {showEmptyState && (
         <div
           role="status"
-          className="pointer-events-none absolute left-1/2 top-4 z-40 -translate-x-1/2 rounded-lg bg-gray-800/90 px-4 py-2 text-sm text-gray-200"
+          className="hud-panel pointer-events-none absolute left-1/2 top-4 z-40 -translate-x-1/2 rounded-lg px-4 py-2 text-sm text-gray-200"
         >
           {t.events.noEvents} · {t.events.adjustFilters}
         </div>
       )}
       {isLoading && events.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50">
-          <div className="text-center">
-            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent mx-auto" />
-            <p className="text-gray-300">Loading events...</p>
-          </div>
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-40 h-0.5 overflow-hidden" role="status" aria-label={t.common.loading}>
+          <div className="h-full w-1/3 animate-[loading-bar_1.2s_ease-in-out_infinite] bg-primary-400" />
         </div>
       )}
+      <IntroGlobe events={displayedEvents} />
     </main>
   );
 }

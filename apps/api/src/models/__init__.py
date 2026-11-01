@@ -1,6 +1,19 @@
 from src.models.admin_area import AdminArea
 from src.models.agent_usage import AgentUsage
+from src.models.community import (
+    Connect,
+    Disclosure,
+    MagicLinkToken,
+    Need,
+    Offer,
+    Org,
+    OrgMembership,
+    User,
+    UserSession,
+)
 from src.models.fire import FireDetection
+from src.models.push import PushDelivery, PushSubscription
+from src.models.plan import PlanVisibility, SitePlan, SitePlanVersion
 from src.models.infrastructure import InfrastructureAsset
 from src.models.vessel import VesselPosition
 from src.models.event import (
@@ -17,6 +30,20 @@ from src.models.event import (
 )
 
 __all__ = [
+    "PushDelivery",
+    "PushSubscription",
+    "PlanVisibility",
+    "SitePlan",
+    "SitePlanVersion",
+    "Connect",
+    "Disclosure",
+    "MagicLinkToken",
+    "Need",
+    "Offer",
+    "Org",
+    "OrgMembership",
+    "User",
+    "UserSession",
     "AgentUsage",
     "FireDetection",
     "InfrastructureAsset",

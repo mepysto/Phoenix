@@ -5,13 +5,15 @@
 @tailwind utilities;
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #0a111d;
+  --foreground: #e3e9f2;
+  --ember: #ff6b3d;
+  --regrow: #34d0ac;
 }
 
 html.dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #0a111d;
+  --foreground: #e3e9f2;
   color-scheme: dark;
 }
 
@@ -70,7 +72,8 @@ html.no-animations * {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-sora), system-ui, sans-serif;
+  font-feature-settings: "tnum" 1;
 }
 
 .map-container {
@@ -80,4 +83,60 @@ body {
 
 .maplibregl-map {
   font-family: inherit;
+}
+
+/* One visible focus style everywhere, keyboard only */
+:focus-visible {
+  outline: 2px solid var(--regrow);
+  outline-offset: 2px;
+}
+
+/* Floating panels over the map: an opaque-enough surface with a hairline */
+.hud-panel {
+  background: rgb(17 26 43 / 0.92);
+  box-shadow:
+    0 0 0 1px rgb(44 58 82 / 0.8),
+    0 16px 40px -16px rgb(0 0 0 / 0.7);
+  backdrop-filter: blur(6px);
+}
+
+html.light .hud-panel {
+  background: rgb(255 255 255 / 0.95);
+  box-shadow:
+    0 0 0 1px rgb(201 211 226),
+    0 12px 32px -16px rgb(10 17 29 / 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes loading-bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+@keyframes slide-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Form controls on dark surfaces */
+.field {
+  @apply w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400;
+}
+.field-label {
+  @apply mb-1.5 block text-sm font-medium text-gray-200;
+}
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-400;
+}
+.btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-200 transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:text-gray-500;
 }

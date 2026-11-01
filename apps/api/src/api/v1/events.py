@@ -17,6 +17,7 @@ from src.schemas.event import (
     TimelineResponse,
 )
 from src.repositories.event_repository import EventRepository
+from src.services.damage import DamageSummary, damage_for_event
 from src.services.event_service import EventService
 
 router = APIRouter()
@@ -172,3 +173,19 @@ async def get_event_layers(
     """
     layers = await event_service.get_event_layers(event_id)
     return {"layers": layers}
+
+
+@router.get("/{event_id}/damage", response_model=DamageSummary)
+async def event_damage(
+    event_id: UUID,
+    session: AsyncSession = Depends(get_db),
+) -> DamageSummary:
+    """Copernicus EMS damage assessments for the event, worst grade first.
+
+    Empty (total 0) when no rapid-mapping product has been published.
+    """
+    from src.models.event import Event
+
+    if await session.get(Event, event_id) is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return await damage_for_event(session, event_id)

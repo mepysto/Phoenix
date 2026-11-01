@@ -1,6 +1,17 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Home Page", () => {
+  // The first-visit intro covers the map; dismiss it as a visitor would
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      try {
+        sessionStorage.setItem("phoenix:intro-seen", "1");
+      } catch {
+        // storage blocked: the intro test below covers dismissal by click
+      }
+    });
+  });
+
   test("should load the main page with header and sidebar", async ({
     page,
   }) => {
@@ -48,5 +59,27 @@ test.describe("Home Page", () => {
     await expect(page.getByText(/Active Events:/i)).toBeVisible({
       timeout: 10000,
     });
+  });
+});
+
+test.describe("First-visit intro", () => {
+  test("shows once and opens the map", async ({ page }) => {
+    await page.goto("/");
+    const intro = page.getByRole("dialog", { name: "Phoenix" });
+    await expect(intro).toBeVisible();
+    await page.getByRole("button", { name: "Open the map" }).click();
+    await expect(intro).toBeHidden();
+    await page.reload();
+    await expect(page.locator('[class*="maplibregl-map"]')).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByRole("dialog", { name: "Phoenix" })).toHaveCount(0);
+  });
+
+  test("Escape closes it", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("dialog", { name: "Phoenix" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "Phoenix" })).toBeHidden();
   });
 });

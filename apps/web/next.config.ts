@@ -11,6 +11,23 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react", "@phoenix/shared", "maplibre-gl"],
   },
   poweredByHeader: false,
+  // Clickjacking protection everywhere (sign-in and approvals now exist),
+  // except the embeddable map, which is meant to be framed by any site.
+  async headers() {
+    return [
+      {
+        source: "/((?!embed$|embed\\?).*)",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+        ],
+      },
+      {
+        source: "/embed",
+        headers: [{ key: "Content-Security-Policy", value: "frame-ancestors *" }],
+      },
+    ];
+  },
   compress: true,
   images: {
     formats: ["image/avif", "image/webp"],

@@ -1,6 +1,8 @@
 "use client";
 
-import { Clapperboard, Navigation } from "lucide-react";
+import Link from "next/link";
+import { Clapperboard, FileText, Navigation, X } from "lucide-react";
+import { ConfidenceRing, LifecycleTrack } from "@/components/trust/EventTrust";
 import { SEVERITY_COLORS } from "@phoenix/shared/constants";
 import type { ApiDisasterEvent, SeverityLevel } from "@/lib/api/client";
 import { briefFromEvent } from "@/lib/brief";
@@ -28,14 +30,30 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
 
   return (
     // right-14 keeps the zoom/compass controls (top-right) clickable
-    <div className="absolute right-14 top-4 max-h-[calc(100%-2rem)] w-80 overflow-y-auto rounded-lg bg-gray-900/95 p-4 shadow-xl backdrop-blur">
-      <div className="mb-2 flex items-start justify-between">
-        <h3 className="font-semibold text-white">{event.title}</h3>
-        <button onClick={onClose} className="text-gray-400 hover:text-white" aria-label={t.common.close}>
-          &times;
+    <div className="hud-panel absolute right-14 top-4 max-h-[calc(100%-2rem)] w-80 animate-panel-in overflow-y-auto rounded-xl p-4">
+      {/* Severity edge: the one place the card carries the event's colour */}
+      <span
+        aria-hidden="true"
+        className="absolute inset-y-4 left-0 w-0.5 rounded-full"
+        style={{ backgroundColor: SEVERITY_COLORS[severity] }}
+      />
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <h3 className="font-semibold leading-snug text-white">{event.title}</h3>
+        <button
+          onClick={onClose}
+          className="-mr-1 -mt-1 rounded-md p-1 text-gray-400 hover:bg-gray-800 hover:text-white"
+          aria-label={t.common.close}
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
-      <p className="mb-3 text-sm text-gray-400">{event.description}</p>
+      {event.description && <p className="mb-3 line-clamp-3 text-sm text-gray-400">{event.description}</p>}
+      {event.trust && (
+        <div className="mb-3 space-y-3 rounded-lg border border-gray-800 bg-gray-950/50 p-3">
+          <ConfidenceRing trust={event.trust} size={40} />
+          <LifecycleTrack stage={event.trust.lifecycle} compact />
+        </div>
+      )}
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
           <span className="text-gray-500">{t.events.location}</span>
@@ -66,12 +84,19 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
         <button
           type="button"
           onClick={() => routeTo({ lat: position.lat, lng: position.lng, label: event.title })}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-cyan-700 px-3 py-1.5 text-sm font-medium text-cyan-200 hover:bg-cyan-900/40"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-primary-700 px-3 py-1.5 text-sm font-medium text-primary-200 hover:bg-primary-900/40"
         >
           <Navigation className="h-4 w-4" aria-hidden="true" />
           {t.routing.routeHere}
         </button>
       )}
+      <Link
+        href={`/events/${event.id}`}
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-200 hover:bg-gray-800"
+      >
+        <FileText className="h-4 w-4" aria-hidden="true" />
+        {t.sitrep.title}
+      </Link>
       {brief && (
         <button
           type="button"

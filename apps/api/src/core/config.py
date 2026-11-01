@@ -71,6 +71,36 @@ class Settings(BaseSettings):
     # Extra zones as [west, south, east, north] boxes, e.g. '[[22,44,40,53]]'
     conflict_zone_bboxes: list[list[float]] = []
 
+    # Accounts (Phase 2: needs, offers, connections). Login is by emailed
+    # one-time link; there are no passwords.
+    public_web_url: str = "http://localhost:23000"
+    # Platform operators who approve organisations, e.g. '["ops@example.org"]'
+    platform_admin_emails: list[str] = []
+    magic_link_ttl_minutes: int = 15
+    magic_link_max_per_hour: int = 5
+    session_ttl_days: int = 30
+    session_cookie_name: str = "phoenix_session"
+    # Outgoing mail. Without SMTP_HOST, mail is written to the log instead
+    # (development only: a production deployment must configure SMTP).
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_from: str = "Phoenix <no-reply@localhost>"
+    smtp_starttls: bool = True
+    # Development convenience: return the login link in the API response so
+    # the flow works without mail. Ignored when ENVIRONMENT=production.
+    auth_dev_return_link: bool = False
+
+    # Closed-tab alerts (Web Push). Off unless a VAPID key is set; generate
+    # one with `python -m scripts.gen_vapid_keys`.
+    vapid_private_key: SecretStr | None = None
+    vapid_subject: str = "mailto:ops@example.org"
+
+    @property
+    def secure_cookies(self) -> bool:
+        return self.public_web_url.startswith("https://")
+
     @model_validator(mode="after")
     def reject_insecure_production(self) -> "Settings":
         if self.environment == "production":
@@ -78,6 +108,8 @@ class Settings(BaseSettings):
                 raise ValueError("API_SYNC_KEY must be set to a strong secret in production")
             if self.api_debug or self.db_echo:
                 raise ValueError("API_DEBUG/DB_ECHO must be disabled in production")
+            if self.auth_dev_return_link:
+                raise ValueError("AUTH_DEV_RETURN_LINK must be off in production")
         return self
 
 

@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, model_validator
 
 from src.models.event import EventType, SeverityLevel
+from src.utils.trust import EventTrust
 
 
 class Location(BaseModel):
@@ -53,6 +54,8 @@ class EventResponse(BaseModel):
     is_active: bool
     sources: list[DataSourceRef]
     geometry: GeoJSONGeometry | None = None
+    # Derived confidence and lifecycle stage (see utils/trust.py)
+    trust: EventTrust | None = None
     created_at: datetime
     updated_at: datetime
 

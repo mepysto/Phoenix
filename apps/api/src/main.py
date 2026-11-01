@@ -13,6 +13,10 @@ from pydantic import ValidationError
 from src.api.v1 import (
     admin,
     agent,
+    auth,
+    community,
+    plans,
+    push,
     cameras,
     radio,
     routing,
@@ -28,6 +32,8 @@ from src.api.v1 import (
 from src.core.config import settings
 from src.core.exceptions import DataSyncError, ExternalAPIError
 from src.core.security import verify_api_key
+from src.services.community.auth import InvalidEmail
+from src.services.community.service import CommunityError
 from src.services.scheduler import scheduler_service
 
 logging.basicConfig(
@@ -101,6 +107,17 @@ async def upstream_error_handler(request: Request, exc: ExternalAPIError) -> JSO
     return JSONResponse(status_code=502, content={"detail": "Upstream data source unavailable"})
 
 
+@app.exception_handler(CommunityError)
+async def community_error_handler(request: Request, exc: CommunityError) -> JSONResponse:
+    """Permission and state rules of needs/offers/connects, as 4xx with a plain message."""
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+
+@app.exception_handler(InvalidEmail)
+async def invalid_email_handler(request: Request, exc: InvalidEmail) -> JSONResponse:
+    return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+
 # GeoJSON layers (fires, cables, cameras, ShakeMaps) compress 4-5x
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.add_middleware(
@@ -124,6 +141,10 @@ app.include_router(routing.router, prefix="/api/v1/routing", tags=["Routing"])
 app.include_router(
     infrastructure.router, prefix="/api/v1/infrastructure", tags=["Infrastructure"]
 )
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
+app.include_router(community.router, prefix="/api/v1/community", tags=["Community"])
+app.include_router(plans.router, prefix="/api/v1/plans", tags=["Plans"])
+app.include_router(push.router, prefix="/api/v1/push", tags=["Push"])
 app.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
 app.include_router(
     admin.router,

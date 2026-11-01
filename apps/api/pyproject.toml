@@ -25,6 +25,7 @@ dependencies = [
     "anthropic>=1.8.0",  # map agent (optional at runtime: off without ANTHROPIC_API_KEY)
     "skyfield>=1.55",  # satellite positions and pass prediction (SGP4)
     "websockets>=13.0",  # AIS stream client
+    "cryptography>=46.0.0",  # Web Push: RFC 8291 encryption and RFC 8292 VAPID (src/services/push)
     # PostGIS + Geo dependencies
     "geoalchemy2>=0.15.0",
     "shapely>=2.0.0",

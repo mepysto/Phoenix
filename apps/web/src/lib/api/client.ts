@@ -22,7 +22,7 @@ function snakeToCamel(str: string): string {
   return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
-function transformKeys<T>(obj: unknown): T {
+export function transformKeys<T>(obj: unknown): T {
   if (obj === null || obj === undefined) {
     return obj as T;
   }
@@ -203,6 +203,18 @@ export const eventsAPI = {
     return data as unknown as { layers: ApiGeoLayer[] };
   },
 };
+
+export type ApiDamageSummary = CamelCaseKeys<components["schemas"]["DamageSummary"]>;
+
+/** Copernicus EMS damage assessments for one event (empty when none published) */
+export async function fetchEventDamage(eventId: string, signal?: AbortSignal): Promise<ApiDamageSummary> {
+  const { data, response } = await client.GET("/api/v1/events/{event_id}/damage", {
+    params: { path: { event_id: eventId } },
+    signal,
+  });
+  if (!response.ok) throw new APIError(response.status, "Failed to fetch damage assessment");
+  return data as unknown as ApiDamageSummary;
+}
 
 export const geodataAPI = {
   getGeoJSON: async (
