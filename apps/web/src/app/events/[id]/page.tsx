@@ -31,6 +31,13 @@ import {
 } from "@/lib/api/client";
 import { Header } from "@/components/layout/Header";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { ConfidenceRing, LifecycleTrack } from "@/components/trust/EventTrust";
+import { SitrepPanel } from "@/components/event/SitrepPanel";
+
+const BeforeAfterCompare = dynamic(
+  () => import("@/components/event/BeforeAfterCompare").then((m) => m.BeforeAfterCompare),
+  { ssr: false, loading: () => <div className="h-96 animate-pulse rounded-xl bg-gray-900" /> },
+);
 
 const MiniMap = dynamic(() => import("@/components/map/MiniMap"), {
   ssr: false,
@@ -66,7 +73,7 @@ function InfoRow({
     <div className="flex items-start gap-3 py-3 border-b border-gray-800 last:border-0">
       <div className="text-gray-500">{icon}</div>
       <div className="flex-1">
-        <div className="text-xs text-gray-500 uppercase tracking-wide">
+        <div className="text-xs text-gray-400">
           {label}
         </div>
         <div className="mt-0.5 text-sm text-gray-200">{value}</div>
@@ -154,7 +161,7 @@ export default function EventDetailPage() {
       <Header />
 
       <main className="flex-1 px-4 py-6 md:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-6xl">
           <Link
             href="/events"
             className="mb-6 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
@@ -165,7 +172,7 @@ export default function EventDetailPage() {
 
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-6">
-              <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+              <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
                 <div className="flex items-start gap-4">
                   <div
                     className="flex h-14 w-14 items-center justify-center rounded-xl"
@@ -212,7 +219,7 @@ export default function EventDetailPage() {
                 )}
               </div>
 
-              <div className="rounded-lg border border-gray-800 bg-gray-900 overflow-hidden">
+              <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
                 <div className="h-64 lg:h-80">
                   {position ? (
                     <MiniMap lat={position.lat} lng={position.lng} />
@@ -224,8 +231,19 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
+              <SitrepPanel event={event} />
+
+              {position && (
+                <BeforeAfterCompare
+                  lat={position.lat}
+                  lng={position.lng}
+                  type={event.type}
+                  startDate={event.startDate}
+                />
+              )}
+
               {event.sources && event.sources.length > 0 && (
-                <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+                <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
                   <h2 className="text-lg font-semibold text-white mb-4">
                     {t.detail.dataSources}
                   </h2>
@@ -254,7 +272,18 @@ export default function EventDetailPage() {
             </div>
 
             <div className="space-y-6">
-              <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+              {event.trust && (
+                <section className="rounded-xl border border-gray-800 bg-gray-900 p-6" aria-labelledby="trust-title">
+                  <h2 id="trust-title" className="mb-4 text-lg font-semibold text-white">
+                    {t.trust.title}
+                  </h2>
+                  <ConfidenceRing trust={event.trust} size={56} />
+                  <div className="mt-5">
+                    <LifecycleTrack stage={event.trust.lifecycle} />
+                  </div>
+                </section>
+              )}
+              <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">
                   {t.detail.details}
                 </h2>
@@ -300,7 +329,7 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+              <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">
                   {t.detail.actions}
                 </h2>

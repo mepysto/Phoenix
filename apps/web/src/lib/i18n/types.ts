@@ -3,6 +3,8 @@ import type { ViewMode } from "@/lib/map/viewModes";
 import type { ShipCategory } from "@/lib/telemetry";
 import type { RouteMode } from "@/store/routeStore";
 
+type Lifecycle = "detected" | "verified" | "responding" | "recovering" | "closed";
+
 export interface Translations {
   common: {
     close: string;
@@ -308,5 +310,63 @@ export interface Translations {
     errorBody: string;
     errorId: string;
     retry: string;
+  };
+  intro: {
+    tagline: string;
+    activeNow: string;
+    enter: string;
+  };
+  trust: {
+    title: string;
+    confidence: string;
+    oneSource: string;
+    sourceCount: string;
+    lifecycle: string;
+    current: string;
+    bands: { high: string; medium: string; low: string };
+    stages: Record<Lifecycle, string>;
+    stageHelp: Record<Lifecycle, string>;
+    reasons: { stale: string };
+  };
+  compare: {
+    title: string;
+    before: string;
+    after: string;
+    sliderLabel: string;
+    zoomIn: string;
+    zoomOut: string;
+    note: string;
+    credit: string;
+    unavailable: string;
+  };
+  sitrep: {
+    title: string;
+    copy: string;
+    copied: string;
+    print: string;
+    generated: string;
+    disclaimer: string;
+    reportTitle: string;
+    summary: string;
+    impact: string;
+    confidence: string;
+    nearby: string;
+    sources: string;
+    next: string;
+    unknownPlace: string;
+    lineWhat: string;
+    lineWhen: string;
+    lineActive: string;
+    lineEnded: string;
+    linePopulation: string;
+    lineNoPopulation: string;
+    lineConfidence: string;
+    lineNearby: string;
+    lineNoNearby: string;
+    lineNoSources: string;
+    nextVerify: string;
+    nextSecondSource: string;
+    nextImagery: string;
+    nextCompound: string;
   };
 }
