@@ -349,6 +349,12 @@ export default function EventDetailPage() {
                   >
                     {t.connect.offerHelp}
                   </Link>
+                  <Link
+                    href={`/plan?event=${event.id}`}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-200 transition-colors hover:bg-gray-800"
+                  >
+                    {t.plan.open}
+                  </Link>
                 </div>
               </div>
             </div>

@@ -538,4 +538,45 @@ export interface Translations {
       all: string;
     };
   };
+  plan: {
+    title: string;
+    intro: string;
+    population: string;
+    autoLayout: string;
+    clear: string;
+    share: string;
+    copied: string;
+    reach: string;
+    tools: string;
+    remove: string;
+    hint: string;
+    kinds: {
+      tent: string;
+      tap: string;
+      toilet: string;
+      health: string;
+      distribution: string;
+    };
+    kpis: {
+      shelter: string;
+      space: string;
+      water: string;
+      toilets: string;
+      waterDistance: string;
+      toiletDistance: string;
+      health: string;
+      siteArea: string;
+    };
+    target: string;
+    waterNeed: string;
+    disclaimer: string;
+    source: string;
+    status: {
+      ok: string;
+      warn: string;
+      fail: string;
+    };
+    open: string;
+    itemCount: string;
+  };
 }
