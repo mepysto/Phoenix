@@ -25,6 +25,8 @@ import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
 import {
   APIError,
   eventsAPI,
+  fetchEventDamage,
+  type ApiDamageSummary,
   type ApiDisasterEventDetail,
   type EventType,
   type SeverityLevel,
@@ -33,6 +35,7 @@ import { Header } from "@/components/layout/Header";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { ConfidenceRing, LifecycleTrack } from "@/components/trust/EventTrust";
 import { SitrepPanel } from "@/components/event/SitrepPanel";
+import { DamagePanel } from "@/components/event/DamagePanel";
 import { EventCommunity } from "@/components/event/EventCommunity";
 
 const BeforeAfterCompare = dynamic(
@@ -90,6 +93,21 @@ export default function EventDetailPage() {
 
   const [event, setEvent] = useState<ApiDisasterEventDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Shared by the damage panel and the situation report
+  const [damage, setDamage] = useState<ApiDamageSummary | null>(null);
+  const [damageFailed, setDamageFailed] = useState(false);
+  useEffect(() => {
+    if (!eventId) return;
+    const controller = new AbortController();
+    setDamage(null);
+    setDamageFailed(false);
+    fetchEventDamage(eventId, controller.signal)
+      .then(setDamage)
+      .catch(() => {
+        if (!controller.signal.aborted) setDamageFailed(true);
+      });
+    return () => controller.abort();
+  }, [eventId]);
   // HTTP status of a failed load (404 = no such event); the message is translated at render
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
 
@@ -232,7 +250,9 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
-              <SitrepPanel event={event} />
+              <SitrepPanel event={event} damage={damage} />
+
+              <DamagePanel data={damage} failed={damageFailed} />
 
               {position && (
                 <BeforeAfterCompare

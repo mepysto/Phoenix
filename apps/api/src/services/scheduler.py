@@ -61,6 +61,7 @@ JOBS = {
     "usgs": "USGS",
     "eonet": "EONET",
     "firms": "NASA FIRMS",
+    "damage": "Copernicus",
 }
 
 Work = Callable[[AsyncSession], Awaitable[dict[str, Any]]]
@@ -213,6 +214,15 @@ class SchedulerService:
 
         await self._run("firms", work)
 
+    async def sync_damage(self) -> None:
+        """Copernicus EMS damage assessments for active activations."""
+        from src.services.damage import sync_damage
+
+        async def work(session: AsyncSession) -> dict[str, Any]:
+            return await sync_damage(session, self._copernicus_service)
+
+        await self._run("damage", work)
+
     # --- lifecycle ----------------------------------------------------------
 
     def start(self, sync_interval_minutes: int = 5) -> None:
@@ -224,6 +234,8 @@ class SchedulerService:
             (self.sync_usgs, sync_interval_minutes, "USGS Earthquake Sync"),
             (self.sync_eonet, 10, "EONET Event Sync"),  # natural events change slowly
             (self.sync_firms, 30, "NASA FIRMS Active Fires"),  # files refresh every few hours
+            # Rapid-mapping products appear over days; one request per activation
+            (self.sync_damage, 360, "Copernicus EMS Damage Assessments"),
         ]
         for job, minutes, name in schedule:
             self._scheduler.add_job(

@@ -634,4 +634,20 @@ export interface Translations {
     open: string;
     nav: string;
   };
+  damage: {
+    title: string;
+    none: string;
+    source: string;
+    updated: string;
+    grades: {
+      destroyed: string;
+      damaged: string;
+      possibly_damaged: string;
+      no_visible_damage: string;
+      unknown: string;
+    };
+    areas: string;
+    product: string;
+    sitrep: string;
+  };
 }

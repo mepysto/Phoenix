@@ -669,4 +669,20 @@ export const en: Translations = {
     open: "Open in Phoenix",
     nav: "Embed",
   },
+  damage: {
+    title: "Damage assessment",
+    none: "No damage assessment has been published for this event yet. Copernicus EMS maps damage when it is activated for a disaster.",
+    source: "Expert photo-interpretation by Copernicus EMS rapid mapping. Grades are estimates from satellite imagery, not ground surveys.",
+    updated: "Updated {time}",
+    grades: {
+      destroyed: "Destroyed",
+      damaged: "Damaged",
+      possibly_damaged: "Possibly damaged",
+      no_visible_damage: "No visible damage",
+      unknown: "Not graded",
+    },
+    areas: "{n} assessed areas",
+    product: "Map product",
+    sitrep: "Copernicus EMS assessed {n} areas: {destroyed} destroyed, {damaged} damaged.",
+  },
 };

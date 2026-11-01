@@ -667,4 +667,20 @@ export const ar: Translations = {
     open: "افتح في Phoenix",
     nav: "تضمين",
   },
+  damage: {
+    title: "تقييم الأضرار",
+    none: "لم يُنشر تقييم للأضرار لهذا الحدث بعد. يرسم Copernicus EMS خرائط الأضرار عند تفعيله لكارثة.",
+    source: "تفسير خبراء لصور الأقمار الصناعية ضمن الخرائط السريعة لـ Copernicus EMS. الدرجات تقديرات من الصور وليست مسوحات ميدانية.",
+    updated: "آخر تحديث {time}",
+    grades: {
+      destroyed: "مدمَّر",
+      damaged: "متضرر",
+      possibly_damaged: "متضرر على الأرجح",
+      no_visible_damage: "لا أضرار ظاهرة",
+      unknown: "غير مصنَّف",
+    },
+    areas: "{n} منطقة مُقيَّمة",
+    product: "منتج الخريطة",
+    sitrep: "قيّم Copernicus EMS عدد {n} مناطق: {destroyed} مدمّرة و{damaged} متضررة.",
+  },
 };

@@ -672,4 +672,20 @@ export const fr: Translations = {
     open: "Ouvrir dans Phoenix",
     nav: "Intégrer",
   },
+  damage: {
+    title: "Évaluation des dégâts",
+    none: "Aucune évaluation des dégâts n'a encore été publiée pour cet événement. Copernicus EMS cartographie les dégâts lorsqu'il est activé pour une catastrophe.",
+    source: "Photo-interprétation experte de la cartographie rapide Copernicus EMS. Les niveaux sont estimés à partir d'images satellite, pas d'enquêtes sur le terrain.",
+    updated: "Mis à jour {time}",
+    grades: {
+      destroyed: "Détruit",
+      damaged: "Endommagé",
+      possibly_damaged: "Possiblement endommagé",
+      no_visible_damage: "Aucun dégât visible",
+      unknown: "Non classé",
+    },
+    areas: "{n} zones évaluées",
+    product: "Produit cartographique",
+    sitrep: "Copernicus EMS a évalué {n} zones : {destroyed} détruites, {damaged} endommagées.",
+  },
 };

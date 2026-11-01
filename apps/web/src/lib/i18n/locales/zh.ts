@@ -667,4 +667,20 @@ export const zh: Translations = {
     open: "在 Phoenix 中打开",
     nav: "嵌入",
   },
+  damage: {
+    title: "损毁评估",
+    none: "此事件尚未发布损毁评估。Copernicus EMS 在针对灾害启动后会绘制损毁地图。",
+    source: "由 Copernicus EMS 快速制图专家判读卫星影像得出。等级为基于卫星影像的估计，并非实地调查。",
+    updated: "更新于 {time}",
+    grades: {
+      destroyed: "摧毁",
+      damaged: "受损",
+      possibly_damaged: "可能受损",
+      no_visible_damage: "无可见损毁",
+      unknown: "未分级",
+    },
+    areas: "已评估 {n} 个区域",
+    product: "地图产品",
+    sitrep: "Copernicus EMS 已评估 {n} 个区域：摧毁 {destroyed} 个，受损 {damaged} 个。",
+  },
 };

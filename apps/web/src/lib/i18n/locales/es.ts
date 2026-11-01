@@ -670,4 +670,20 @@ export const es: Translations = {
     open: "Abrir en Phoenix",
     nav: "Insertar",
   },
+  damage: {
+    title: "Evaluación de daños",
+    none: "Aún no se ha publicado una evaluación de daños para este evento. Copernicus EMS cartografía los daños cuando se activa para un desastre.",
+    source: "Fotointerpretación experta del servicio de cartografía rápida de Copernicus EMS. Los grados son estimaciones a partir de imágenes satelitales, no inspecciones sobre el terreno.",
+    updated: "Actualizado {time}",
+    grades: {
+      destroyed: "Destruido",
+      damaged: "Dañado",
+      possibly_damaged: "Posiblemente dañado",
+      no_visible_damage: "Sin daños visibles",
+      unknown: "Sin clasificar",
+    },
+    areas: "{n} zonas evaluadas",
+    product: "Producto cartográfico",
+    sitrep: "Copernicus EMS evaluó {n} zonas: {destroyed} destruidas, {damaged} dañadas.",
+  },
 };

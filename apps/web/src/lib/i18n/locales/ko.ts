@@ -668,4 +668,20 @@ export const ko: Translations = {
     open: "Phoenix에서 열기",
     nav: "퍼가기",
   },
+  damage: {
+    title: "피해 평가",
+    none: "이 재난에 대해 공개된 피해 평가가 아직 없습니다. Copernicus EMS가 해당 재난에 대해 가동되면 피해 지도를 제작합니다.",
+    source: "Copernicus EMS 긴급 매핑 전문가의 위성 영상 판독 결과입니다. 등급은 위성 영상 기반 추정이며 현장 조사가 아닙니다.",
+    updated: "{time} 갱신",
+    grades: {
+      destroyed: "파괴",
+      damaged: "피해",
+      possibly_damaged: "피해 가능성",
+      no_visible_damage: "육안 피해 없음",
+      unknown: "등급 없음",
+    },
+    areas: "평가 지역 {n}곳",
+    product: "지도 자료",
+    sitrep: "Copernicus EMS가 {n}개 지역을 평가했습니다: 파괴 {destroyed}, 피해 {damaged}.",
+  },
 };

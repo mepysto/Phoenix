@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, ClipboardCopy, FileText, Printer } from "lucide-react";
-import { viewAPI, type ApiDisasterEvent } from "@/lib/api/client";
+import { viewAPI, type ApiDamageSummary, type ApiDisasterEvent } from "@/lib/api/client";
 import { getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { buildSitrep, sitrepToText, type SitrepNearby } from "@/lib/sitrep";
@@ -13,7 +13,7 @@ const NEARBY_KM = 300;
  * Situation report for one event, compiled in the viewer's language from the
  * event and its neighbours. Copy as plain text, or print.
  */
-export function SitrepPanel({ event }: { event: ApiDisasterEvent }) {
+export function SitrepPanel({ event, damage }: { event: ApiDisasterEvent; damage?: ApiDamageSummary | null }) {
   const { t, lang } = useTranslation();
   const [nearby, setNearby] = useState<SitrepNearby[] | null>(null);
   const [copied, setCopied] = useState(false);
@@ -49,8 +49,20 @@ export function SitrepPanel({ event }: { event: ApiDisasterEvent }) {
   }, [event.id]);
 
   const report = useMemo(
-    () => (nearby ? buildSitrep(event, nearby, t, lang) : null),
-    [event, nearby, t, lang],
+    () =>
+      nearby
+        ? buildSitrep(
+            event,
+            nearby,
+            t,
+            lang,
+            undefined,
+            damage
+              ? { total: damage.total, destroyed: damage.byGrade.destroyed ?? 0, damaged: damage.byGrade.damaged ?? 0 }
+              : null,
+          )
+        : null,
+    [event, nearby, t, lang, damage],
   );
 
   const copy = async () => {

@@ -123,6 +123,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/events/{event_id}/damage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Event Damage
+         * @description Copernicus EMS damage assessments for the event, worst grade first.
+         *
+         *     Empty (total 0) when no rapid-mapping product has been published.
+         */
+        get: operations["event_damage_api_v1_events__event_id__damage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/geodata/tiles/{z}/{x}/{y}": {
         parameters: {
             query?: never;
@@ -1330,6 +1352,62 @@ export interface components {
          * @enum {string}
          */
         ConnectStatus: "pending" | "approved" | "rejected" | "canceled";
+        /** DamageArea */
+        DamageArea: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string | null;
+            /**
+             * Grade
+             * @enum {string}
+             */
+            grade: "destroyed" | "damaged" | "possibly_damaged" | "no_visible_damage" | "unknown";
+            /** Product Type */
+            product_type: string | null;
+            /** Area Km2 */
+            area_km2: number | null;
+            /** Url */
+            url: string | null;
+            /** Activation */
+            activation: string | null;
+            /** Timestamp */
+            timestamp: string | null;
+            /** Geometry */
+            geometry: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * DamageSummary
+         * @description What the event's damage assessments add up to.
+         */
+        DamageSummary: {
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            /** Total */
+            total: number;
+            /** By Grade */
+            by_grade: {
+                [key: string]: number;
+            };
+            /** Area Km2 By Grade */
+            area_km2_by_grade: {
+                [key: string]: number;
+            };
+            /** Activations */
+            activations: string[];
+            /** Updated At */
+            updated_at: string | null;
+            /** Areas */
+            areas: components["schemas"]["DamageArea"][];
+        };
         /** DataSourceRef */
         DataSourceRef: {
             /**
@@ -2644,6 +2722,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    event_damage_api_v1_events__event_id__damage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DamageSummary"];
                 };
             };
             /** @description Validation Error */

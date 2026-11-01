@@ -44,12 +44,19 @@ type SitrepEvent = Pick<
 const fill = (template: string, vars: Record<string, string | number>) =>
   template.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? `{${k}}`));
 
+export interface SitrepDamage {
+  total: number;
+  destroyed: number;
+  damaged: number;
+}
+
 export function buildSitrep(
   event: SitrepEvent,
   nearby: SitrepNearby[],
   t: Translations,
   lang: string,
   now: Date = new Date(),
+  damage?: SitrepDamage | null,
 ): Sitrep {
   const s = t.sitrep;
   const typeLabel =
@@ -89,6 +96,16 @@ export function buildSitrep(
           }),
         ]
       : [s.lineNoPopulation];
+
+  if (damage && damage.total > 0) {
+    impact.push(
+      fill(t.damage.sitrep, {
+        n: damage.total.toLocaleString(lang),
+        destroyed: damage.destroyed.toLocaleString(lang),
+        damaged: damage.damaged.toLocaleString(lang),
+      }),
+    );
+  }
 
   const confidence: string[] = [];
   if (event.trust) {

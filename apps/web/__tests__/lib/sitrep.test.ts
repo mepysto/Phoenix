@@ -94,4 +94,33 @@ describe("buildSitrep", () => {
         for (const l of s.lines) expect(l).not.toMatch(/\{\w+\}/);
     }
   });
+
+  it("adds the damage assessment to impact when one exists", () => {
+    const r = buildSitrep(event, [], t, "en", new Date(), {
+      total: 12,
+      destroyed: 3,
+      damaged: 5,
+    });
+    expect(r.sections.find((s) => s.id === "impact")!.lines).toContain(
+      "Copernicus EMS assessed 12 areas: 3 destroyed, 5 damaged.",
+    );
+    const none = buildSitrep(event, [], t, "en", new Date(), {
+      total: 0,
+      destroyed: 0,
+      damaged: 0,
+    });
+    expect(
+      none.sections.find((s) => s.id === "impact")!.lines.join(" "),
+    ).not.toContain("Copernicus");
+  });
+});
+
+import { byGrade } from "@/lib/damage";
+
+describe("byGrade", () => {
+  it("reads camel-cased and snake_case keys", () => {
+    expect(byGrade({ possiblyDamaged: 2 }, "possibly_damaged")).toBe(2);
+    expect(byGrade({ no_visible_damage: 1 }, "no_visible_damage")).toBe(1);
+    expect(byGrade(undefined, "destroyed")).toBeUndefined();
+  });
 });
