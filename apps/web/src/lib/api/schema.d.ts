@@ -1033,6 +1033,7 @@ export interface components {
             /** Sources */
             sources: components["schemas"]["DataSourceRef"][];
             geometry?: components["schemas"]["GeoJSONGeometry"] | null;
+            trust?: components["schemas"]["EventTrust"] | null;
             /**
              * Created At
              * Format: date-time
@@ -1117,6 +1118,7 @@ export interface components {
             /** Sources */
             sources: components["schemas"]["DataSourceRef"][];
             geometry?: components["schemas"]["GeoJSONGeometry"] | null;
+            trust?: components["schemas"]["EventTrust"] | null;
             /**
              * Created At
              * Format: date-time
@@ -1127,6 +1129,20 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** EventTrust */
+        EventTrust: {
+            /** Confidence */
+            confidence: number;
+            /** Source Count */
+            source_count: number;
+            /**
+             * Lifecycle
+             * @enum {string}
+             */
+            lifecycle: "detected" | "verified" | "responding" | "recovering" | "closed";
+            /** Reasons */
+            reasons: string[];
         };
         /**
          * EventType
