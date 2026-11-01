@@ -28,7 +28,7 @@ dependencies = [
     # PostGIS + Geo dependencies
     "geoalchemy2>=0.15.0",
     "shapely>=2.0.0",
-    "geopandas>=1.0.0",
+    "geopandas>=1.2.0",
     "pyproj>=3.6.0",
 ]
 
