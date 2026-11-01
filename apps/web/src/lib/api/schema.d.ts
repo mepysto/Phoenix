@@ -712,6 +712,350 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/login-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Login Link
+         * @description Email a one-time sign-in link. Answers the same whether or not the address is known.
+         */
+        post: operations["login_link_api_v1_auth_login_link_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify
+         * @description Exchange a sign-in link for a session (HttpOnly cookie).
+         */
+        post: operations["verify_api_v1_auth_verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Logout */
+        post: operations["logout_api_v1_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_api_v1_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Me */
+        patch: operations["update_me_api_v1_auth_me_patch"];
+        trace?: never;
+    };
+    "/api/v1/community/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Categories */
+        get: operations["categories_api_v1_community_categories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/orgs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply Org
+         * @description Apply for an organisation. It can post needs once a platform admin approves it.
+         */
+        post: operations["apply_org_api_v1_community_orgs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/orgs/{org_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Member */
+        post: operations["add_member_api_v1_community_orgs__org_id__members_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/admin/orgs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Orgs For Review */
+        get: operations["orgs_for_review_api_v1_community_admin_orgs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/admin/orgs/{org_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Org */
+        post: operations["approve_org_api_v1_community_admin_orgs__org_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/admin/orgs/{org_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Org */
+        post: operations["reject_org_api_v1_community_admin_orgs__org_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/needs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Needs */
+        get: operations["list_needs_api_v1_community_needs_get"];
+        put?: never;
+        /** Create Need */
+        post: operations["create_need_api_v1_community_needs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/needs/{need_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Need */
+        get: operations["get_need_api_v1_community_needs__need_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Need */
+        patch: operations["update_need_api_v1_community_needs__need_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/community/needs/{need_id}/matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Need Matches
+         * @description Open offers ranked for this need, with the reasons for each score.
+         */
+        get: operations["need_matches_api_v1_community_needs__need_id__matches_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Offers */
+        get: operations["list_offers_api_v1_community_offers_get"];
+        put?: never;
+        /** Create Offer */
+        post: operations["create_offer_api_v1_community_offers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/offers/{offer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Offer */
+        patch: operations["update_offer_api_v1_community_offers__offer_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/community/connects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Connects */
+        get: operations["my_connects_api_v1_community_connects_get"];
+        put?: never;
+        /**
+         * Create Connect
+         * @description Propose a connection. The proposer's side counts as approved.
+         */
+        post: operations["create_connect_api_v1_community_connects_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/connects/{connect_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Connect */
+        post: operations["approve_connect_api_v1_community_connects__connect_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/connects/{connect_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline Connect */
+        post: operations["decline_connect_api_v1_community_connects__connect_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/events/{event_id}/disclosures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Disclosures */
+        get: operations["list_disclosures_api_v1_community_events__event_id__disclosures_get"];
+        put?: never;
+        /** Create Disclosure */
+        post: operations["create_disclosure_api_v1_community_events__event_id__disclosures_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/status": {
         parameters: {
             query?: never;
@@ -894,6 +1238,11 @@ export interface components {
             /** Session Cap */
             session_cap: number;
         };
+        /** CategoryList */
+        CategoryList: {
+            /** Data */
+            data: string[];
+        };
         /** ChatMessage */
         ChatMessage: {
             /**
@@ -928,6 +1277,59 @@ export interface components {
             /** Total Clusters */
             total_clusters: number;
         };
+        /** ConnectCreate */
+        ConnectCreate: {
+            /**
+             * Need Id
+             * Format: uuid
+             */
+            need_id: string;
+            /**
+             * Offer Id
+             * Format: uuid
+             */
+            offer_id: string;
+            /** Message */
+            message?: string | null;
+        };
+        /** ConnectList */
+        ConnectList: {
+            /** Data */
+            data: components["schemas"]["ConnectOut"][];
+        };
+        /** ConnectOut */
+        ConnectOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            need: components["schemas"]["NeedOut"];
+            offer: components["schemas"]["OfferOut"];
+            status: components["schemas"]["ConnectStatus"];
+            /** Message */
+            message: string | null;
+            /** Need Approved */
+            need_approved: boolean;
+            /** Offer Approved */
+            offer_approved: boolean;
+            /** My Sides */
+            my_sides: ("need" | "offer")[];
+            /** Counterpart Email */
+            counterpart_email?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Approved At */
+            approved_at: string | null;
+        };
+        /**
+         * ConnectStatus
+         * @enum {string}
+         */
+        ConnectStatus: "pending" | "approved" | "rejected" | "canceled";
         /** DataSourceRef */
         DataSourceRef: {
             /**
@@ -964,6 +1366,46 @@ export interface components {
             metadata?: {
                 [key: string]: unknown;
             } | null;
+        };
+        /** DisclosureCreate */
+        DisclosureCreate: {
+            /**
+             * Org Id
+             * Format: uuid
+             */
+            org_id: string;
+            /** Title */
+            title: string;
+            /** Body */
+            body: string;
+        };
+        /** DisclosureList */
+        DisclosureList: {
+            /** Data */
+            data: components["schemas"]["DisclosureOut"][];
+        };
+        /** DisclosureOut */
+        DisclosureOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            org: components["schemas"]["OrgSummary"];
+            /** Title */
+            title: string;
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /**
          * DisplayPoint
@@ -1255,6 +1697,23 @@ export interface components {
             /** Region */
             region?: string | null;
         };
+        /** LoginLinkRequest */
+        LoginLinkRequest: {
+            /** Email */
+            email: string;
+            /** Redirect Path */
+            redirect_path?: string | null;
+        };
+        /** LoginLinkResponse */
+        LoginLinkResponse: {
+            /**
+             * Sent
+             * @default true
+             */
+            sent: boolean;
+            /** Dev Link */
+            dev_link?: string | null;
+        };
         /**
          * MapContext
          * @description What the user is looking at, sent with every message for grounding.
@@ -1280,6 +1739,64 @@ export interface components {
             severities?: components["schemas"]["SeverityLevel"][] | null;
             /** Selected Event Id */
             selected_event_id?: string | null;
+        };
+        /** MatchList */
+        MatchList: {
+            /**
+             * Need Id
+             * Format: uuid
+             */
+            need_id: string;
+            /** Data */
+            data: components["schemas"]["MatchOut"][];
+        };
+        /** MatchOut */
+        MatchOut: {
+            offer: components["schemas"]["OfferOut"];
+            /** Score */
+            score: number;
+            /** Reasons */
+            reasons: string[];
+            /** Distance Km */
+            distance_km: number | null;
+        };
+        /** Me */
+        Me: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Email */
+            email: string;
+            /** Display Name */
+            display_name?: string | null;
+            /** Is Platform Admin */
+            is_platform_admin: boolean;
+            /** Memberships */
+            memberships: components["schemas"]["Membership"][];
+        };
+        /** MeUpdate */
+        MeUpdate: {
+            /** Display Name */
+            display_name?: string | null;
+        };
+        /** MemberAdd */
+        MemberAdd: {
+            /** Email */
+            email: string;
+            /** @default member */
+            role: components["schemas"]["MemberRole"];
+        };
+        /**
+         * MemberRole
+         * @enum {string}
+         */
+        MemberRole: "member" | "org_admin";
+        /** Membership */
+        Membership: {
+            org: components["schemas"]["OrgSummary"];
+            role: components["schemas"]["MemberRole"];
         };
         /** MergeJobResponse */
         MergeJobResponse: {
@@ -1322,6 +1839,220 @@ export interface components {
             /** Data */
             data: components["schemas"]["NearbyEvent"][];
         };
+        /** NeedCreate */
+        NeedCreate: {
+            /** Latitude */
+            latitude?: number | null;
+            /** Longitude */
+            longitude?: number | null;
+            /** Place Name */
+            place_name?: string | null;
+            /**
+             * Org Id
+             * Format: uuid
+             */
+            org_id: string;
+            /** Event Id */
+            event_id?: string | null;
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
+            /** Categories */
+            categories: ("shelter" | "water" | "sanitation" | "food" | "health" | "power" | "communications" | "logistics" | "education" | "protection" | "cash" | "other")[];
+            /** @default medium */
+            priority: components["schemas"]["NeedPriority"];
+            /** Quantity */
+            quantity?: number | null;
+            /** Unit */
+            unit?: string | null;
+            /** Beneficiaries */
+            beneficiaries?: number | null;
+            /** @default public */
+            visibility: components["schemas"]["NeedVisibility"];
+        };
+        /** NeedList */
+        NeedList: {
+            /** Data */
+            data: components["schemas"]["NeedOut"][];
+            /** Total */
+            total: number;
+        };
+        /** NeedOut */
+        NeedOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Event Id */
+            event_id: string | null;
+            org: components["schemas"]["OrgSummary"];
+            /** Contact Email */
+            contact_email: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string | null;
+            /** Categories */
+            categories: string[];
+            priority: components["schemas"]["NeedPriority"];
+            /** Quantity */
+            quantity: number | null;
+            /** Unit */
+            unit: string | null;
+            /** Beneficiaries */
+            beneficiaries: number | null;
+            /** Latitude */
+            latitude: number | null;
+            /** Longitude */
+            longitude: number | null;
+            /** Place Name */
+            place_name: string | null;
+            status: components["schemas"]["NeedStatus"];
+            visibility: components["schemas"]["NeedVisibility"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Can Edit
+             * @default false
+             */
+            can_edit: boolean;
+        };
+        /**
+         * NeedPriority
+         * @enum {string}
+         */
+        NeedPriority: "low" | "medium" | "high" | "critical";
+        /**
+         * NeedStatus
+         * @enum {string}
+         */
+        NeedStatus: "open" | "paused" | "closed";
+        /** NeedUpdate */
+        NeedUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Description */
+            description?: string | null;
+            priority?: components["schemas"]["NeedPriority"] | null;
+            status?: components["schemas"]["NeedStatus"] | null;
+            /** Quantity */
+            quantity?: number | null;
+            /** Beneficiaries */
+            beneficiaries?: number | null;
+        };
+        /**
+         * NeedVisibility
+         * @enum {string}
+         */
+        NeedVisibility: "public" | "org_only";
+        /** OfferCreate */
+        OfferCreate: {
+            /** Latitude */
+            latitude?: number | null;
+            /** Longitude */
+            longitude?: number | null;
+            /** Place Name */
+            place_name?: string | null;
+            /** Event Id */
+            event_id?: string | null;
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
+            offer_type: components["schemas"]["OfferType"];
+            /** Categories */
+            categories: ("shelter" | "water" | "sanitation" | "food" | "health" | "power" | "communications" | "logistics" | "education" | "protection" | "cash" | "other")[];
+            /** Quantity */
+            quantity?: number | null;
+            /** Unit */
+            unit?: string | null;
+            /** @default public */
+            visibility: components["schemas"]["OfferVisibility"];
+        };
+        /** OfferList */
+        OfferList: {
+            /** Data */
+            data: components["schemas"]["OfferOut"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * OfferOut
+         * @description An offer. The creator's identity stays private until a connection is approved.
+         */
+        OfferOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Event Id */
+            event_id: string | null;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string | null;
+            offer_type: components["schemas"]["OfferType"];
+            /** Categories */
+            categories: string[];
+            /** Quantity */
+            quantity: number | null;
+            /** Unit */
+            unit: string | null;
+            /** Latitude */
+            latitude: number | null;
+            /** Longitude */
+            longitude: number | null;
+            /** Place Name */
+            place_name: string | null;
+            status: components["schemas"]["OfferStatus"];
+            visibility: components["schemas"]["OfferVisibility"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Is Mine
+             * @default false
+             */
+            is_mine: boolean;
+        };
+        /**
+         * OfferStatus
+         * @enum {string}
+         */
+        OfferStatus: "open" | "withdrawn" | "closed";
+        /**
+         * OfferType
+         * @enum {string}
+         */
+        OfferType: "funding" | "goods" | "service" | "volunteer" | "transport" | "other";
+        /** OfferUpdate */
+        OfferUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Description */
+            description?: string | null;
+            status?: components["schemas"]["OfferStatus"] | null;
+            /** Quantity */
+            quantity?: number | null;
+        };
+        /**
+         * OfferVisibility
+         * @enum {string}
+         */
+        OfferVisibility: "public" | "private";
         /** OpenCamera */
         OpenCamera: {
             /**
@@ -1339,6 +2070,70 @@ export interface components {
             /** Direction */
             direction?: string | null;
         };
+        /** OrgAdminView */
+        OrgAdminView: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            org_type: components["schemas"]["OrgType"];
+            status: components["schemas"]["OrgStatus"];
+            /** Website */
+            website?: string | null;
+            /** Primary Email */
+            primary_email: string;
+            /** Requested By Email */
+            requested_by_email: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Rejection Reason */
+            rejection_reason?: string | null;
+        };
+        /** OrgCreate */
+        OrgCreate: {
+            /** Name */
+            name: string;
+            org_type: components["schemas"]["OrgType"];
+            /** Primary Email */
+            primary_email: string;
+            /** Website */
+            website?: string | null;
+        };
+        /** OrgDecision */
+        OrgDecision: {
+            /** Reason */
+            reason?: string | null;
+        };
+        /**
+         * OrgStatus
+         * @enum {string}
+         */
+        OrgStatus: "pending" | "approved" | "rejected";
+        /** OrgSummary */
+        OrgSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            org_type: components["schemas"]["OrgType"];
+            status: components["schemas"]["OrgStatus"];
+            /** Website */
+            website?: string | null;
+        };
+        /**
+         * OrgType
+         * @enum {string}
+         */
+        OrgType: "un" | "international_ngo" | "local_partner" | "government" | "other";
         /** Pagination */
         Pagination: {
             /** Total */
@@ -1519,6 +2314,12 @@ export interface components {
              */
             event_id: string;
         };
+        /** SessionResponse */
+        SessionResponse: {
+            user: components["schemas"]["Me"];
+            /** Redirect Path */
+            redirect_path: string;
+        };
         /** SetBasemap */
         SetBasemap: {
             /**
@@ -1675,6 +2476,11 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VerifyRequest */
+        VerifyRequest: {
+            /** Token */
+            token: string;
         };
         /**
          * ViewSummary
@@ -2772,6 +3578,781 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    login_link_api_v1_auth_login_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginLinkResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_api_v1_auth_verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    logout_api_v1_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    me_api_v1_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+        };
+    };
+    update_me_api_v1_auth_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    categories_api_v1_community_categories_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryList"];
+                };
+            };
+        };
+    };
+    apply_org_api_v1_community_orgs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrgCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_member_api_v1_community_orgs__org_id__members_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberAdd"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Membership"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    orgs_for_review_api_v1_community_admin_orgs_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["OrgStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgAdminView"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_org_api_v1_community_admin_orgs__org_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_org_api_v1_community_admin_orgs__org_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrgDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_needs_api_v1_community_needs_get: {
+        parameters: {
+            query?: {
+                event_id?: string | null;
+                org_id?: string | null;
+                category?: ("shelter" | "water" | "sanitation" | "food" | "health" | "power" | "communications" | "logistics" | "education" | "protection" | "cash" | "other") | null;
+                status?: components["schemas"]["NeedStatus"] | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_need_api_v1_community_needs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NeedCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_need_api_v1_community_needs__need_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                need_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_need_api_v1_community_needs__need_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                need_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NeedUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    need_matches_api_v1_community_needs__need_id__matches_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                need_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_offers_api_v1_community_offers_get: {
+        parameters: {
+            query?: {
+                event_id?: string | null;
+                category?: ("shelter" | "water" | "sanitation" | "food" | "health" | "power" | "communications" | "logistics" | "education" | "protection" | "cash" | "other") | null;
+                mine?: boolean;
+                status?: components["schemas"]["OfferStatus"] | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_offer_api_v1_community_offers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OfferCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_offer_api_v1_community_offers__offer_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OfferUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_connects_api_v1_community_connects_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectList"];
+                };
+            };
+        };
+    };
+    create_connect_api_v1_community_connects_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_connect_api_v1_community_connects__connect_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_connect_api_v1_community_connects__connect_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_disclosures_api_v1_community_events__event_id__disclosures_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisclosureList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_disclosure_api_v1_community_events__event_id__disclosures_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DisclosureCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisclosureOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
