@@ -58,17 +58,13 @@ async function load(): Promise<LiteEvent[] | null> {
   }
 }
 
-export default async function LitePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ lang?: string }>;
-}) {
-  const lang = pickLang(
-    (await searchParams).lang,
-    (await headers()).get("accept-language"),
-  );
+export default async function LitePage({ searchParams }: { searchParams: Promise<{ lang?: string }> }) {
+  // Start the slow request first; params and headers are cheap
+  const eventsPromise = load();
+  const [params, hdrs] = await Promise.all([searchParams, headers()]);
+  const lang = pickLang(params.lang, hdrs.get("accept-language"));
   const t = translations[lang];
-  const events = await load();
+  const events = await eventsPromise;
   const sorted = (events ?? []).sort(
     (a, b) =>
       (RANK[a.severity] ?? 9) - (RANK[b.severity] ?? 9) ||
