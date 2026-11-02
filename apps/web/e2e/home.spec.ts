@@ -18,7 +18,7 @@ test.describe("Home Page", () => {
     await page.goto("/");
 
     await expect(page.getByRole("banner")).toBeVisible();
-    await expect(page.getByText("Layers & Filters")).toBeVisible();
+    await expect(page.getByText("Layers and filters")).toBeVisible();
     await expect(page.locator('[class*="maplibregl-map"]')).toBeVisible({
       timeout: 15000,
     });

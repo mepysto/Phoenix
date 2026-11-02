@@ -6,8 +6,8 @@ import type { Config } from "tailwindcss";
  * action. Everything else is a cool "night orbit" grey so the two read.
  *
  * `gray` is overridden on purpose: the whole UI is built on gray-*, so the
- * retint applies everywhere at once. gray-500 is lifted to stay >= 4.5:1 on
- * gray-900/950 for small text.
+ * retint applies everywhere at once, and the light theme swaps the scale
+ * (globals.css). gray-500 stays >= 4.5:1 on gray-900/950 in both themes.
  */
 const config: Config = {
   content: [
@@ -19,19 +19,13 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        gray: {
-          50: "#F2F5FA",
-          100: "#E3E9F2",
-          200: "#C9D3E2",
-          300: "#A6B4CA",
-          400: "#8B9BB5",
-          500: "#7889A6",
-          600: "#44536E",
-          700: "#2C3A52",
-          800: "#1A2539",
-          900: "#111A2B",
-          950: "#0A111D",
-        },
+        // Channels live in globals.css so the light theme can swap the scale
+        gray: Object.fromEntries(
+          [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map((k) => [
+            k,
+            `rgb(var(--gray-${k}) / <alpha-value>)`,
+          ]),
+        ),
         primary: {
           50: "#E8FBF6",
           100: "#C6F5E8",
@@ -64,7 +58,7 @@ const config: Config = {
       },
       boxShadow: {
         // Elevation is a hairline first, a soft drop second
-        panel: "0 0 0 1px rgb(44 58 82 / 0.7), 0 12px 32px -12px rgb(0 0 0 / 0.6)",
+        panel: "0 0 0 1px rgb(var(--gray-700) / 0.7), 0 12px 32px -12px rgb(0 0 0 / var(--shadow-alpha))",
       },
       keyframes: {
         "ring-pulse": {

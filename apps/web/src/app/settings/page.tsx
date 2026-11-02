@@ -280,7 +280,6 @@ export default function SettingsPage() {
             <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-4 text-center text-sm text-gray-500">
               <p className="text-primary-400">{t.settings.changesApplied}</p>
               <p className="mt-1">{t.settings.autoSaved}</p>
-              <p className="mt-1">Version 0.12.0 | Phase 1 MVP</p>
             </div>
           </div>
         </div>

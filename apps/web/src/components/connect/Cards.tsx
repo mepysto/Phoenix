@@ -71,7 +71,7 @@ function MatchRow({
   onPropose: () => void;
   proposed: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const o = match.offer;
   return (
     <li className="rounded-lg border border-gray-800 bg-gray-950/60 p-3">
@@ -81,7 +81,7 @@ function MatchRow({
           <p className="mt-0.5 text-xs text-gray-400">
             {t.connect.offerTypes[o.offerType]}
             {o.quantity
-              ? ` · ${o.quantity.toLocaleString()} ${o.unit ?? ""}`
+              ? ` · ${o.quantity.toLocaleString(lang)} ${o.unit ?? ""}`
               : ""}
             {match.distanceKm != null
               ? ` · ${t.connect.away.replace("{km}", String(Math.round(match.distanceKm)))}`
@@ -132,7 +132,7 @@ export function NeedCard({
   signedIn: boolean;
   myOpenOffers: Offer[];
 }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [open, setOpen] = useState(false);
   const [matches, setMatches] = useState<Match[] | null>(null);
   const [proposed, setProposed] = useState<Set<string>>(new Set());
@@ -213,7 +213,7 @@ export function NeedCard({
             </span>
             <dt className="sr-only">{t.connect.form.quantity}</dt>
             <dd>
-              {need.quantity.toLocaleString()} {need.unit}
+              {need.quantity.toLocaleString(lang)} {need.unit}
             </dd>
           </div>
         )}
@@ -224,7 +224,7 @@ export function NeedCard({
             <dd>
               {t.connect.people.replace(
                 "{n}",
-                need.beneficiaries.toLocaleString(),
+                need.beneficiaries.toLocaleString(lang),
               )}
             </dd>
           </div>
@@ -333,7 +333,7 @@ export function NeedCard({
 }
 
 export function OfferCard({ offer }: { offer: Offer }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   return (
     <article className="rounded-xl border border-gray-800 bg-gray-900 p-5">
       <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -350,7 +350,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
       )}
       <p className="mt-2 text-sm text-gray-400">
         {offer.quantity
-          ? `${offer.quantity.toLocaleString()} ${offer.unit ?? ""}`
+          ? `${offer.quantity.toLocaleString(lang)} ${offer.unit ?? ""}`
           : ""}
         {offer.quantity && offer.placeName ? " · " : ""}
         {offer.placeName ?? ""}

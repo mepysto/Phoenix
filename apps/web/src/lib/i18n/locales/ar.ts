@@ -789,4 +789,22 @@ export const ar: Translations = {
     noEntries: "لا مشاركات بعد. كن الأول.",
     failed: "تعذّر الإتمام. أعد المحاولة.",
   },
+  ux: {
+    plan: "التخطيط",
+    filters: "عوامل التصفية",
+    legend: "وسيلة الإيضاح",
+    language: "اللغة",
+    mapTools: "أدوات الخريطة",
+    viewMode: "وضع العرض",
+    actions: "إجراءات",
+    updated: "تم التحديث {date}",
+    severity: {
+      low: "منخفض",
+      medium: "متوسط",
+      high: "مرتفع",
+      critical: "حرج",
+    },
+    showAll: "عرض الكل",
+    activeFilters: "{n} عوامل تصفية مفعّلة",
+  },
 };

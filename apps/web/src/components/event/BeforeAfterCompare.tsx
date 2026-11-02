@@ -27,7 +27,10 @@ function Mosaic({
   lng,
   z,
   label,
+  side,
 }: {
+  /** Which half this mosaic shows; the "no imagery" note stays on that half */
+  side: "left" | "right";
   date: string;
   lat: number;
   lng: number;
@@ -46,9 +49,13 @@ function Mosaic({
   return (
     <>
       {failures >= grid.tiles.length && (
-        <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-gray-400">
+        <p
+          className={`absolute top-11 max-w-[42%] rounded-md bg-gray-900/90 px-2.5 py-1.5 text-xs text-gray-300 ${
+            side === "left" ? "left-3" : "right-3 text-right"
+          }`}
+        >
           {t.compare.unavailable.replace("{date}", date)}
-        </div>
+        </p>
       )}
       <div
         className="absolute left-1/2 top-1/2 h-[768px] w-[768px]"
@@ -151,6 +158,7 @@ export function BeforeAfterCompare({
           lng={lng}
           z={z}
           label={`${t.compare.before} ${before}`}
+          side="left"
         />
         <div
           className="absolute inset-0"
@@ -162,6 +170,7 @@ export function BeforeAfterCompare({
             lng={lng}
             z={z}
             label={`${t.compare.after} ${after}`}
+            side="right"
           />
         </div>
 
@@ -188,10 +197,10 @@ export function BeforeAfterCompare({
         {/* Divider (after the slider so it can show the slider's focus) */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 w-px bg-white/80 peer-focus-visible:w-0.5 peer-focus-visible:bg-primary-300"
+          className="pointer-events-none absolute inset-y-0 w-px bg-gray-100/80 peer-focus-visible:w-0.5 peer-focus-visible:bg-primary-300"
           style={{ left: `${split}%` }}
         >
-          <span className="absolute left-1/2 top-1/2 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-gray-950/80 text-[10px] text-white">
+          <span className="absolute left-1/2 top-1/2 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gray-100/70 bg-gray-950/80 text-[10px] text-gray-100">
             ⟷
           </span>
         </div>

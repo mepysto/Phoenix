@@ -232,8 +232,8 @@ function Planner() {
   };
 
   return (
-    <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
-      <div className="relative h-[55vh] min-h-[320px] flex-1 lg:h-auto">
+    <main className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
+      <div className="relative h-[62vh] min-h-[340px] shrink-0 lg:h-auto lg:flex-1">
         <PlanMap
           center={center}
           items={items}
@@ -246,7 +246,7 @@ function Planner() {
         <div
           role="toolbar"
           aria-label={t.plan.tools}
-          className="hud-panel absolute left-3 top-3 flex flex-col gap-1 rounded-xl p-1.5"
+          className="hud-panel absolute start-3 top-3 flex gap-1 rounded-xl p-1.5 lg:flex-col"
         >
           {TOOLS.map(({ id, icon: Icon, key }) => {
             const label = id === "remove" ? t.plan.remove : t.plan.kinds[id];
@@ -276,12 +276,12 @@ function Planner() {
             );
           })}
         </div>
-        <p className="hud-panel pointer-events-none absolute bottom-3 left-3 right-24 rounded-lg px-3 py-2 text-xs text-gray-300 md:right-auto md:max-w-sm">
+        <p className="hud-panel pointer-events-none absolute bottom-3 start-3 end-24 rounded-lg px-3 py-2 text-xs text-gray-300 md:right-auto md:max-w-sm">
           {t.plan.hint}
         </p>
       </div>
 
-      <aside className="w-full shrink-0 overflow-y-auto border-gray-800 bg-gray-950 p-5 lg:w-96 lg:border-l">
+      <aside className="w-full shrink-0 overflow-y-auto border-gray-800 bg-gray-950 p-5 lg:w-96 lg:border-s">
         <h1 className="text-2xl font-semibold tracking-tight text-white">
           {t.plan.title}
         </h1>
@@ -401,7 +401,7 @@ function Planner() {
 
 export default function PlanPage() {
   return (
-    <div className="flex h-screen flex-col bg-gray-950">
+    <div className="flex min-h-screen flex-col bg-gray-950 lg:h-screen">
       <Header />
       <Suspense>
         <Planner />

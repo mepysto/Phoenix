@@ -26,13 +26,13 @@ describe("Sidebar", () => {
   it("renders the sidebar title", () => {
     render(<Sidebar />);
 
-    expect(screen.getByText("Layers & Filters")).toBeInTheDocument();
+    expect(screen.getByText("Layers and filters")).toBeInTheDocument();
   });
 
   it("renders Event Types section", () => {
     render(<Sidebar />);
 
-    expect(screen.getByText("Event Types")).toBeInTheDocument();
+    expect(screen.getByText("Event types")).toBeInTheDocument();
   });
 
   it("renders Severity section", () => {

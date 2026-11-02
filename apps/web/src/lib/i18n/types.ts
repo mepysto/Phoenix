@@ -756,4 +756,23 @@ export interface Translations {
     noEntries: string;
     failed: string;
   };
+  /** Shared chrome: navigation, map toolbar, filters */
+  ux: {
+    plan: string;
+    filters: string;
+    legend: string;
+    language: string;
+    mapTools: string;
+    viewMode: string;
+    actions: string;
+    updated: string;
+    severity: {
+      low: string;
+      medium: string;
+      high: string;
+      critical: string;
+    };
+    showAll: string;
+    activeFilters: string;
+  };
 }

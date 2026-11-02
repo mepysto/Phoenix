@@ -789,4 +789,22 @@ export const zh: Translations = {
     noEntries: "暂无参赛方案，欢迎率先提交。",
     failed: "操作未完成，请重试。",
   },
+  ux: {
+    plan: "规划",
+    filters: "筛选",
+    legend: "图例",
+    language: "语言",
+    mapTools: "地图工具",
+    viewMode: "视图模式",
+    actions: "操作",
+    updated: "{date} 更新",
+    severity: {
+      low: "低",
+      medium: "中",
+      high: "高",
+      critical: "危急",
+    },
+    showAll: "显示全部",
+    activeFilters: "已启用 {n} 个筛选",
+  },
 };

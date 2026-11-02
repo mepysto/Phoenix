@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 interface SlideOverProps {
@@ -9,6 +10,8 @@ interface SlideOverProps {
   onClose: () => void;
   closeLabel: string;
   children: React.ReactNode;
+  /** Content brings its own padding and scrolling */
+  flush?: boolean;
 }
 
 /**
@@ -21,6 +24,7 @@ export function SlideOver({
   onClose,
   closeLabel,
   children,
+  flush = false,
 }: SlideOverProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +59,8 @@ export function SlideOver({
   }, [open, onClose]);
 
   if (!open) return null;
-  return (
+  // Portal: a filtered or transformed ancestor (map overlays) would trap a fixed panel
+  return createPortal(
     <div className="fixed inset-0 z-[90] flex justify-end">
       <div
         className="absolute inset-0 bg-gray-950/70"
@@ -67,7 +72,7 @@ export function SlideOver({
         role="dialog"
         aria-modal="true"
         aria-labelledby="slideover-title"
-        className="relative flex h-full w-full max-w-lg animate-[slide-in_200ms_cubic-bezier(.2,.7,.3,1)] flex-col border-l border-gray-800 bg-gray-900 shadow-panel"
+        className="relative flex h-full w-full max-w-lg animate-[slide-in_200ms_cubic-bezier(.2,.7,.3,1)] flex-col border-s border-gray-800 bg-gray-900 shadow-panel"
       >
         <header className="flex items-center justify-between border-b border-gray-800 px-5 py-4">
           <h2 id="slideover-title" className="text-lg font-semibold text-white">
@@ -82,8 +87,15 @@ export function SlideOver({
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </header>
-        <div className="flex-1 overflow-y-auto px-5 py-5">{children}</div>
+        <div
+          className={
+            flush ? "flex min-h-0 flex-1 flex-col" : "flex-1 overflow-y-auto px-5 py-5"
+          }
+        >
+          {children}
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
