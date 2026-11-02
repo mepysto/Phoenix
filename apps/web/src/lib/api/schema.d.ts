@@ -809,6 +809,26 @@ export interface paths {
         patch: operations["update_me_api_v1_auth_me_patch"];
         trace?: never;
     };
+    "/api/v1/auth/me/contributions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Contributions
+         * @description Your contributions and badges (visible only to you).
+         */
+        get: operations["my_contributions_api_v1_auth_me_contributions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/community/categories": {
         parameters: {
             query?: never;
@@ -908,6 +928,43 @@ export interface paths {
         put?: never;
         /** Reject Org */
         post: operations["reject_org_api_v1_community_admin_orgs__org_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/admin/orgs/{org_id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify Org
+         * @description Mark an approved organisation as an official partner.
+         */
+        post: operations["verify_org_api_v1_community_admin_orgs__org_id__verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/admin/orgs/{org_id}/unverify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unverify Org */
+        post: operations["unverify_org_api_v1_community_admin_orgs__org_id__unverify_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1393,6 +1450,17 @@ export interface components {
             /** Session Cap */
             session_cap: number;
         };
+        /** Badge */
+        Badge: {
+            /** Id */
+            id: string;
+            /** Earned */
+            earned: boolean;
+            /** Progress */
+            progress: number;
+            /** Target */
+            target: number;
+        };
         /** CategoryList */
         CategoryList: {
             /** Data */
@@ -1485,6 +1553,20 @@ export interface components {
          * @enum {string}
          */
         ConnectStatus: "pending" | "approved" | "rejected" | "canceled";
+        /**
+         * Contributions
+         * @description What the signed-in user has done, and the badges it earns. Only for themselves.
+         */
+        Contributions: {
+            /** Points */
+            points: number;
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Badges */
+            badges: components["schemas"]["Badge"][];
+        };
         /** DamageArea */
         DamageArea: {
             /**
@@ -2298,6 +2380,11 @@ export interface components {
             status: components["schemas"]["OrgStatus"];
             /** Website */
             website?: string | null;
+            /**
+             * Verified
+             * @default false
+             */
+            verified: boolean;
             /** Primary Email */
             primary_email: string;
             /** Requested By Email */
@@ -2343,6 +2430,11 @@ export interface components {
             status: components["schemas"]["OrgStatus"];
             /** Website */
             website?: string | null;
+            /**
+             * Verified
+             * @default false
+             */
+            verified: boolean;
         };
         /**
          * OrgType
@@ -4158,6 +4250,26 @@ export interface operations {
             };
         };
     };
+    my_contributions_api_v1_auth_me_contributions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Contributions"];
+                };
+            };
+        };
+    };
     categories_api_v1_community_categories_get: {
         parameters: {
             query?: never;
@@ -4322,6 +4434,68 @@ export interface operations {
                 "application/json": components["schemas"]["OrgDecision"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_org_api_v1_community_admin_orgs__org_id__verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unverify_org_api_v1_community_admin_orgs__org_id__unverify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

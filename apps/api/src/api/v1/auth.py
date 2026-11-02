@@ -13,7 +13,7 @@ from src.api.v1.deps_auth import (
 )
 from src.core.config import Settings, get_settings
 from src.db.database import get_db
-from src.schemas.community import LoginLinkRequest, LoginLinkResponse, Me, MeUpdate, SessionResponse, VerifyRequest
+from src.schemas.community import Contributions, LoginLinkRequest, LoginLinkResponse, Me, MeUpdate, SessionResponse, VerifyRequest
 from src.services.community.auth import (
     InvalidEmail,
     request_login_link,
@@ -99,3 +99,15 @@ async def update_me(
     assert viewer.user is not None
     viewer.user.display_name = (body.display_name or "").strip() or None
     return service.me(viewer)
+
+
+@router.get("/me/contributions", response_model=Contributions)
+async def my_contributions(
+    viewer: Annotated[Viewer, Depends(signed_in_viewer)],
+    session: AsyncSession = Depends(get_db),
+) -> Contributions:
+    """Your contributions and badges (visible only to you)."""
+    from src.services.community.contributions import contributions_for
+
+    assert viewer.user is not None
+    return await contributions_for(session, viewer.user.id)

@@ -63,6 +63,8 @@ class OrgSummary(BaseModel):
     org_type: OrgType
     status: OrgStatus
     website: str | None = None
+    # Official partner, verified by the platform
+    verified: bool = False
 
 
 class Membership(BaseModel):
@@ -303,3 +305,21 @@ class DisclosureList(BaseModel):
 
 class CategoryList(BaseModel):
     data: list[str]
+
+
+# --- contributions (FR-6.2) --------------------------------------------------
+
+
+class Badge(BaseModel):
+    id: str
+    earned: bool
+    progress: int
+    target: int
+
+
+class Contributions(BaseModel):
+    """What the signed-in user has done, and the badges it earns. Only for themselves."""
+
+    points: int
+    counts: dict[str, int]
+    badges: list[Badge]

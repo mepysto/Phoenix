@@ -19,6 +19,7 @@ import {
 } from "@/lib/api/community";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { CategoryIcon } from "./CategoryIcon";
+import { VerifiedBadge } from "./VerifiedBadge";
 
 const PRIORITY_EDGE: Record<string, string> = {
   critical: "bg-ember-500",
@@ -193,7 +194,10 @@ export function NeedCard({
         <div className="flex items-center gap-2">
           <Building2 className="h-4 w-4 text-gray-500" aria-hidden="true" />
           <dt className="sr-only">{t.connect.form.org}</dt>
-          <dd>{need.org.name}</dd>
+          <dd className="flex items-center gap-1.5">
+            {need.org.name}
+            {need.org.verified && <VerifiedBadge compact />}
+          </dd>
         </div>
         {need.placeName && (
           <div className="flex items-center gap-2">

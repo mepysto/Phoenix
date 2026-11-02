@@ -686,4 +686,33 @@ export interface Translations {
     needArea: string;
     failed: string;
   };
+  badges: {
+    verified: string;
+    verifiedHelp: string;
+    verify: string;
+    unverify: string;
+    approvedOrgs: string;
+    contributions: string;
+    points: string;
+    onlyYou: string;
+    progress: string;
+    names: {
+      first_offer: string;
+      voice_of_need: string;
+      connector: string;
+      steady_connector: string;
+      planner: string;
+      remixed: string;
+      reporter: string;
+    };
+    help: {
+      first_offer: string;
+      voice_of_need: string;
+      connector: string;
+      steady_connector: string;
+      planner: string;
+      remixed: string;
+      reporter: string;
+    };
+  };
 }

@@ -32,6 +32,7 @@ export type Offer = Camel<S["OfferOut"]>;
 export type Match = Camel<S["MatchOut"]>;
 export type Connect = Camel<S["ConnectOut"]>;
 export type Disclosure = Camel<S["DisclosureOut"]>;
+export type Contributions = Camel<S["Contributions"]>;
 export type Category = S["NeedCreate"]["categories"][number];
 export type OrgType = S["OrgType"];
 export type NeedPriority = S["NeedPriority"];
@@ -107,6 +108,7 @@ export const authAPI = {
     }),
   me: () => call<Me>("/api/v1/auth/me"),
   logout: () => call<void>("/api/v1/auth/logout", { method: "POST" }),
+  contributions: () => call<Contributions>("/api/v1/auth/me/contributions"),
 };
 
 const C = "/api/v1/community";
@@ -127,6 +129,8 @@ export const communityAPI = {
     call<OrgAdminView[]>(`${C}/admin/orgs${qs({ status })}`),
   approveOrg: (id: string) =>
     call<OrgSummary>(`${C}/admin/orgs/${id}/approve`, { method: "POST" }),
+  verifyOrg: (id: string, verified: boolean) =>
+    call<OrgSummary>(`${C}/admin/orgs/${id}/${verified ? "verify" : "unverify"}`, { method: "POST" }),
   rejectOrg: (id: string, reason?: string) =>
     call<OrgSummary>(`${C}/admin/orgs/${id}/reject`, {
       method: "POST",

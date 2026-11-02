@@ -11,6 +11,8 @@ import {
   X,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
+import { ContributionsCard } from "@/components/connect/ContributionsCard";
+import { VerifiedBadge } from "@/components/connect/VerifiedBadge";
 import {
   communityAPI,
   type Connect,
@@ -428,6 +430,7 @@ export default function MyConnectionsPage() {
           </section>
 
           <aside className="space-y-4" aria-labelledby="orgs-title">
+            <ContributionsCard />
             <h2 id="orgs-title" className="text-sm font-semibold text-gray-300">
               {m.orgs}
             </h2>
@@ -446,6 +449,7 @@ export default function MyConnectionsPage() {
                       aria-hidden="true"
                     />
                     <span className="font-medium text-white">{org.name}</span>
+                    {org.verified && <VerifiedBadge compact />}
                   </div>
                   <StatusPill status={org.status} />
                 </div>

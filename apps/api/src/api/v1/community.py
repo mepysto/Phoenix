@@ -52,6 +52,17 @@ async def reject_org(org_id: UUID, body: s.OrgDecision, v: SignedIn, service: Se
     return await service.decide_org(v, org_id, False, body.reason)
 
 
+@router.post("/admin/orgs/{org_id}/verify", response_model=s.OrgSummary)
+async def verify_org(org_id: UUID, v: SignedIn, service: Service) -> s.OrgSummary:
+    """Mark an approved organisation as an official partner."""
+    return await service.set_verified(v, org_id, True)
+
+
+@router.post("/admin/orgs/{org_id}/unverify", response_model=s.OrgSummary)
+async def unverify_org(org_id: UUID, v: SignedIn, service: Service) -> s.OrgSummary:
+    return await service.set_verified(v, org_id, False)
+
+
 # --- needs --------------------------------------------------------------------
 
 
