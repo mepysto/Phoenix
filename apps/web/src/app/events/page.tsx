@@ -31,6 +31,8 @@ import {
   type SeverityLevel,
 } from "@/store/eventStore";
 import { Header } from "@/components/layout/Header";
+import { ActiveBadge, SeverityBadge, TypeBadge } from "@/components/event/Badges";
+import { formatDate, formatWhen } from "@/lib/format";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
@@ -53,13 +55,11 @@ const EVENT_ICONS: Partial<Record<EventType, React.ReactNode>> & {
 function EventCard({ event }: { event: DisasterEvent }) {
   const { t, lang } = useTranslation();
   const typeColor = EVENT_TYPE_COLORS[event.type as EventType] || "#808080";
-  const severityColor =
-    SEVERITY_COLORS[event.severity as SeverityLevel] || "#808080";
 
   return (
     <Link
       href={`/events/${event.id}`}
-      className="block rounded-lg border border-gray-800 bg-gray-900 p-4 hover:border-gray-700 hover:bg-gray-800/50 transition-all"
+      className="group flex flex-col rounded-xl border border-gray-800 bg-gray-900 p-4 transition-colors hover:border-gray-700 hover:bg-gray-800/40"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -76,46 +76,37 @@ function EventCard({ event }: { event: DisasterEvent }) {
             </p>
           </div>
         </div>
-        <ChevronRight className="h-5 w-5 text-gray-600 flex-shrink-0" />
+        <ChevronRight
+          className="h-5 w-5 flex-shrink-0 text-gray-600 transition-transform group-hover:translate-x-0.5 group-hover:text-gray-400 rtl:rotate-180"
+          aria-hidden="true"
+        />
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-400">
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-gray-400">
         <div className="flex items-center gap-1">
-          <MapPin className="h-4 w-4" />
+          <MapPin className="h-4 w-4" aria-hidden="true" />
           <span>
             {event.location.country || formatPosition(getEventPosition(event))}
           </span>
         </div>
         {event.affectedPopulation != null && event.affectedPopulation > 0 && (
           <div className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
+            <Users className="h-4 w-4" aria-hidden="true" />
             <span>{t.detail.affectedCount.replace("{n}", event.affectedPopulation.toLocaleString(lang))}</span>
           </div>
         )}
         <div className="flex items-center gap-1">
-          <Clock className="h-4 w-4" />
-          <span>{new Date(event.startDate).toLocaleDateString(lang)}</span>
+          <Clock className="h-4 w-4" aria-hidden="true" />
+          <time dateTime={event.startDate} title={formatDate(event.startDate, lang)}>
+            {formatWhen(event.startDate, lang)}
+          </time>
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-2">
-        <span
-          className="rounded-full px-2 py-0.5 text-xs font-medium"
-          style={{ backgroundColor: `${typeColor}20`, color: typeColor }}
-        >
-          {t.sidebar[event.type as EventType] ?? event.type}
-        </span>
-        <span
-          className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-          style={{ backgroundColor: severityColor }}
-        >
-          {t.sidebar[event.severity as SeverityLevel] ?? event.severity}
-        </span>
-        {event.isActive && (
-          <span className="rounded-full bg-green-900/50 px-2 py-0.5 text-xs font-medium text-green-400">
-            {t.detail.active}
-          </span>
-        )}
+      <div className="mt-auto flex flex-wrap items-center gap-2 pt-3">
+        <TypeBadge type={event.type} />
+        <SeverityBadge severity={event.severity} />
+        {event.isActive && <ActiveBadge />}
       </div>
     </Link>
   );
@@ -156,7 +147,7 @@ function EventsPageContent() {
 
       <main className="flex-1 px-4 py-6 md:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
             <div>
               <h1 className="text-2xl font-bold text-white">
                 {t.events.title}
@@ -175,92 +166,125 @@ function EventsPageContent() {
             </div>
             <Link
               href="/"
-              className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+              className="btn-primary"
             >
               {t.common.viewOnMap}
             </Link>
           </div>
 
-          <div className="mb-6 flex flex-wrap gap-2">
-            <div className="flex flex-wrap gap-2">
-              {eventTypes.map((type) => (
-                <button
-                  key={type}
-                  onClick={() => toggleEventType(type)}
-                  aria-pressed={selectedTypes.has(type)}
-                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                    selectedTypes.has(type)
-                      ? "bg-primary-600 text-white"
-                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                  }`}
-                >
-                  <span
-                    style={{
-                      color: selectedTypes.has(type)
-                        ? "white"
-                        : EVENT_TYPE_COLORS[type],
-                    }}
+          <div className="mb-6 space-y-3">
+            <div
+              role="group"
+              aria-label={t.sidebar.eventTypes}
+              className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+            >
+              {eventTypes.map((type) => {
+                const on = selectedTypes.has(type);
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => toggleEventType(type)}
+                    aria-pressed={on}
+                    className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      on
+                        ? "border-gray-600 bg-gray-800 text-gray-100 hover:bg-gray-700"
+                        : "border-gray-800 text-gray-500 hover:border-gray-700 hover:text-gray-300"
+                    }`}
                   >
-                    {EVENT_ICONS[type] ?? EVENT_ICONS.other}
-                  </span>
-                  {t.sidebar[type] ?? EVENT_TYPE_LABELS[type]}
-                </button>
-              ))}
+                    <span
+                      aria-hidden="true"
+                      className="[&>svg]:h-3.5 [&>svg]:w-3.5"
+                      style={{ color: on ? EVENT_TYPE_COLORS[type] : undefined }}
+                    >
+                      {EVENT_ICONS[type] ?? EVENT_ICONS.other}
+                    </span>
+                    {t.sidebar[type] ?? EVENT_TYPE_LABELS[type]}
+                  </button>
+                );
+              })}
             </div>
-            <div className="h-6 w-px bg-gray-700" />
-            <div className="flex flex-wrap gap-2">
-              {severityLevels.map((severity) => (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="me-1 text-xs font-medium text-gray-400">
+                {t.sidebar.severity}
+              </span>
+              {severityLevels.map((severity) => {
+                const on = selectedSeverities.has(severity);
+                return (
+                  <button
+                    key={severity}
+                    type="button"
+                    onClick={() => toggleSeverity(severity)}
+                    aria-pressed={on}
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      on
+                        ? "border-gray-600 bg-gray-800 text-gray-100 hover:bg-gray-700"
+                        : "border-gray-800 text-gray-500 hover:border-gray-700 hover:text-gray-300"
+                    }`}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="h-2 w-2 rounded-full"
+                      style={{
+                        backgroundColor: on ? SEVERITY_COLORS[severity] : "rgb(var(--gray-600))",
+                      }}
+                    />
+                    {t.sidebar[severity]}
+                  </button>
+                );
+              })}
+              {isFiltered && (
                 <button
-                  key={severity}
-                  onClick={() => toggleSeverity(severity)}
-                  aria-pressed={selectedSeverities.has(severity)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                    selectedSeverities.has(severity)
-                      ? "text-white"
-                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                  }`}
-                  style={
-                    selectedSeverities.has(severity)
-                      ? { backgroundColor: SEVERITY_COLORS[severity] }
-                      : {}
-                  }
+                  type="button"
+                  onClick={clearFilters}
+                  className="ms-1 text-xs font-medium text-primary-300 hover:underline"
                 >
-                  {severity.charAt(0).toUpperCase() + severity.slice(1)}
+                  {t.events.clearFilters}
                 </button>
-              ))}
+              )}
             </div>
-            {isFiltered && (
-              <button
-                onClick={clearFilters}
-                className="rounded-full bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-300 hover:bg-gray-700 transition-colors"
-              >
-                {t.events.clearFilters}
-              </button>
-            )}
           </div>
 
           {error && (
-            <div className="mb-6 rounded-lg bg-red-900/50 p-4 text-sm text-red-200">
+            <div role="alert" className="mb-6 rounded-lg border border-ember-600/50 bg-ember-700/10 p-4 text-sm text-ember-300">
               Failed to load events: {error}
             </div>
           )}
 
           {isLoading && events.length === 0 ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary-500 border-t-transparent mx-auto" />
-                <p className="text-gray-400">{t.common.loading}</p>
-              </div>
+            <div
+              role="status"
+              aria-label={t.common.loading}
+              className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+            >
+              {Array.from({ length: 6 }, (_, i) => (
+                <div
+                  key={i}
+                  className="h-52 animate-pulse rounded-xl border border-gray-800 bg-gray-900"
+                />
+              ))}
             </div>
           ) : events.length === 0 ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <AlertTriangle className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400">{t.events.noEvents}</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {t.events.adjustFilters}
-                </p>
-              </div>
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-800 py-16 text-center">
+              <AlertTriangle className="mb-4 h-10 w-10 text-gray-600" aria-hidden="true" />
+              <p className="font-medium text-gray-200">{t.events.noEvents}</p>
+              <p className="mt-1 text-sm text-gray-400">
+                {t.events.adjustFilters}
+              </p>
+              {(isFiltered || query) && (
+                <div className="mt-5 flex gap-2">
+                  {isFiltered && (
+                    <button type="button" onClick={clearFilters} className="btn-ghost">
+                      {t.events.clearFilters}
+                    </button>
+                  )}
+                  {query && (
+                    <Link href="/events" className="btn-ghost">
+                      {t.ux.showAll}
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

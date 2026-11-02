@@ -4,64 +4,91 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root,
+html.dark {
+  /* Night-orbit greys (RGB channels for Tailwind's alpha modifier) */
+  --gray-50: 242 245 250;
+  --gray-100: 227 233 242;
+  --gray-200: 201 211 226;
+  --gray-300: 166 180 202;
+  --gray-400: 139 155 181;
+  --gray-500: 120 137 166;
+  --gray-600: 68 83 110;
+  --gray-700: 44 58 82;
+  --gray-800: 26 37 57;
+  --gray-900: 17 26 43;
+  --gray-950: 10 17 29;
+  --fg-strong: 255 255 255;
+  --shadow-alpha: 0.6;
   --background: #0a111d;
   --foreground: #e3e9f2;
   --ember: #ff6b3d;
   --regrow: #34d0ac;
-}
-
-html.dark {
-  --background: #0a111d;
-  --foreground: #e3e9f2;
   color-scheme: dark;
 }
 
+/*
+ * Light theme: the same scale, inverted. Surfaces (950 page, 900 card,
+ * 800 raised, 700 hairline) become light and text steps (100-500) become
+ * dark, so every gray-* class keeps its role. Text on light surfaces stays
+ * >= 4.5:1 down to gray-500.
+ */
 html.light {
-  --background: #f5f5f5;
-  --foreground: #171717;
+  --gray-50: 14 22 38;
+  --gray-100: 23 33 51;
+  --gray-200: 34 46 67;
+  --gray-300: 52 66 90;
+  --gray-400: 74 90 117;
+  --gray-500: 86 102 130;
+  --gray-600: 160 174 196;
+  --gray-700: 211 219 231;
+  --gray-800: 232 237 244;
+  --gray-900: 255 255 255;
+  --gray-950: 243 246 250;
+  --fg-strong: 10 17 29;
+  --shadow-alpha: 0.18;
+  --background: #f3f6fa;
+  --foreground: #172133;
+  --regrow: #0b7d66;
   color-scheme: light;
 }
 
-html.light body {
-  background: var(--background);
-  color: var(--foreground);
-}
-
-html.light .bg-gray-900 {
-  background-color: #ffffff;
-}
-
-html.light .bg-gray-950 {
-  background-color: #f5f5f5;
-}
-
-html.light .bg-gray-800 {
-  background-color: #e5e5e5;
-}
-
-html.light .border-gray-800 {
-  border-color: #d4d4d4;
-}
-
-html.light .border-gray-700 {
-  border-color: #e5e5e5;
-}
-
+/* "White" text means "strongest text" on neutral surfaces ... */
 html.light .text-white {
-  color: #171717;
+  color: rgb(var(--fg-strong));
 }
-
-html.light .text-gray-300 {
-  color: #525252;
+/* ... but stays white on the filled signal colours */
+html.light .text-white:is([class~="bg-primary-500"], [class~="bg-primary-600"], [class~="bg-primary-700"], [class~="bg-red-700/95"], [class~="bg-amber-700/90"], .btn-primary),
+html.light :is([class~="bg-primary-500"], [class~="bg-primary-600"], [class~="bg-primary-700"], [class~="bg-red-700/95"], [class~="bg-amber-700/90"], .btn-primary) .text-white {
+  color: #fff;
 }
-
-html.light .text-gray-400 {
-  color: #737373;
+/* Light accent text is for dark surfaces; use the deep shades instead */
+html.light :is(.text-primary-100, .text-primary-200, .text-primary-300, .text-primary-400) {
+  color: #0b6b58;
 }
-
-html.light .text-gray-500 {
-  color: #a3a3a3;
+html.light :is(.text-ember-300, .text-ember-400) {
+  color: #b23c15;
+}
+html.light :is(.text-amber-200, .text-amber-300, .text-amber-400) {
+  color: #92400e;
+}
+html.light :is(.text-sky-300, .text-sky-400) {
+  color: #0369a1;
+}
+html.light :is(.text-green-300, .text-green-400, .text-emerald-300, .text-emerald-400) {
+  color: #047857;
+}
+html.light :is(.text-red-200, .text-red-300, .text-red-400, .text-rose-300, .text-rose-400) {
+  color: #b91c1c;
+}
+html.light :is(.text-purple-300, .text-purple-400, .text-violet-300, .text-violet-400, .text-fuchsia-300) {
+  color: #6d28d9;
+}
+html.light :is(.text-blue-300, .text-blue-400, .text-cyan-300, .text-cyan-400) {
+  color: #1d4ed8;
+}
+html.light :is(.text-yellow-300, .text-yellow-400, .text-orange-300, .text-orange-400) {
+  color: #b45309;
 }
 
 html.no-animations * {
@@ -93,18 +120,11 @@ body {
 
 /* Floating panels over the map: an opaque-enough surface with a hairline */
 .hud-panel {
-  background: rgb(17 26 43 / 0.92);
+  background: rgb(var(--gray-900) / 0.92);
   box-shadow:
-    0 0 0 1px rgb(44 58 82 / 0.8),
-    0 16px 40px -16px rgb(0 0 0 / 0.7);
+    0 0 0 1px rgb(var(--gray-700) / 0.8),
+    0 16px 40px -16px rgb(0 0 0 / var(--shadow-alpha));
   backdrop-filter: blur(6px);
-}
-
-html.light .hud-panel {
-  background: rgb(255 255 255 / 0.95);
-  box-shadow:
-    0 0 0 1px rgb(201 211 226),
-    0 12px 32px -16px rgb(10 17 29 / 0.25);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -139,4 +159,11 @@ html.light .hud-panel {
 }
 .btn-ghost {
   @apply inline-flex items-center justify-center gap-2 rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-200 transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:text-gray-500;
+}
+
+/* Phones: the scale bar sits under the assistant button; the zoom buttons are enough */
+@media (max-width: 767px) {
+  .maplibregl-ctrl-scale {
+    display: none;
+  }
 }

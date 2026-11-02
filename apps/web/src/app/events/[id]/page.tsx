@@ -20,8 +20,11 @@ import {
   ArrowLeft,
   Calendar,
   Globe,
+  HandHeart,
+  LayoutGrid,
+  Bell,
 } from "lucide-react";
-import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
+import { EVENT_TYPE_COLORS } from "@phoenix/shared/constants";
 import {
   APIError,
   eventsAPI,
@@ -29,9 +32,10 @@ import {
   type ApiDamageSummary,
   type ApiDisasterEventDetail,
   type EventType,
-  type SeverityLevel,
 } from "@/lib/api/client";
 import { Header } from "@/components/layout/Header";
+import { ActiveBadge, SeverityBadge, TypeBadge } from "@/components/event/Badges";
+import { formatDate, formatDateTime, formatRelative } from "@/lib/format";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { ConfidenceRing, LifecycleTrack } from "@/components/trust/EventTrust";
 import { SitrepPanel } from "@/components/event/SitrepPanel";
@@ -172,8 +176,6 @@ export default function EventDetailPage() {
 
   const typeColor = EVENT_TYPE_COLORS[event.type as EventType] || "#808080";
   const position = getEventPosition(event);
-  const severityColor =
-    SEVERITY_COLORS[event.severity as SeverityLevel] || "#808080";
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-950">
@@ -190,7 +192,7 @@ export default function EventDetailPage() {
           </Link>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
+            <div className="min-w-0 space-y-6 lg:col-span-2">
               <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
                 <div className="flex items-start gap-4">
                   <div
@@ -203,27 +205,10 @@ export default function EventDetailPage() {
                     {EVENT_ICONS[event.type as EventType] ?? EVENT_ICONS.other}
                   </div>
                   <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span
-                        className="rounded-full px-2.5 py-0.5 text-xs font-medium"
-                        style={{
-                          backgroundColor: `${typeColor}20`,
-                          color: typeColor,
-                        }}
-                      >
-                        {t.sidebar[event.type as EventType] ?? event.type}
-                      </span>
-                      <span
-                        className="rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
-                        style={{ backgroundColor: severityColor }}
-                      >
-                        {t.sidebar[event.severity as SeverityLevel] ?? event.severity}
-                      </span>
-                      {event.isActive && (
-                        <span className="rounded-full bg-green-900/50 px-2.5 py-0.5 text-xs font-medium text-green-400">
-                          {t.detail.active}
-                        </span>
-                      )}
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <TypeBadge type={event.type} />
+                      <SeverityBadge severity={event.severity} />
+                      {event.isActive && <ActiveBadge />}
                     </div>
                     <h1 className="text-2xl font-bold text-white">
                       {event.title}
@@ -236,6 +221,34 @@ export default function EventDetailPage() {
                     {event.description}
                   </p>
                 )}
+
+                {/* Phones and tablets: the actions sit up here, not after every panel */}
+                <nav
+                  aria-label={t.ux.actions}
+                  className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:hidden"
+                >
+                  <Link href={`/?event=${event.id}`} className="btn-primary px-3">
+                    <Globe className="h-4 w-4" aria-hidden="true" />
+                    {t.common.viewOnMap}
+                  </Link>
+                  <Link href={`/connect?event=${event.id}`} className="btn-ghost px-3">
+                    <HandHeart className="h-4 w-4" aria-hidden="true" />
+                    {t.connect.offerHelp}
+                  </Link>
+                  <Link href={`/plan?event=${event.id}`} className="btn-ghost px-3">
+                    <LayoutGrid className="h-4 w-4" aria-hidden="true" />
+                    {t.ux.plan}
+                  </Link>
+                  {position && (
+                    <Link
+                      href={`/alerts?lat=${position.lat.toFixed(2)}&lng=${position.lng.toFixed(2)}&name=${encodeURIComponent(event.location.country || event.title)}`}
+                      className="btn-ghost px-3"
+                    >
+                      <Bell className="h-4 w-4" aria-hidden="true" />
+                      {t.alerts.watch}
+                    </Link>
+                  )}
+                </nav>
               </div>
 
               <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
@@ -333,19 +346,19 @@ export default function EventDetailPage() {
                   <InfoRow
                     icon={<Calendar className="h-4 w-4" />}
                     label={t.detail.startDate}
-                    value={new Date(event.startDate).toLocaleDateString(lang, { year: "numeric", month: "long", day: "numeric" })}
+                    value={formatDate(event.startDate, lang)}
                   />
                   {event.endDate && (
                     <InfoRow
                       icon={<Calendar className="h-4 w-4" />}
                       label={t.detail.endDate}
-                      value={new Date(event.endDate).toLocaleDateString(lang, { year: "numeric", month: "long", day: "numeric" })}
+                      value={formatDate(event.endDate, lang)}
                     />
                   )}
                   <InfoRow
                     icon={<Clock className="h-4 w-4" />}
                     label={t.detail.lastUpdated}
-                    value={new Date(event.updatedAt).toLocaleString(lang)}
+                    value={`${formatDateTime(event.updatedAt, lang)} · ${formatRelative(event.updatedAt, lang)}`}
                   />
                 </div>
               </div>

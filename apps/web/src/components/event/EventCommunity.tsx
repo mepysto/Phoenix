@@ -13,6 +13,7 @@ import {
   type PlanSummary,
 } from "@/lib/api/community";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate, formatWhen } from "@/lib/format";
 import { approvedOrgs, useAuthStore } from "@/store/authStore";
 
 const PRIORITY_DOT: Record<string, string> = {
@@ -83,7 +84,7 @@ export function EventCommunity({ eventId }: { eventId: string }) {
           </h2>
           <Link
             href={`/connect?event=${eventId}`}
-            className="text-sm font-medium text-primary-300 hover:underline"
+            className="shrink-0 whitespace-nowrap text-sm font-medium text-primary-300 hover:underline"
           >
             {t.connect.eventNeeds.all}
           </Link>
@@ -144,7 +145,7 @@ export function EventCommunity({ eventId }: { eventId: string }) {
           </h2>
           <Link
             href={`/plan?event=${eventId}`}
-            className="text-sm font-medium text-primary-300 hover:underline"
+            className="shrink-0 whitespace-nowrap text-sm font-medium text-primary-300 hover:underline"
           >
             {t.plans.start}
           </Link>
@@ -169,6 +170,10 @@ export function EventCommunity({ eventId }: { eventId: string }) {
                       .replace("{people}", pl.population.toLocaleString(lang))
                       .replace("{items}", pl.itemCount.toLocaleString(lang))
                       .replace("{v}", String(pl.latestVersion))}
+                    {" · "}
+                    <time dateTime={pl.updatedAt} title={formatDate(pl.updatedAt, lang)}>
+                      {formatWhen(pl.updatedAt, lang)}
+                    </time>
                   </p>
                 </Link>
               </li>
@@ -202,9 +207,7 @@ export function EventCommunity({ eventId }: { eventId: string }) {
                 />
                 <p className="text-xs text-gray-400">
                   <time dateTime={d.createdAt}>
-                    {new Date(d.createdAt).toLocaleDateString(lang, {
-                      dateStyle: "medium",
-                    })}
+                    {formatDate(d.createdAt, lang)}
                   </time>
                   {" · "}
                   {d.org.name}

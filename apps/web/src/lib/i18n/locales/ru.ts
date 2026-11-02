@@ -792,4 +792,22 @@ export const ru: Translations = {
     noEntries: "Заявок пока нет. Будьте первым.",
     failed: "Не удалось выполнить. Повторите.",
   },
+  ux: {
+    plan: "План",
+    filters: "Фильтры",
+    legend: "Легенда",
+    language: "Язык",
+    mapTools: "Инструменты карты",
+    viewMode: "Режим просмотра",
+    actions: "Действия",
+    updated: "Обновлено {date}",
+    severity: {
+      low: "Низкая",
+      medium: "Средняя",
+      high: "Высокая",
+      critical: "Критическая",
+    },
+    showAll: "Показать все",
+    activeFilters: "Фильтров: {n}",
+  },
 };

@@ -93,7 +93,9 @@ function MapPageContent() {
         initialProjection={initial.projection}
         onViewChange={onViewChange}
       />
-      <div className="pointer-events-none absolute left-4 top-[15.5rem] z-40 flex items-center gap-2">
+      {/* Beside the map toolbar: live status, new events, what is in view */}
+      <div className="pointer-events-none absolute left-[4.25rem] top-4 z-30 flex flex-col items-start gap-2">
+        <div className="flex flex-wrap items-center gap-2">
         {liveStatus !== "stopped" && (
           <div
             role="status"
@@ -118,11 +120,14 @@ function MapPageContent() {
             setFocusEvent({ ...event });
           }}
         />
+        </div>
+        {/* A fresh object so picking the same event again flies there again */}
+        <ViewSummary onSelect={(event) => setFocusEvent({ ...event })} />
       </div>
       <div className="pointer-events-none absolute left-1/2 top-4 z-40 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2">
         <BriefPlayer />
       </div>
-      <div className="pointer-events-none absolute bottom-[8.5rem] left-1/2 z-40 -translate-x-1/2 md:bottom-32">
+      <div className="pointer-events-none absolute bottom-[11rem] left-1/2 z-40 -translate-x-1/2 md:bottom-32">
         <OpsClock />
       </div>
       <ShortcutsHelp />
@@ -131,16 +136,12 @@ function MapPageContent() {
         <FeatureInspector />
         <RoutePlanner />
       </div>
-      {/* Bottom-right, above the scale bar and clear of the timeline */}
-      <div className="pointer-events-none absolute bottom-16 right-4 z-40 flex flex-col items-end md:bottom-36">
+      {/* Bottom corner beside the legend on phones; above the scale bar and timeline on wider screens */}
+      <div className="pointer-events-none absolute bottom-4 right-4 z-40 flex flex-col items-end md:bottom-36">
         <AgentPanel onSelectEvent={(event) => setFocusEvent({ ...event })} />
       </div>
-      <div className="pointer-events-none absolute left-4 top-[18rem] z-30">
-        {/* A fresh object so picking the same event again flies there again */}
-        <ViewSummary onSelect={(event) => setFocusEvent({ ...event })} />
-      </div>
-      {/* Between the legend (bottom-left, max ~22rem) and the scale bar (bottom-right); stacked above the legend on mobile */}
-      <div className="pointer-events-none absolute bottom-40 left-4 right-4 z-30 md:bottom-9 md:left-[23rem] md:right-32">
+      {/* Between the legend (max ~22rem) and the scale bar; above the legend and assistant buttons on phones */}
+      <div className="pointer-events-none absolute bottom-16 left-4 right-4 z-30 md:bottom-9 md:left-[23rem] md:right-32">
         <Timeline />
       </div>
       {showEmptyState && (

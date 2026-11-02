@@ -790,4 +790,22 @@ export const ko: Translations = {
     noEntries: "아직 출품작이 없습니다. 첫 출품자가 되어 보세요.",
     failed: "처리하지 못했습니다. 다시 시도하세요.",
   },
+  ux: {
+    plan: "계획",
+    filters: "필터",
+    legend: "범례",
+    language: "언어",
+    mapTools: "지도 도구",
+    viewMode: "보기 모드",
+    actions: "작업",
+    updated: "{date} 갱신",
+    severity: {
+      low: "낮음",
+      medium: "보통",
+      high: "높음",
+      critical: "심각",
+    },
+    showAll: "모두 보기",
+    activeFilters: "필터 {n}개 적용",
+  },
 };

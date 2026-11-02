@@ -21,7 +21,7 @@ interface EventInfoPanelProps {
 
 /** Card for the selected event, with a button to play its Disaster Brief */
 export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const startBrief = useBriefStore((s) => s.start);
   const routeTo = useRouteStore((s) => s.routeTo);
   const severity = event.severity as SeverityLevel;
@@ -73,7 +73,7 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
         {event.affectedPopulation != null && event.affectedPopulation > 0 && (
           <div className="flex justify-between">
             <span className="text-gray-500">{t.events.affected}</span>
-            <span className="text-gray-300">{event.affectedPopulation.toLocaleString()}</span>
+            <span className="text-gray-300">{event.affectedPopulation.toLocaleString(lang)}</span>
           </div>
         )}
       </div>

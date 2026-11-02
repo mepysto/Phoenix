@@ -97,7 +97,8 @@ function LayerItem({
         <button
           onClick={onToggle}
           className="flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-          aria-label={layer.visible ? "Hide layer" : "Show layer"}
+          aria-label={`${t[translationKey] || layer.name}: ${layer.visible ? t.hideLayer || "Hide layer" : t.showLayer || "Show layer"}`}
+          aria-pressed={layer.visible}
         >
           {layer.visible ? (
             <Eye className="h-4 w-4 text-primary-500" />
@@ -117,14 +118,14 @@ function LayerItem({
           </span>
         )}
         {layer.visible && (
-          <span className="text-xs text-gray-500 min-w-[36px] text-right">
+          <span className="min-w-[36px] text-end text-xs text-gray-500">
             {opacityPercent}%
           </span>
         )}
       </div>
 
       {layer.visible && (
-        <div className="mt-2 ml-7 pr-1">
+        <div className="ms-7 mt-2 pe-1">
           <input
             type="range"
             min="0"
@@ -156,7 +157,8 @@ function LayerItem({
   );
 }
 
-export function Sidebar() {
+/** Event-type, severity and layer filters; shared by the sidebar and the mobile drawer */
+export function FilterPanel() {
   const {
     visibleTypes,
     visibleSeverities,
@@ -169,18 +171,9 @@ export function Sidebar() {
   const toggleLayer = useMapStore((s) => s.toggleLayer);
   const setLayerOpacity = useMapStore((s) => s.setLayerOpacity);
   const { t } = useTranslation();
-  const hidden = useUiStore((s) => s.sidebarHidden || s.opsMode);
 
-  if (hidden) return null;
   return (
-    <aside className="hidden lg:flex w-72 flex-col border-r border-gray-800 bg-gray-900">
-      <div className="flex items-center gap-2 border-b border-gray-800 px-4 py-3">
-        <Layers className="h-5 w-5 text-primary-500" />
-        <span className="font-semibold text-white">
-          {t.sidebar.layersAndFilters}
-        </span>
-      </div>
-
+    <>
       <div className="flex-1 overflow-y-auto">
         <FilterSection
           title={t.sidebar.eventTypes}
@@ -270,6 +263,24 @@ export function Sidebar() {
           </span>
         </div>
       </div>
+    </>
+  );
+}
+
+export function Sidebar() {
+  const { t } = useTranslation();
+  const hidden = useUiStore((s) => s.sidebarHidden || s.opsMode);
+
+  if (hidden) return null;
+  return (
+    <aside className="hidden w-72 flex-col border-e border-gray-800 bg-gray-900 lg:flex">
+      <div className="flex items-center gap-2 border-b border-gray-800 px-4 py-3">
+        <Layers className="h-5 w-5 text-primary-500" aria-hidden="true" />
+        <h2 className="font-semibold text-white">
+          {t.sidebar.layersAndFilters}
+        </h2>
+      </div>
+      <FilterPanel />
     </aside>
   );
 }
