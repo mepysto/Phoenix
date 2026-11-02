@@ -1,0 +1,59 @@
+# Production on one domain over HTTPS.
+#
+#   docker compose -f infrastructure/docker/docker-compose.yml \
+#     -f infrastructure/docker/docker-compose.prod.yml --env-file .env up -d --build
+#
+# Caddy obtains and renews certificates automatically and routes /api, /ws
+# and /health to the API and everything else to the web app, so the browser
+# talks to a single origin (no CORS, first-party session cookie).
+# Only Caddy publishes ports; the database, Redis, API and web app are
+# reachable on the internal network only. scripts/setup.sh --prod does all this.
+services:
+  db:
+    ports: !reset []
+
+  redis:
+    ports: !reset []
+
+  api:
+    ports: !reset []
+    environment:
+      ENVIRONMENT: production
+      API_DEBUG: "false"
+      PUBLIC_WEB_URL: https://${DOMAIN:?Set DOMAIN in .env}
+      CORS_ORIGINS: https://${DOMAIN:?Set DOMAIN in .env}
+      # Only Caddy can reach the API, so its forwarded client address is trusted
+      FORWARDED_ALLOW_IPS: "*"
+
+  web:
+    build:
+      args:
+        NEXT_PUBLIC_API_URL: https://${DOMAIN:?Set DOMAIN in .env}
+        NEXT_PUBLIC_COMMERCIAL_DEPLOYMENT: ${NEXT_PUBLIC_COMMERCIAL_DEPLOYMENT:-}
+        NEXT_PUBLIC_CESIUM_ION_TOKEN: ${NEXT_PUBLIC_CESIUM_ION_TOKEN:-}
+    ports: !reset []
+
+  caddy:
+    image: caddy:2.8.4-alpine
+    container_name: phoenix-caddy
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

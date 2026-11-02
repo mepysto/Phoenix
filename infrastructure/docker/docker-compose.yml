@@ -46,12 +46,20 @@ services:
       context: ../../
       dockerfile: apps/api/Dockerfile
     container_name: phoenix-api
+    # Every setting in the repository .env (sign-in mail, admins, Web Push,
+    # data-source keys, ...) reaches the API; the values below take precedence
+    # because they describe the container network.
+    env_file:
+      - path: ../../.env
+        required: false
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-phoenix}:${POSTGRES_PASSWORD:-phoenix}@db:5432/${POSTGRES_DB:-phoenix_db}
       REDIS_URL: redis://:${REDIS_PASSWORD:-phoenix-dev-redis}@redis:6379
       API_DEBUG: ${API_DEBUG:-false}
       API_SYNC_KEY: ${API_SYNC_KEY:-dev-sync-key}
       ENVIRONMENT: ${ENVIRONMENT:-development}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-http://localhost:23000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:23000,http://127.0.0.1:23000}
     ports:
       - "28000:8000"
     depends_on:
@@ -70,6 +78,9 @@ services:
         # Inlined into the browser bundle at build time: the URL browsers use
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:28000}
     container_name: phoenix-web
+    environment:
+      # Server-rendered pages (/lite) reach the API over the container network
+      API_INTERNAL_URL: http://api:8000
     ports:
       - "23000:23000"
     depends_on:

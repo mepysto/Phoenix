@@ -49,38 +49,28 @@ Phoenix는 전 세계의 재난, 전쟁, 환경오염 현황을 실시간 3D 디
 - Python 3.11+
 - Docker & Docker Compose
 
-### Development Setup
+### Setup
 
 ```bash
-# Clone and install dependencies
-git clone https://github.com/your-org/phoenix.git
-cd phoenix
-pnpm install
-
-# Copy environment variables
-cp .env.example .env.local
-
-# Check toolchain, database, migrations and upstream feeds
-pnpm doctor
-
-# Start database and services
-pnpm docker:up
-
-# Run development servers
-pnpm dev
+git clone https://github.com/mepysto/Phoenix.git
+cd Phoenix
+scripts/setup.sh --seed   # dependencies, .env with secrets, database, migrations, sample data
+pnpm start                # API + web with hot reload
 ```
-
-To try sign-in without a mail server, set `AUTH_DEV_RETURN_LINK=true` (development only) and add your address to `PLATFORM_ADMIN_EMAILS` to approve organisations.
 
 - Frontend: http://localhost:23000
 - API: http://localhost:28000
 - API Docs: http://localhost:28000/docs
 
-### Docker Only (Full Stack)
+### Production (one server, HTTPS)
 
 ```bash
-docker compose -f infrastructure/docker/docker-compose.yml up -d
+scripts/setup.sh --prod phoenix.example.org ops@example.org
 ```
+
+Caddy serves the app over HTTPS with automatic certificates; only ports 80/443
+are public. Backups: `scripts/backup-db.sh`. Full guide:
+[docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md).
 
 ## Project Structure
 
@@ -106,6 +96,7 @@ phoenix/
 - [docs/SPEC.md](./docs/SPEC.md) - Technical Specification
 - [docs/PROGRESS.md](./docs/PROGRESS.md) - Development Progress Checklist
 - [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) - Every data source with licence, attribution and commercial-use status
+- [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) - Install, run, deploy with HTTPS, back up
 - [docs/RESPONSIBLE_USE.md](./docs/RESPONSIBLE_USE.md) - Limits on use: not for safety-critical decisions alone, no tracking of individuals
 
 ## Data Sources

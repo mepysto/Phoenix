@@ -1,0 +1,29 @@
+# Phoenix behind Caddy: automatic HTTPS for {$DOMAIN}.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# API, live updates and the health check go to FastAPI; the rest to Next.js
+	@api path /api/* /ws/* /health
+	handle @api {
+		reverse_proxy api:8000
+	}
+	handle {
+		reverse_proxy web:23000
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
