@@ -35,7 +35,7 @@
   "devDependencies": {
     "@phoenix/eslint-config": "workspace:*",
     "@phoenix/typescript-config": "workspace:*",
-    "@playwright/test": "^1.57.0",
+    "@playwright/test": "^1.64.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.1",
