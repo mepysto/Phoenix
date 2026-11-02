@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/States";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -377,15 +378,16 @@ export default function MyConnectionsPage() {
             {connects === null ? (
               <div className="mt-3 h-32 animate-pulse rounded-xl bg-gray-900" />
             ) : connects.length === 0 ? (
-              <p className="mt-3 rounded-xl border border-dashed border-gray-700 px-5 py-8 text-sm text-gray-400">
-                {m.noConnections}{" "}
-                <Link
-                  href="/connect"
-                  className="text-primary-300 hover:underline"
-                >
-                  {t.connect.title}
-                </Link>
-              </p>
+              <EmptyState
+                className="mt-3"
+                icon={Handshake}
+                title={m.noConnections}
+                action={
+                  <Link href="/connect" className="btn-ghost">
+                    {t.connect.title}
+                  </Link>
+                }
+              />
             ) : (
               <ul className="mt-3 space-y-3">
                 {connects.map((c) => (
@@ -435,7 +437,7 @@ export default function MyConnectionsPage() {
               {m.orgs}
             </h2>
             {me && me.memberships.length === 0 && (
-              <p className="text-sm text-gray-400">{m.noOrgs}</p>
+              <EmptyState compact icon={Building2} title={m.noOrgs} />
             )}
             {me?.memberships.map(({ org, role }) => (
               <div

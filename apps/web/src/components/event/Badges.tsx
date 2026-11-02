@@ -1,6 +1,7 @@
 "use client";
 
-import { EVENT_TYPE_COLORS, SEVERITY_COLORS } from "@phoenix/shared/constants";
+import { severityColor } from "@/lib/severity";
+import { EVENT_TYPE_COLORS } from "@phoenix/shared/constants";
 import type { EventType, SeverityLevel } from "@phoenix/shared/types";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
@@ -37,7 +38,7 @@ const SEVERITY_BARS: Record<SeverityLevel, number> = {
 export function SeverityBadge({ severity }: { severity: string }) {
   const { t } = useTranslation();
   const level = (severity in SEVERITY_BARS ? severity : "low") as SeverityLevel;
-  const color = SEVERITY_COLORS[level];
+  const color = severityColor(level);
   return (
     <span className={badge}>
       <span aria-hidden="true" className="flex items-end gap-px">

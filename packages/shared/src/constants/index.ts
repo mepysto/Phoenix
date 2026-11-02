@@ -43,11 +43,16 @@ export const EVENT_TYPE_COLORS: Record<EventType, string> = {
   complex_emergency: '#556B2F',
 };
 
+/**
+ * Severity colours for canvas and map paint (dark surfaces). DOM styles use
+ * the theme-aware CSS variables --sev-* (apps/web globals.css) instead.
+ * Low is blue, not green: green next to amber failed the colour-vision check.
+ */
 export const SEVERITY_COLORS: Record<SeverityLevel, string> = {
-  low: '#22C55E',
-  medium: '#F59E0B',
-  high: '#EF4444',
-  critical: '#7C3AED',
+  low: '#3987E5',
+  medium: '#C98500',
+  high: '#E5484D',
+  critical: '#9085E9',
 };
 
 export const SEVERITY_LABELS: Record<SeverityLevel, string> = {

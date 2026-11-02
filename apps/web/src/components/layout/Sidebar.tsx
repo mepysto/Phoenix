@@ -1,5 +1,6 @@
 "use client";
 
+import { severityColor } from "@/lib/severity";
 import {
   Layers,
   Filter,
@@ -19,7 +20,6 @@ import type { EventType, SeverityLevel } from "@phoenix/shared/types";
 import {
   EVENT_TYPE_COLORS,
   EVENT_TYPES,
-  SEVERITY_COLORS,
 } from "@phoenix/shared/constants";
 import { useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
@@ -218,7 +218,7 @@ export function FilterPanel() {
                 />
                 <span
                   className="h-3 w-3 rounded-full"
-                  style={{ backgroundColor: SEVERITY_COLORS[severity] }}
+                  style={{ backgroundColor: severityColor(severity) }}
                 />
                 <span className="text-sm text-gray-300">
                   {t.sidebar[severity]}

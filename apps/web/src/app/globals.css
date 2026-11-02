@@ -20,6 +20,12 @@ html.dark {
   --gray-950: 10 17 29;
   --fg-strong: 255 255 255;
   --shadow-alpha: 0.6;
+  /* Severity, ordered low -> critical; validated for colour-vision
+     deficiency against gray-900 (dataviz validator) */
+  --sev-low: #3987e5;
+  --sev-medium: #c98500;
+  --sev-high: #e5484d;
+  --sev-critical: #9085e9;
   --background: #0a111d;
   --foreground: #e3e9f2;
   --ember: #ff6b3d;
@@ -47,6 +53,10 @@ html.light {
   --gray-950: 243 246 250;
   --fg-strong: 10 17 29;
   --shadow-alpha: 0.18;
+  --sev-low: #2a78d6;
+  --sev-medium: #c98500;
+  --sev-high: #dc2f35;
+  --sev-critical: #7c3aed;
   --background: #f3f6fa;
   --foreground: #172133;
   --regrow: #0b7d66;

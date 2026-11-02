@@ -777,4 +777,46 @@ export interface Translations {
     showAll: string;
     activeFilters: string;
   };
+  /** Overview dashboard */
+  dashboard: {
+    nav: string;
+    title: string;
+    intro: string;
+    updated: string;
+    affected: string;
+    affectedNote: string;
+    active: string;
+    critical: string;
+    countries: string;
+    newWeek: string;
+    vsPrev: string;
+    weekly: string;
+    weeklySub: string;
+    weekOf: string;
+    events: string;
+    severity: string;
+    severitySub: string;
+    byType: string;
+    byTypeEvents: string;
+    byTypePeople: string;
+    other: string;
+    mostAffected: string;
+    event: string;
+    place: string;
+    people: string;
+    community: string;
+    needsOpen: string;
+    offersOpen: string;
+    connections: string;
+    needsByCategory: string;
+    showTable: string;
+    hideTable: string;
+    noData: string;
+    noDataBody: string;
+    loadFailed: string;
+    week: string;
+    count: string;
+    share: string;
+    viewAll: string;
+  };
 }

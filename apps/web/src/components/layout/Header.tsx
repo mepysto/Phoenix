@@ -26,6 +26,7 @@ function useNav() {
   return [
     { href: "/", label: t.common.home },
     { href: "/events", label: t.common.events },
+    { href: "/dashboard", label: t.dashboard.nav },
     { href: "/connect", label: t.connect.nav },
     { href: "/plan", label: t.ux.plan },
     { href: "/challenges", label: t.challenges.nav },
@@ -158,7 +159,7 @@ export function Header() {
 
         <nav
           aria-label={t.common.menu}
-          className="hidden shrink-0 items-center gap-5 lg:flex"
+          className="hidden shrink-0 items-center gap-4 lg:flex xl:gap-5"
         >
           {nav.map((item) => (
             <Link

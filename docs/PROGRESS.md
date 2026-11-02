@@ -32,8 +32,12 @@ Then, to run it and to make it pleasant to use (PR #41–#42 and the follow-up o
 - [x] UI/UX pass: filters on phones and tablets, map icon toolbar, working light theme with a light basemap,
       header language picker, readable badges, one date style, quick actions on event pages, RTL-safe map
       overlays, shared loading and empty states
+- [x] Overview dashboard (`/dashboard`, `GET /api/v1/stats/overview`): people affected, active events,
+      weekly onsets, severity split, types, most affected events, community activity — aggregated in SQL,
+      public data only; every chart has a hover/focus readout and a table view; severity colours re-chosen
+      to pass a colour-vision check (low is blue, not green)
 
-Testing: 673 API tests (incl. PostGIS integration), 156 web unit tests, 11 Playwright end-to-end tests;
+Testing: 674 API tests (incl. PostGIS integration), 159 web unit tests, 11 Playwright end-to-end tests;
 map rendering benchmark in `apps/web/scripts/perf-map.mjs` (see 6.3).
 
 Still open: Phoenix's own AI damage model (FR-5.1 beyond Copernicus grading; plan and prerequisites in

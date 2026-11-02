@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/States";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { HandHeart, LayoutGrid, Megaphone } from "lucide-react";
@@ -92,7 +93,11 @@ export function EventCommunity({ eventId }: { eventId: string }) {
         {needs === null ? (
           <div className="h-20 animate-pulse rounded-lg bg-gray-800" />
         ) : needs.length === 0 ? (
-          <p className="text-sm text-gray-400">{t.connect.eventNeeds.none}</p>
+          <EmptyState
+            compact
+            icon={HandHeart}
+            title={t.connect.eventNeeds.none}
+          />
         ) : (
           <ul className="space-y-2">
             {needs.map((n) => (
@@ -153,7 +158,7 @@ export function EventCommunity({ eventId }: { eventId: string }) {
         {plans === null ? (
           <div className="h-12 animate-pulse rounded-lg bg-gray-800" />
         ) : plans.length === 0 ? (
-          <p className="text-sm text-gray-400">{t.plans.none}</p>
+          <EmptyState compact icon={LayoutGrid} title={t.plans.none} />
         ) : (
           <ul className="space-y-2">
             {plans.slice(0, 6).map((pl) => (
@@ -171,7 +176,10 @@ export function EventCommunity({ eventId }: { eventId: string }) {
                       .replace("{items}", pl.itemCount.toLocaleString(lang))
                       .replace("{v}", String(pl.latestVersion))}
                     {" · "}
-                    <time dateTime={pl.updatedAt} title={formatDate(pl.updatedAt, lang)}>
+                    <time
+                      dateTime={pl.updatedAt}
+                      title={formatDate(pl.updatedAt, lang)}
+                    >
                       {formatWhen(pl.updatedAt, lang)}
                     </time>
                   </p>
@@ -196,7 +204,11 @@ export function EventCommunity({ eventId }: { eventId: string }) {
         {updates === null ? (
           <div className="h-16 animate-pulse rounded-lg bg-gray-800" />
         ) : updates.length === 0 ? (
-          <p className="text-sm text-gray-400">{t.connect.disclosures.none}</p>
+          <EmptyState
+            compact
+            icon={Megaphone}
+            title={t.connect.disclosures.none}
+          />
         ) : (
           <ol className="relative space-y-5 border-l border-gray-700 pl-5">
             {updates.map((d) => (

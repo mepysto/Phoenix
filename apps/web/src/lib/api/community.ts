@@ -233,3 +233,10 @@ export const challengesAPI = {
   select: (id: string, entryId: string | null) =>
     call<ChallengeOut>(`/api/v1/challenges/${id}/select`, { method: "POST", json: { entry_id: entryId } }),
 };
+
+export type OverviewStats = Camel<S["OverviewStats"]>;
+
+/** Public overview figures for the dashboard */
+export const statsAPI = {
+  overview: () => call<OverviewStats>("/api/v1/stats/overview"),
+};
