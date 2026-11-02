@@ -1,0 +1,4 @@
+# PostgreSQL 16 with PostGIS and TimescaleDB — the image CI tests against.
+# init-db.sql (mounted by docker-compose.yml) only creates extensions;
+# the schema comes from Alembic migrations when the API starts.
+FROM timescale/timescaledb-ha:pg16

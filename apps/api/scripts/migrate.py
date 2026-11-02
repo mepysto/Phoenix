@@ -44,7 +44,9 @@ async def _is_legacy_database(url: str) -> bool:
 
 def _database_url(cfg: Config) -> str:
     """Resolve the URL the same way alembic/env.py does."""
-    url = os.getenv("DATABASE_URL") or cfg.get_main_option("sqlalchemy.url", "")
+    from src.core.config import configured_database_url
+
+    url = os.getenv("DATABASE_URL") or configured_database_url() or cfg.get_main_option("sqlalchemy.url", "")
     if url.startswith("postgresql://"):
         url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
     return url

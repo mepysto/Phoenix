@@ -24,6 +24,9 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DOCKER_COMPOSE_FILE="$PROJECT_ROOT/infrastructure/docker/docker-compose.yml"
+# Settings and secrets written by scripts/setup.sh
+ENV_ARGS=()
+[[ -f "$PROJECT_ROOT/.env" ]] && ENV_ARGS=(--env-file "$PROJECT_ROOT/.env")
 
 # Default mode
 MODE="${1:-dev}"
@@ -94,9 +97,9 @@ start_docker_services() {
     cd "$PROJECT_ROOT"
     
     if [[ -n "$services" ]]; then
-        docker compose -f "$DOCKER_COMPOSE_FILE" up -d $services
+        docker compose -f "$DOCKER_COMPOSE_FILE" "${ENV_ARGS[@]}" up -d $services
     else
-        docker compose -f "$DOCKER_COMPOSE_FILE" up -d
+        docker compose -f "$DOCKER_COMPOSE_FILE" "${ENV_ARGS[@]}" up -d
     fi
     
     log_success "Docker services started"
@@ -131,7 +134,9 @@ wait_for_redis() {
     local attempt=1
     
     while [[ $attempt -le $max_attempts ]]; do
-        if docker exec phoenix-redis redis-cli ping &> /dev/null; then
+        local redis_pw
+        redis_pw="$(grep -E '^REDIS_PASSWORD=' "$PROJECT_ROOT/.env" 2>/dev/null | tail -n1 | cut -d= -f2-)"
+        if docker exec phoenix-redis redis-cli -a "${redis_pw:-phoenix-dev-redis}" --no-auth-warning ping 2>/dev/null | grep -q PONG; then
             log_success "Redis is ready"
             return 0
         fi
@@ -239,6 +244,10 @@ main() {
     
     case "$MODE" in
         dev)
+            if [[ ! -x "$PROJECT_ROOT/apps/api/.venv/bin/python" ]]; then
+                log_error "API dependencies are not installed. Run: pnpm setup"
+                exit 1
+            fi
             start_docker_services "db redis"
             wait_for_db
             wait_for_redis

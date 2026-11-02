@@ -95,7 +95,9 @@ def check_toolchain() -> list[Result]:
 
 
 def _database_url() -> str:
-    url = os.getenv("DATABASE_URL") or Config("alembic.ini").get_main_option("sqlalchemy.url", "")
+    from src.core.config import configured_database_url
+
+    url = os.getenv("DATABASE_URL") or configured_database_url() or Config("alembic.ini").get_main_option("sqlalchemy.url", "")
     return url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 
@@ -187,10 +189,44 @@ def check_keys() -> list[Result]:
     return results
 
 
+def check_accounts() -> list[Result]:
+    """Settings the community features need (read the same way as the API)."""
+    from src.core.config import Settings
+
+    s = Settings()
+    prod = s.environment == "production"
+    smtp = bool(s.smtp_host)
+    return [
+        Result(
+            OK if s.platform_admin_emails else WARN,
+            "PLATFORM_ADMIN_EMAILS",
+            f"{len(s.platform_admin_emails)} admin(s)" if s.platform_admin_emails else "not set — nobody can approve organisations",
+        ),
+        Result(
+            OK if smtp else (FAIL if prod else WARN),
+            "SMTP_HOST",
+            "set — sign-in links are e-mailed"
+            if smtp
+            else "not set — sign-in links only go to the API log" + (" (sign-in is impossible in production)" if prod else ""),
+        ),
+        Result(
+            OK if s.vapid_private_key else WARN,
+            "VAPID_PRIVATE_KEY",
+            "set — closed-tab alerts on" if s.vapid_private_key else "not set — closed-tab alerts off (python -m scripts.gen_vapid_keys)",
+        ),
+        Result(
+            OK if s.public_web_url.startswith("https://") or not prod else FAIL,
+            "PUBLIC_WEB_URL",
+            s.public_web_url + ("" if s.public_web_url.startswith("https://") or not prod else " — production needs https for secure cookies"),
+        ),
+    ]
+
+
 async def run(offline: bool) -> int:
     sections: list[tuple[str, list[Result]]] = [
         ("Toolchain", check_toolchain()),
         ("Database", await check_database()),
+        ("Accounts and alerts", check_accounts()),
         ("Server keys (optional)", check_keys()),
     ]
     if not offline:

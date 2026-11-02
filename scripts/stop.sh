@@ -17,6 +17,9 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DOCKER_COMPOSE_FILE="$PROJECT_ROOT/infrastructure/docker/docker-compose.yml"
+# Settings and secrets written by scripts/setup.sh
+ENV_ARGS=()
+[[ -f "$PROJECT_ROOT/.env" ]] && ENV_ARGS=(--env-file "$PROJECT_ROOT/.env")
 
 MODE="${1:-all}"
 
@@ -83,10 +86,10 @@ stop_docker_services() {
     cd "$PROJECT_ROOT"
     
     if [[ "$remove_volumes" == "true" ]]; then
-        docker compose -f "$DOCKER_COMPOSE_FILE" down -v
+        docker compose -f "$DOCKER_COMPOSE_FILE" "${ENV_ARGS[@]}" down -v
         log_success "Docker containers stopped and volumes removed"
     else
-        docker compose -f "$DOCKER_COMPOSE_FILE" down
+        docker compose -f "$DOCKER_COMPOSE_FILE" "${ENV_ARGS[@]}" down
         log_success "Docker containers stopped (volumes preserved)"
     fi
 }

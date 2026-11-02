@@ -1,15 +1,39 @@
+import json
 from functools import lru_cache
-from typing import Literal
+from pathlib import Path
+from typing import Annotated, Literal
 
-from pydantic import SecretStr, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr, field_validator, model_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+# The repository root .env (written by scripts/setup.sh) and, for overrides,
+# apps/api/.env. Later files win; real environment variables win over both.
+def _env_files() -> tuple[Path, ...]:
+    here = Path(__file__).resolve()
+    api_dir = here.parents[2]  # apps/api locally, /app in the container
+    # The repository root is only present in a checkout, not in the image
+    root = next((p for p in here.parents if (p / "pnpm-workspace.yaml").is_file()), None)
+    return ((root / ".env",) if root else ()) + (api_dir / ".env",)
+
+
+_ENV_FILES = _env_files()
+
+
+def _str_list(value: object) -> object:
+    """Accept a JSON list or a comma-separated string for list settings."""
+    if isinstance(value, str):
+        text = value.strip()
+        if text.startswith("["):
+            return json.loads(text)
+        return [part.strip() for part in text.split(",") if part.strip()]
+    return value
 
 
 DEV_SYNC_KEY = "dev-sync-key"
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=_ENV_FILES, env_file_encoding="utf-8", extra="ignore")
 
     database_url: str = "postgresql://phoenix:phoenix@localhost:5432/phoenix_db"
     redis_url: str = "redis://localhost:6379"
@@ -26,7 +50,7 @@ class Settings(BaseSettings):
 
     api_sync_key: str = DEV_SYNC_KEY
 
-    cors_origins: list[str] = ["http://localhost:23000", "http://127.0.0.1:23000"]
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:23000", "http://127.0.0.1:23000"]
     # Upper bound on concurrent WebSocket clients per API process
     ws_max_connections: int = 1000
 
@@ -75,7 +99,7 @@ class Settings(BaseSettings):
     # one-time link; there are no passwords.
     public_web_url: str = "http://localhost:23000"
     # Platform operators who approve organisations, e.g. '["ops@example.org"]'
-    platform_admin_emails: list[str] = []
+    platform_admin_emails: Annotated[list[str], NoDecode] = []
     magic_link_ttl_minutes: int = 15
     magic_link_max_per_hour: int = 5
     session_ttl_days: int = 30
@@ -97,6 +121,11 @@ class Settings(BaseSettings):
     vapid_private_key: SecretStr | None = None
     vapid_subject: str = "mailto:ops@example.org"
 
+    @field_validator("cors_origins", "platform_admin_emails", mode="before")
+    @classmethod
+    def _lists(cls, value: object) -> object:
+        return _str_list(value)
+
     @property
     def secure_cookies(self) -> bool:
         return self.public_web_url.startswith("https://")
@@ -111,6 +140,16 @@ class Settings(BaseSettings):
             if self.auth_dev_return_link:
                 raise ValueError("AUTH_DEV_RETURN_LINK must be off in production")
         return self
+
+
+def configured_database_url() -> str | None:
+    """DATABASE_URL from the environment or a .env file, if either sets it.
+
+    Migrations and the setup check use this before falling back to
+    alembic.ini, so they reach the same database as the API.
+    """
+    s = Settings()
+    return s.database_url if "database_url" in s.model_fields_set else None
 
 
 @lru_cache

@@ -78,6 +78,8 @@ docker-compose.override.yml
 
 # Database
 *.db
+# ...but not the database image definition
+!infrastructure/docker/Dockerfile.db
 *.sqlite
 *.sqlite3
 

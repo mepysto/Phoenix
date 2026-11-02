@@ -47,10 +47,13 @@ def get_url() -> str:
     """Get database URL from environment or config.
 
     Priority:
-    1. DATABASE_URL environment variable (converted to asyncpg format)
+    1. DATABASE_URL from the environment or the repository/app .env
+       (converted to asyncpg format)
     2. sqlalchemy.url from alembic.ini
     """
-    database_url = os.getenv("DATABASE_URL")
+    from src.core.config import configured_database_url
+
+    database_url = os.getenv("DATABASE_URL") or configured_database_url()
     if database_url:
         # Convert postgresql:// to postgresql+asyncpg://
         if database_url.startswith("postgresql://"):
