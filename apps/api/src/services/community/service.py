@@ -68,7 +68,12 @@ class Conflict(CommunityError):
 
 def _org_summary(org: Org) -> s.OrgSummary:
     return s.OrgSummary(
-        id=org.id, name=org.name, org_type=org.org_type, status=org.status, website=org.website
+        id=org.id,
+        name=org.name,
+        org_type=org.org_type,
+        status=org.status,
+        website=org.website,
+        verified=org.verified_at is not None and org.status == OrgStatus.approved,
     )
 
 
@@ -209,6 +214,19 @@ class CommunityService:
             else:
                 body = f"{org.name} was not approved." + (f"\n\nReason: {reason}" if reason else "")
             await self.mailer.send(requester.email, f"Phoenix: {org.name}", body)
+        await self.session.flush()
+        return _org_summary(org)
+
+    async def set_verified(self, viewer: Viewer, org_id: UUID, verified: bool) -> s.OrgSummary:
+        if not viewer.admin or viewer.user is None:
+            raise Forbidden("Only platform admins can verify organisations")
+        org = await self.session.get(Org, org_id)
+        if org is None:
+            raise NotFound("Organisation not found")
+        if verified and org.status != OrgStatus.approved:
+            raise Conflict("Approve the organisation before verifying it")
+        org.verified_at = datetime.now(UTC) if verified else None
+        org.verified_by_user_id = viewer.user.id if verified else None
         await self.session.flush()
         return _org_summary(org)
 

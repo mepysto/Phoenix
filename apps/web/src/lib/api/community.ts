@@ -32,6 +32,7 @@ export type Offer = Camel<S["OfferOut"]>;
 export type Match = Camel<S["MatchOut"]>;
 export type Connect = Camel<S["ConnectOut"]>;
 export type Disclosure = Camel<S["DisclosureOut"]>;
+export type Contributions = Camel<S["Contributions"]>;
 export type Category = S["NeedCreate"]["categories"][number];
 export type OrgType = S["OrgType"];
 export type NeedPriority = S["NeedPriority"];
@@ -107,6 +108,7 @@ export const authAPI = {
     }),
   me: () => call<Me>("/api/v1/auth/me"),
   logout: () => call<void>("/api/v1/auth/logout", { method: "POST" }),
+  contributions: () => call<Contributions>("/api/v1/auth/me/contributions"),
 };
 
 const C = "/api/v1/community";
@@ -127,6 +129,8 @@ export const communityAPI = {
     call<OrgAdminView[]>(`${C}/admin/orgs${qs({ status })}`),
   approveOrg: (id: string) =>
     call<OrgSummary>(`${C}/admin/orgs/${id}/approve`, { method: "POST" }),
+  verifyOrg: (id: string, verified: boolean) =>
+    call<OrgSummary>(`${C}/admin/orgs/${id}/${verified ? "verify" : "unverify"}`, { method: "POST" }),
   rejectOrg: (id: string, reason?: string) =>
     call<OrgSummary>(`${C}/admin/orgs/${id}/reject`, {
       method: "POST",
@@ -210,4 +214,22 @@ export const plansAPI = {
     call<PlanOut>(`/api/v1/plans/${id}/fork`, { method: "POST", json: { version } }),
   attachToNeed: (needId: string, planId: string | null) =>
     call<Need>(`/api/v1/community/needs/${needId}`, { method: "PATCH", json: { plan_id: planId } }),
+};
+
+// --- design challenges ------------------------------------------------------
+
+export type ChallengeSummary = Camel<S["ChallengeSummary"]>;
+export type ChallengeOut = Camel<S["ChallengeOut"]>;
+export type ChallengeEntry = Camel<S["EntryOut"]>;
+
+export const challengesAPI = {
+  list: (eventId?: string) => call<{ data: ChallengeSummary[] }>(`/api/v1/challenges${qs({ event_id: eventId })}`),
+  get: (id: string) => call<ChallengeOut>(`/api/v1/challenges/${id}`),
+  create: (body: S["ChallengeCreate"]) => call<ChallengeOut>("/api/v1/challenges", { method: "POST", json: body }),
+  enter: (id: string, planId: string) =>
+    call<ChallengeOut>(`/api/v1/challenges/${id}/entries`, { method: "POST", json: { plan_id: planId } }),
+  vote: (entryId: string, on: boolean) =>
+    call<ChallengeOut>(`/api/v1/challenges/entries/${entryId}/${on ? "vote" : "unvote"}`, { method: "POST" }),
+  select: (id: string, entryId: string | null) =>
+    call<ChallengeOut>(`/api/v1/challenges/${id}/select`, { method: "POST", json: { entry_id: entryId } }),
 };

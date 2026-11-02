@@ -809,6 +809,26 @@ export interface paths {
         patch: operations["update_me_api_v1_auth_me_patch"];
         trace?: never;
     };
+    "/api/v1/auth/me/contributions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Contributions
+         * @description Your contributions and badges (visible only to you).
+         */
+        get: operations["my_contributions_api_v1_auth_me_contributions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/community/categories": {
         parameters: {
             query?: never;
@@ -908,6 +928,43 @@ export interface paths {
         put?: never;
         /** Reject Org */
         post: operations["reject_org_api_v1_community_admin_orgs__org_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/admin/orgs/{org_id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify Org
+         * @description Mark an approved organisation as an official partner.
+         */
+        post: operations["verify_org_api_v1_community_admin_orgs__org_id__verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/community/admin/orgs/{org_id}/unverify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unverify Org */
+        post: operations["unverify_org_api_v1_community_admin_orgs__org_id__unverify_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1211,6 +1268,115 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/challenges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Challenges */
+        get: operations["list_challenges_api_v1_challenges_get"];
+        put?: never;
+        /** Create Challenge */
+        post: operations["create_challenge_api_v1_challenges_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/challenges/{challenge_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Challenge */
+        get: operations["get_challenge_api_v1_challenges__challenge_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/challenges/{challenge_id}/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Entry
+         * @description Enter one of your public site plans.
+         */
+        post: operations["submit_entry_api_v1_challenges__challenge_id__entries_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/challenges/entries/{entry_id}/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vote */
+        post: operations["vote_api_v1_challenges_entries__entry_id__vote_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/challenges/entries/{entry_id}/unvote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unvote */
+        post: operations["unvote_api_v1_challenges_entries__entry_id__unvote_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/challenges/{challenge_id}/select": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Select Entry
+         * @description Host organisation: pick the entry to take forward (null clears it).
+         */
+        post: operations["select_entry_api_v1_challenges__challenge_id__select_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/status": {
         parameters: {
             query?: never;
@@ -1393,10 +1559,105 @@ export interface components {
             /** Session Cap */
             session_cap: number;
         };
+        /** Badge */
+        Badge: {
+            /** Id */
+            id: string;
+            /** Earned */
+            earned: boolean;
+            /** Progress */
+            progress: number;
+            /** Target */
+            target: number;
+        };
         /** CategoryList */
         CategoryList: {
             /** Data */
             data: string[];
+        };
+        /** ChallengeCreate */
+        ChallengeCreate: {
+            /**
+             * Org Id
+             * Format: uuid
+             */
+            org_id: string;
+            /** Event Id */
+            event_id?: string | null;
+            /** Title */
+            title: string;
+            /** Brief */
+            brief: string;
+            /** Population */
+            population: number;
+            /**
+             * Closes At
+             * Format: date-time
+             */
+            closes_at: string;
+        };
+        /** ChallengeList */
+        ChallengeList: {
+            /** Data */
+            data: components["schemas"]["ChallengeSummary"][];
+        };
+        /** ChallengeOut */
+        ChallengeOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            org: components["schemas"]["OrgSummary"];
+            /** Event Id */
+            event_id: string | null;
+            /** Title */
+            title: string;
+            /** Population */
+            population: number;
+            /**
+             * Closes At
+             * Format: date-time
+             */
+            closes_at: string;
+            /** Is Open */
+            is_open: boolean;
+            /** Entry Count */
+            entry_count: number;
+            /** Has Selection */
+            has_selection: boolean;
+            /** Brief */
+            brief: string;
+            /** Can Manage */
+            can_manage: boolean;
+            /** Entries */
+            entries: components["schemas"]["EntryOut"][];
+        };
+        /** ChallengeSummary */
+        ChallengeSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            org: components["schemas"]["OrgSummary"];
+            /** Event Id */
+            event_id: string | null;
+            /** Title */
+            title: string;
+            /** Population */
+            population: number;
+            /**
+             * Closes At
+             * Format: date-time
+             */
+            closes_at: string;
+            /** Is Open */
+            is_open: boolean;
+            /** Entry Count */
+            entry_count: number;
+            /** Has Selection */
+            has_selection: boolean;
         };
         /** ChatMessage */
         ChatMessage: {
@@ -1485,6 +1746,20 @@ export interface components {
          * @enum {string}
          */
         ConnectStatus: "pending" | "approved" | "rejected" | "canceled";
+        /**
+         * Contributions
+         * @description What the signed-in user has done, and the badges it earns. Only for themselves.
+         */
+        Contributions: {
+            /** Points */
+            points: number;
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Badges */
+            badges: components["schemas"]["Badge"][];
+        };
         /** DamageArea */
         DamageArea: {
             /**
@@ -1632,6 +1907,53 @@ export interface components {
              * @enum {string}
              */
             source: "event" | "admin_centroid" | "country_centroid";
+        };
+        /** EntryOut */
+        EntryOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Plan Id
+             * Format: uuid
+             */
+            plan_id: string;
+            /** Plan Title */
+            plan_title: string;
+            /** Plan Version */
+            plan_version: number;
+            /** Population */
+            population: number;
+            /** Item Count */
+            item_count: number;
+            /** Votes */
+            votes: number;
+            /** Voted By Me */
+            voted_by_me: boolean;
+            /** Is Mine */
+            is_mine: boolean;
+            /** Selected */
+            selected: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** EntrySelect */
+        EntrySelect: {
+            /** Entry Id */
+            entry_id: string | null;
+        };
+        /** EntrySubmit */
+        EntrySubmit: {
+            /**
+             * Plan Id
+             * Format: uuid
+             */
+            plan_id: string;
         };
         /** EventCluster */
         EventCluster: {
@@ -2298,6 +2620,11 @@ export interface components {
             status: components["schemas"]["OrgStatus"];
             /** Website */
             website?: string | null;
+            /**
+             * Verified
+             * @default false
+             */
+            verified: boolean;
             /** Primary Email */
             primary_email: string;
             /** Requested By Email */
@@ -2343,6 +2670,11 @@ export interface components {
             status: components["schemas"]["OrgStatus"];
             /** Website */
             website?: string | null;
+            /**
+             * Verified
+             * @default false
+             */
+            verified: boolean;
         };
         /**
          * OrgType
@@ -4158,6 +4490,26 @@ export interface operations {
             };
         };
     };
+    my_contributions_api_v1_auth_me_contributions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Contributions"];
+                };
+            };
+        };
+    };
     categories_api_v1_community_categories_get: {
         parameters: {
             query?: never;
@@ -4322,6 +4674,68 @@ export interface operations {
                 "application/json": components["schemas"]["OrgDecision"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_org_api_v1_community_admin_orgs__org_id__verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unverify_org_api_v1_community_admin_orgs__org_id__unverify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -5069,6 +5483,233 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_challenges_api_v1_challenges_get: {
+        parameters: {
+            query?: {
+                event_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_challenge_api_v1_challenges_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChallengeCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_challenge_api_v1_challenges__challenge_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                challenge_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_entry_api_v1_challenges__challenge_id__entries_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                challenge_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntrySubmit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vote_api_v1_challenges_entries__entry_id__vote_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unvote_api_v1_challenges_entries__entry_id__unvote_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    select_entry_api_v1_challenges__challenge_id__select_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                challenge_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntrySelect"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeOut"];
+                };
             };
             /** @description Validation Error */
             422: {

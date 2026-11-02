@@ -19,11 +19,12 @@ Phoenix는 전 세계의 재난, 전쟁, 환경오염 현황을 실시간 3D 디
 - Organisations apply and are approved by platform admins; their members post **needs** (site, categories, priority, quantity)
 - Anyone signed in posts **offers**; explainable **matching** ranks offers for each need
 - **Two-sided connections**: contact details are shared only after both sides approve
-- Organisations publish **progress updates** on each event
+- Organisations publish **progress updates** on each event; verified partners carry a badge, and people see their own contribution badges
 
 **Plan** — check a relief site against standards
 - Lay out tents, water taps, toilets and health posts on the map; live checks against the **Sphere** minimum standards; auto-layout
 - Save plans with full version history, fork others' plans, attach a plan to an organisation's need
+- **Design challenges**: organisations open a challenge for a site, people enter plans and vote, the host selects one to build
 
 **Reach** — beyond the main app
 - **Area alerts**, also when Phoenix is closed (Web Push, opt-in) · installable app with an offline **/lite** text page · **/embed** live map for other sites

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
 import { Header } from "@/components/layout/Header";
+import { VerifiedBadge } from "@/components/connect/VerifiedBadge";
 import { communityAPI, type OrgAdminView } from "@/lib/api/community";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useAuthStore } from "@/store/authStore";
@@ -84,6 +85,7 @@ export default function AdminPage() {
   const a = t.connect.admin;
   const { me, status, refresh } = useAuthStore();
   const [orgs, setOrgs] = useState<OrgAdminView[] | null>(null);
+  const [approved, setApproved] = useState<OrgAdminView[]>([]);
 
   useEffect(() => {
     if (status === "unknown") void refresh();
@@ -94,6 +96,10 @@ export default function AdminPage() {
       .orgsForReview("pending")
       .then(setOrgs)
       .catch(() => setOrgs([]));
+    communityAPI
+      .orgsForReview("approved")
+      .then(setApproved)
+      .catch(() => setApproved([]));
   }, []);
 
   useEffect(() => {
@@ -122,6 +128,49 @@ export default function AdminPage() {
                 <Review key={o.id} org={o} onDone={load} />
               ))}
             </ul>
+          )}
+
+          {me?.isPlatformAdmin && approved.length > 0 && (
+            <section className="mt-10" aria-labelledby="approved-title">
+              <h2
+                id="approved-title"
+                className="text-sm font-semibold text-gray-300"
+              >
+                {t.badges.approvedOrgs}
+              </h2>
+              <ul className="mt-3 divide-y divide-gray-800 rounded-xl border border-gray-800 bg-gray-900">
+                {approved.map((o) => (
+                  <li
+                    key={o.id}
+                    className="flex flex-wrap items-center gap-3 px-4 py-3"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-1.5 font-medium text-gray-100">
+                        {o.name}
+                        {o.verified && <VerifiedBadge compact />}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {t.connect.orgTypes[o.orgType]}
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      className={
+                        o.verified
+                          ? "btn-ghost py-1.5 text-xs"
+                          : "btn-primary py-1.5 text-xs"
+                      }
+                      onClick={async () => {
+                        await communityAPI.verifyOrg(o.id, !o.verified);
+                        load();
+                      }}
+                    >
+                      {o.verified ? t.badges.unverify : t.badges.verify}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </div>
       </main>

@@ -12,6 +12,7 @@ from src.models.community import (
     UserSession,
 )
 from src.models.fire import FireDetection
+from src.models.challenge import Challenge, ChallengeEntry, ChallengeVote
 from src.models.push import PushDelivery, PushSubscription
 from src.models.plan import PlanVisibility, SitePlan, SitePlanVersion
 from src.models.infrastructure import InfrastructureAsset
@@ -30,6 +31,9 @@ from src.models.event import (
 )
 
 __all__ = [
+    "Challenge",
+    "ChallengeEntry",
+    "ChallengeVote",
     "PushDelivery",
     "PushSubscription",
     "PlanVisibility",

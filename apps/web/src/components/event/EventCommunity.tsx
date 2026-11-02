@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { HandHeart, LayoutGrid, Megaphone } from "lucide-react";
 import { CategoryIcon } from "@/components/connect/CategoryIcon";
+import { VerifiedBadge } from "@/components/connect/VerifiedBadge";
 import {
   communityAPI,
   plansAPI,
@@ -207,6 +208,12 @@ export function EventCommunity({ eventId }: { eventId: string }) {
                   </time>
                   {" · "}
                   {d.org.name}
+                  {d.org.verified && (
+                    <>
+                      {" "}
+                      <VerifiedBadge compact />
+                    </>
+                  )}
                 </p>
                 <p className="mt-0.5 font-medium text-gray-100">{d.title}</p>
                 <p className="mt-1 whitespace-pre-line text-sm text-gray-300">
