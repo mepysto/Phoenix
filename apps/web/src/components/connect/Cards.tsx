@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/States";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -10,6 +11,7 @@ import {
   Mail,
   MapPin,
   Users,
+  SearchX,
 } from "lucide-react";
 import {
   communityAPI,
@@ -312,7 +314,7 @@ export function NeedCard({
           {matches === null ? (
             <div className="h-16 animate-pulse rounded-lg bg-gray-800" />
           ) : matches.length === 0 ? (
-            <p className="text-sm text-gray-400">{t.connect.noMatches}</p>
+            <EmptyState compact icon={SearchX} title={t.connect.noMatches} />
           ) : (
             <ul className="grid gap-2 md:grid-cols-2">
               {matches.map((m) => (

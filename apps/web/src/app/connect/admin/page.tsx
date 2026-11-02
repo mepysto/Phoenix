@@ -1,7 +1,8 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/States";
 import { useCallback, useEffect, useState } from "react";
-import { Check, X } from "lucide-react";
+import { Check, X, ShieldCheck } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { VerifiedBadge } from "@/components/connect/VerifiedBadge";
 import { communityAPI, type OrgAdminView } from "@/lib/api/community";
@@ -119,9 +120,7 @@ export default function AdminPage() {
           ) : orgs === null ? (
             <div className="mt-6 h-40 animate-pulse rounded-xl bg-gray-900" />
           ) : orgs.length === 0 ? (
-            <p className="mt-6 rounded-xl border border-dashed border-gray-700 px-5 py-8 text-gray-400">
-              {a.none}
-            </p>
+            <EmptyState className="mt-6" icon={ShieldCheck} title={a.none} />
           ) : (
             <ul className="mt-6 space-y-3">
               {orgs.map((o) => (

@@ -1,5 +1,6 @@
 "use client";
 
+import { severityColor } from "@/lib/severity";
 import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -20,7 +21,6 @@ import {
 import {
   EVENT_TYPE_LABELS,
   EVENT_TYPE_COLORS,
-  SEVERITY_COLORS,
 } from "@phoenix/shared/constants";
 import {
   useEventStore,
@@ -226,7 +226,7 @@ function EventsPageContent() {
                       aria-hidden="true"
                       className="h-2 w-2 rounded-full"
                       style={{
-                        backgroundColor: on ? SEVERITY_COLORS[severity] : "rgb(var(--gray-600))",
+                        backgroundColor: on ? severityColor(severity) : "rgb(var(--gray-600))",
                       }}
                     />
                     {t.sidebar[severity]}

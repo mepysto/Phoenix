@@ -26,6 +26,7 @@ from src.api.v1 import (
     hazards,
     infrastructure,
     sources,
+    stats,
     sync,
     tracks,
     websocket,
@@ -147,6 +148,7 @@ app.include_router(community.router, prefix="/api/v1/community", tags=["Communit
 app.include_router(plans.router, prefix="/api/v1/plans", tags=["Plans"])
 app.include_router(push.router, prefix="/api/v1/push", tags=["Push"])
 app.include_router(challenges.router, prefix="/api/v1/challenges", tags=["Challenges"])
+app.include_router(stats.router, prefix="/api/v1/stats", tags=["Stats"])
 app.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
 app.include_router(
     admin.router,

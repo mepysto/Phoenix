@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/States";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -10,6 +11,7 @@ import {
   LocateFixed,
   MapPin,
   Trash2,
+  MapPinOff,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import type { SeverityLevel } from "@/lib/api/client";
@@ -218,9 +220,12 @@ function AlertsContent() {
             {a.recent}
           </h2>
           {recent.length === 0 ? (
-            <p className="mt-3 rounded-xl border border-dashed border-gray-700 px-5 py-6 text-sm text-gray-400">
-              {a.noRecent}
-            </p>
+            <EmptyState
+              className="mt-3"
+              compact
+              icon={BellOff}
+              title={a.noRecent}
+            />
           ) : (
             <ul className="mt-3 divide-y divide-gray-800 rounded-xl border border-gray-800 bg-gray-900">
               {recent.map((r) => (
@@ -255,7 +260,7 @@ function AlertsContent() {
         <aside className="space-y-4">
           <h2 className="text-sm font-semibold text-gray-300">{a.areas}</h2>
           {areas.length === 0 ? (
-            <p className="text-sm text-gray-400">{a.none}</p>
+            <EmptyState compact icon={MapPinOff} title={a.none} />
           ) : (
             <ul className="space-y-2">
               {areas.map((area) => (

@@ -1,9 +1,9 @@
 "use client";
 
+import { severityColor } from "@/lib/severity";
 import Link from "next/link";
 import { Clapperboard, FileText, Navigation, X } from "lucide-react";
 import { ConfidenceRing, LifecycleTrack } from "@/components/trust/EventTrust";
-import { SEVERITY_COLORS } from "@phoenix/shared/constants";
 import type { ApiDisasterEvent, SeverityLevel } from "@/lib/api/client";
 import { briefFromEvent } from "@/lib/brief";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
@@ -35,7 +35,7 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
       <span
         aria-hidden="true"
         className="absolute inset-y-4 left-0 w-0.5 rounded-full"
-        style={{ backgroundColor: SEVERITY_COLORS[severity] }}
+        style={{ backgroundColor: severityColor(severity) }}
       />
       <div className="mb-2 flex items-start justify-between gap-2">
         <h3 className="font-semibold leading-snug text-white">{event.title}</h3>
@@ -65,7 +65,7 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
           <span className="text-gray-500">{t.events.severity}</span>
           <span
             className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-            style={{ backgroundColor: SEVERITY_COLORS[severity] }}
+            style={{ backgroundColor: severityColor(severity) }}
           >
             {t.sidebar[severity]}
           </span>

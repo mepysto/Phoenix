@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/States";
 import dynamic from "next/dynamic";
 import { ExternalLink, ScanSearch } from "lucide-react";
 import type { ApiDamageSummary } from "@/lib/api/client";
@@ -64,7 +65,12 @@ export function DamagePanel({
           aria-busy="true"
         />
       ) : data.total === 0 ? (
-        <p className="px-5 pb-5 text-sm text-gray-400">{d.none}</p>
+        <EmptyState
+          className="mx-5 mb-5"
+          compact
+          icon={ScanSearch}
+          title={d.none}
+        />
       ) : (
         <>
           {/* Share of assessed areas by grade, worst on the left */}
