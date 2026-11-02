@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import type { LayerSpecification } from "maplibre-gl";
 import {
   applyBasemap,
+  DARK_STYLE_URL,
+  LIGHT_STYLE_URL,
   loadBasemapStyle,
   SATELLITE_LAYER_ID,
   SATELLITE_SOURCE,
@@ -75,5 +77,19 @@ describe("basemaps", () => {
       water: "none",
       "place-label": "visible",
     });
+  });
+
+  it("follows the app theme: Positron in light, dark otherwise", async () => {
+    const fetchSpy = vi.fn(async (_url: string) => ({ ok: true, json: async () => structuredClone(vectorStyle) }));
+    await loadBasemapStyle("dark", fetchSpy as never, "light");
+    await loadBasemapStyle("dark", fetchSpy as never, "dark");
+    expect(fetchSpy.mock.calls.map(([url]) => url)).toEqual([LIGHT_STYLE_URL, DARK_STYLE_URL]);
+  });
+
+  it("offline fallback background matches the theme", async () => {
+    const down = vi.fn(async () => ({ ok: false, status: 503 }));
+    const light = await loadBasemapStyle("dark", down as never, "light");
+    const bg = light.layers.find((l) => l.id === "background") as unknown as { paint: Record<string, string> };
+    expect(bg.paint["background-color"]).toBe("#e8edf4");
   });
 });

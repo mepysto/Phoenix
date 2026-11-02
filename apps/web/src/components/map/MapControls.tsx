@@ -16,6 +16,7 @@ import { EVENT_TYPES } from "@phoenix/shared/constants";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { VIEW_MODES } from "@/lib/map/viewModes";
 import { useMapStore } from "@/store/mapStore";
+import { currentMapTheme } from "@/lib/map/basemaps";
 import { useEventStore } from "@/store/eventStore";
 import { SlideOver } from "@/components/connect/SlideOver";
 import { FilterPanel } from "@/components/layout/Sidebar";
@@ -138,7 +139,13 @@ export function MapControls({ is3D, onToggleProjection }: MapControlsProps) {
           )}
         </ToolButton>
         <ToolButton
-          label={basemap === "dark" ? t.map.satellite : t.map.dark}
+          label={
+            basemap === "dark"
+              ? t.map.satellite
+              : currentMapTheme() === "light"
+                ? t.ux.streetMap
+                : t.map.dark
+          }
           onClick={toggleBasemap}
         >
           {basemap === "dark" ? (

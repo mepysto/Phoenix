@@ -138,12 +138,22 @@ export default function EventDetailPage() {
     return (
       <div className="flex min-h-screen flex-col bg-gray-950">
         <Header />
-        <div className="flex flex-1 items-center justify-center">
-          <div className="text-center">
-            <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary-500 border-t-transparent mx-auto" />
-            <p className="text-gray-400">{t.detail.loading}</p>
+        <main
+          role="status"
+          aria-label={t.detail.loading}
+          className="flex-1 px-4 py-6 md:px-6 lg:px-8"
+        >
+          <div className="mx-auto grid max-w-6xl gap-6 pt-10 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-2">
+              <div className="h-40 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
+              <div className="h-80 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
+            </div>
+            <div className="space-y-6">
+              <div className="h-48 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
+              <div className="h-64 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
+            </div>
           </div>
-        </div>
+        </main>
       </div>
     );
   }

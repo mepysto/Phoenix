@@ -790,6 +790,7 @@ export const zh: Translations = {
     failed: "操作未完成，请重试。",
   },
   ux: {
+    streetMap: "地图",
     plan: "规划",
     filters: "筛选",
     legend: "图例",

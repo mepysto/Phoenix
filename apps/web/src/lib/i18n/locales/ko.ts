@@ -791,6 +791,7 @@ export const ko: Translations = {
     failed: "처리하지 못했습니다. 다시 시도하세요.",
   },
   ux: {
+    streetMap: "지도",
     plan: "계획",
     filters: "필터",
     legend: "범례",

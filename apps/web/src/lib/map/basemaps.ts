@@ -8,8 +8,9 @@ import type {
  * Basemaps. Every map must work without API keys, and every source must have
  * licence terms we have verified from the provider:
  *
- * - dark: OpenFreeMap "dark" vector style. Free, no key, no limits, commercial
- *   use allowed; OpenMapTiles schema, OpenStreetMap data (ODbL).
+ * - dark: OpenFreeMap vector style: "dark", or "positron" when the app uses
+ *   the light theme. Free, no key, no limits, commercial use allowed;
+ *   OpenMapTiles schema, OpenStreetMap data (ODbL).
  * - satellite: EOX Sentinel-2 cloudless 2025 (10 m). CC BY-NC-SA 4.0:
  *   non-commercial use (incl. NGOs) is free; commercial use needs an EOX
  *   licence. Commercial deployments fall back to NASA Blue Marble (public
@@ -24,6 +25,27 @@ export type BasemapId = "dark" | "satellite";
 export const COMMERCIAL_DEPLOYMENT = process.env.NEXT_PUBLIC_COMMERCIAL_DEPLOYMENT === "1";
 
 export const DARK_STYLE_URL = "https://tiles.openfreemap.org/styles/dark";
+export const LIGHT_STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
+
+export type MapTheme = "dark" | "light";
+
+/** The app theme in effect (SettingsProvider sets the class on <html>) */
+export function currentMapTheme(): MapTheme {
+  return typeof document !== "undefined" &&
+    document.documentElement.classList.contains("light")
+    ? "light"
+    : "dark";
+}
+
+/** Vector style matching the app theme */
+export function vectorStyleUrl(theme: MapTheme = currentMapTheme()): string {
+  return theme === "light" ? LIGHT_STYLE_URL : DARK_STYLE_URL;
+}
+
+/** Plain background for maps whose style cannot be fetched */
+export function fallbackBackground(theme: MapTheme = currentMapTheme()): string {
+  return theme === "light" ? "#e8edf4" : "#111a2b";
+}
 /** Keyless font glyphs, used if the vector style cannot be loaded */
 export const GLYPHS_URL = "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf";
 /** A font served by OpenFreeMap; symbol layers must set text-font to this */
@@ -73,31 +95,34 @@ function withVisibility(layer: LayerSpecification, active: BasemapId): LayerSpec
 }
 
 /** Satellite-only style used when the vector style cannot be fetched */
-function fallbackStyle(): StyleSpecification {
+function fallbackStyle(theme: MapTheme): StyleSpecification {
   return {
     version: 8,
     glyphs: GLYPHS_URL,
     sources: {},
-    layers: [{ id: "background", type: "background", paint: { "background-color": "#111827" } }],
+    layers: [
+      { id: "background", type: "background", paint: { "background-color": fallbackBackground(theme) } },
+    ],
   };
 }
 
 /**
- * Full basemap style: the dark vector style plus the satellite raster,
+ * Full basemap style: the vector style for `theme` plus the satellite raster,
  * with only `active` visible. Never throws (offline -> minimal style).
  */
 export async function loadBasemapStyle(
   active: BasemapId,
   fetchImpl: typeof fetch = fetch,
+  theme: MapTheme = currentMapTheme(),
 ): Promise<StyleSpecification> {
   let style: StyleSpecification;
   try {
-    const response = await fetchImpl(DARK_STYLE_URL);
+    const response = await fetchImpl(vectorStyleUrl(theme));
     if (!response.ok) throw new Error(`OpenFreeMap style ${response.status}`);
     style = (await response.json()) as StyleSpecification;
   } catch (error) {
     console.warn("Dark basemap unavailable; showing satellite only", error);
-    style = fallbackStyle();
+    style = fallbackStyle(theme);
     active = "satellite";
   }
   const satellite: LayerSpecification = { id: SATELLITE_LAYER_ID, type: "raster", source: "satellite" };

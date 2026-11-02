@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
 import type { ApiDamageSummary } from "@/lib/api/client";
 import { DAMAGE_COLORS, type DamageGrade } from "@/lib/damage";
-import { DARK_STYLE_URL } from "@/lib/map/basemaps";
+import { vectorStyleUrl } from "@/lib/map/basemaps";
 import { configureMaplibreWorker } from "@/lib/map/maplibreWorker";
 
 configureMaplibreWorker(maplibregl);
@@ -37,7 +37,7 @@ export default function DamageMap({
     if (!el.current || areas.length === 0) return;
     const map = new maplibregl.Map({
       container: el.current,
-      style: DARK_STYLE_URL,
+      style: vectorStyleUrl(),
       center: [0, 0],
       zoom: 1,
     });

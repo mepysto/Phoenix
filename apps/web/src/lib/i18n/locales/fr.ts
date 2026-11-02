@@ -795,6 +795,7 @@ export const fr: Translations = {
     failed: "Action impossible. Réessayez.",
   },
   ux: {
+    streetMap: "Carte",
     plan: "Planifier",
     filters: "Filtres",
     legend: "Légende",

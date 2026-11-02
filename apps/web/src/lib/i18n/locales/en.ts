@@ -792,6 +792,7 @@ export const en: Translations = {
     failed: "Could not complete that. Try again.",
   },
   ux: {
+    streetMap: "Map",
     plan: "Plan",
     filters: "Filters",
     legend: "Legend",

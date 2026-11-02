@@ -793,6 +793,7 @@ export const ru: Translations = {
     failed: "Не удалось выполнить. Повторите.",
   },
   ux: {
+    streetMap: "Карта",
     plan: "План",
     filters: "Фильтры",
     legend: "Легенда",

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
-import { DARK_STYLE_URL } from "@/lib/map/basemaps";
+import { fallbackBackground, vectorStyleUrl } from "@/lib/map/basemaps";
 import { configureMaplibreWorker } from "@/lib/map/maplibreWorker";
 import { KIND_COLORS } from "./kindColors";
 import { SPHERE, type ItemKind, type PlanItem } from "@/lib/sphere";
@@ -12,13 +12,13 @@ configureMaplibreWorker(maplibregl);
 
 // Used when the basemap style cannot be fetched (offline, blocked, slow
 // field links): the plan still works on a plain background with the scale.
-const FALLBACK_STYLE: maplibregl.StyleSpecification = {
+const fallbackStyle = (): maplibregl.StyleSpecification => ({
   version: 8,
   sources: {},
   layers: [
-    { id: "bg", type: "background", paint: { "background-color": "#111a2b" } },
+    { id: "bg", type: "background", paint: { "background-color": fallbackBackground() } },
   ],
-};
+});
 
 const KIND_RADIUS: Record<ItemKind, number> = {
   tent: 4,
@@ -78,7 +78,7 @@ export default function PlanMap({
     if (!el.current || map.current) return;
     const m = new maplibregl.Map({
       container: el.current,
-      style: DARK_STYLE_URL,
+      style: vectorStyleUrl(),
       center: [center.lng, center.lat],
       zoom: 15,
     });
@@ -92,12 +92,12 @@ export default function PlanMap({
     );
     let styleOk = false;
     const fallback = window.setTimeout(() => {
-      if (!styleOk) m.setStyle(FALLBACK_STYLE);
+      if (!styleOk) m.setStyle(fallbackStyle());
     }, 8000);
     m.on("error", () => {
       if (!styleOk) {
         window.clearTimeout(fallback);
-        m.setStyle(FALLBACK_STYLE);
+        m.setStyle(fallbackStyle());
       }
     });
     m.once("style.load", () => {

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
 import { configureMaplibreWorker } from "@/lib/map/maplibreWorker";
-import { DARK_STYLE_URL } from "@/lib/map/basemaps";
+import { vectorStyleUrl } from "@/lib/map/basemaps";
 
 configureMaplibreWorker(maplibregl);
 
@@ -23,7 +23,7 @@ export default function MiniMap({ lat, lng, zoom = 8 }: MiniMapProps) {
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: DARK_STYLE_URL,
+      style: vectorStyleUrl(),
       center: [lng, lat],
       zoom: zoom,
       interactive: true,
