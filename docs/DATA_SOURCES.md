@@ -26,7 +26,7 @@ A unit test fails if a registry source is missing from this file.
 
 | Source | Used for | Licence | Commercial | Attribution |
 |---|---|---|---|---|
-| **OpenFreeMap** (OpenMapTiles schema) | Dark vector basemap, labels, fonts | OpenFreeMap: MIT; data © OpenStreetMap contributors (ODbL) | ✅ | "OpenFreeMap © OpenMapTiles Data from OpenStreetMap" (shown automatically) |
+| **OpenFreeMap** (OpenMapTiles schema) | Vector basemaps (dark; light "Positron" for the light theme), labels, fonts | OpenFreeMap: MIT; data © OpenStreetMap contributors (ODbL) | ✅ | "OpenFreeMap © OpenMapTiles Data from OpenStreetMap" (shown automatically) |
 | **EOxCloudless** — Sentinel-2 cloudless 2025 | Satellite basemap (10 m) | CC BY-NC-SA 4.0 | ❌ non-commercial only (NGOs allowed; commercial needs an EOX licence) | "EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2025)" |
 | **NASA Blue Marble** (via GIBS) | Satellite basemap in commercial deployments (~500 m) | NASA open data | ✅ | "Imagery © NASA Blue Marble (GIBS)" |
 

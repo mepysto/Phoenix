@@ -3,7 +3,8 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, Trophy } from "lucide-react";
+import { EmptyState } from "@/components/ui/States";
 import { ChallengeCard } from "@/components/challenges/ChallengeCard";
 import { Header } from "@/components/layout/Header";
 import { SlideOver } from "@/components/connect/SlideOver";
@@ -233,9 +234,23 @@ function ChallengesContent() {
               />
             ))
           ) : list.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-gray-700 px-6 py-10 text-center text-gray-300 md:col-span-2">
-              {c.none}
-            </p>
+            <EmptyState
+              className="md:col-span-2"
+              icon={Trophy}
+              title={c.none}
+              action={
+                status === "signed-in" ? (
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => setPanel(true)}
+                  >
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                    {c.create}
+                  </button>
+                ) : undefined
+              }
+            />
           ) : (
             list.map((ch) => <ChallengeCard key={ch.id} ch={ch} />)
           )}

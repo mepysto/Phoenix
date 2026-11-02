@@ -22,6 +22,7 @@ import { addEventLayers, eventsToGeoJSON, readView } from "@/lib/map/eventLayers
 import { viewModeFilter } from "@/lib/map/viewModes";
 import { EventInfoPanel } from "./EventInfoPanel";
 import { MapControls } from "./MapControls";
+import { BrandLoader } from "@/components/ui/States";
 import { MapLegend } from "./MapLegend";
 import { ViewModeFilters } from "./ViewModeFilters";
 import { useMapOverlays } from "./useMapOverlays";
@@ -337,12 +338,7 @@ export default function GlobeViewer({
   return (
     <div className="relative h-full w-full">
       {!mapReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-          <div className="text-center">
-            <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary-500 border-t-transparent mx-auto" />
-            <p className="text-gray-400">{t.map.initializingGlobe}</p>
-          </div>
-        </div>
+        <BrandLoader className="absolute inset-0 z-10" label={t.map.initializingGlobe} />
       )}
 
       <ViewModeFilters />

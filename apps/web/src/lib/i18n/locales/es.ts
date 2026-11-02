@@ -793,6 +793,7 @@ export const es: Translations = {
     failed: "No se pudo completar. Inténtelo de nuevo.",
   },
   ux: {
+    streetMap: "Mapa",
     plan: "Planificar",
     filters: "Filtros",
     legend: "Leyenda",

@@ -790,6 +790,7 @@ export const ar: Translations = {
     failed: "تعذّر الإتمام. أعد المحاولة.",
   },
   ux: {
+    streetMap: "خريطة",
     plan: "التخطيط",
     filters: "عوامل التصفية",
     legend: "وسيلة الإيضاح",

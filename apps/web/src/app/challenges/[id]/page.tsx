@@ -11,7 +11,9 @@ import {
   ThumbsUp,
   Trophy,
   Users,
+  LayoutGrid,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/States";
 import { Header } from "@/components/layout/Header";
 import { VerifiedBadge } from "@/components/connect/VerifiedBadge";
 import {
@@ -253,9 +255,7 @@ export default function ChallengePage() {
                 {c.entries.replace("{n}", String(ch.entries.length))}
               </h2>
               {ch.entries.length === 0 ? (
-                <p className="mt-3 rounded-xl border border-dashed border-gray-700 px-5 py-8 text-sm text-gray-400">
-                  {c.noEntries}
-                </p>
+                <EmptyState className="mt-3" icon={LayoutGrid} title={c.noEntries} />
               ) : (
                 <ol className="mt-3 space-y-3">
                   {ch.entries.map((e, i) => {

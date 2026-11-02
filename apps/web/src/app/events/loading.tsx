@@ -1,7 +1,7 @@
 export default function EventsLoading() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-950">
-      <div className="h-16 border-b border-gray-800 bg-gray-900/50 backdrop-blur" />
+      <div className="h-14 border-b border-gray-800 bg-gray-950" />
 
       <main className="flex-1 px-4 py-6 md:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">

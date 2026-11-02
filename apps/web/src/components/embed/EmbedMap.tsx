@@ -6,7 +6,7 @@ import { SEVERITY_COLORS } from "@phoenix/shared/constants";
 import { eventsAPI, type SeverityLevel } from "@/lib/api/client";
 import { getEventPosition } from "@/lib/eventPosition";
 import { escapeHtml } from "@/lib/escapeHtml";
-import { DARK_STYLE_URL } from "@/lib/map/basemaps";
+import { vectorStyleUrl } from "@/lib/map/basemaps";
 import { configureMaplibreWorker } from "@/lib/map/maplibreWorker";
 
 configureMaplibreWorker(maplibregl);
@@ -35,7 +35,7 @@ export default function EmbedMap({
     if (!el.current) return;
     const map = new maplibregl.Map({
       container: el.current,
-      style: DARK_STYLE_URL,
+      style: vectorStyleUrl(),
       center,
       zoom,
       attributionControl: { compact: true },

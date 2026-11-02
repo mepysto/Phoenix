@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { HandHeart, Inbox, Plus } from "lucide-react";
+import { EmptyState } from "@/components/ui/States";
 import { Header } from "@/components/layout/Header";
 import { NeedCard, OfferCard } from "@/components/connect/Cards";
 import { CategoryIcon } from "@/components/connect/CategoryIcon";
@@ -232,16 +233,22 @@ function ConnectBoard() {
               />
             ))
           ) : list.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-700 px-6 py-12 text-center">
-              <p className="font-medium text-gray-200">
-                {tab === "needs" ? t.connect.noNeeds : t.connect.noOffers}
-              </p>
-              {tab === "needs" && (
-                <p className="mt-1 text-sm text-gray-400">
-                  {t.connect.needsEmptyHint}
-                </p>
-              )}
-            </div>
+            <EmptyState
+              icon={tab === "needs" ? HandHeart : Inbox}
+              title={tab === "needs" ? t.connect.noNeeds : t.connect.noOffers}
+              body={tab === "needs" ? t.connect.needsEmptyHint : undefined}
+              action={
+                category ? (
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    onClick={() => setCategory(undefined)}
+                  >
+                    {t.ux.showAll}
+                  </button>
+                ) : undefined
+              }
+            />
           ) : tab === "needs" ? (
             needs!.map((n) => (
               <NeedCard

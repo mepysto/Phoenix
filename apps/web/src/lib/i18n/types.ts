@@ -758,6 +758,8 @@ export interface Translations {
   };
   /** Shared chrome: navigation, map toolbar, filters */
   ux: {
+    /** Basemap toggle label for the light vector map */
+    streetMap: string;
     plan: string;
     filters: string;
     legend: string;
