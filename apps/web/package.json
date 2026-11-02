@@ -17,7 +17,8 @@
     "generate:types": "openapi-typescript http://localhost:28000/openapi.json -o src/lib/api/schema.d.ts",
     "generate:types:local": "openapi-typescript openapi.json -o src/lib/api/schema.d.ts",
     "predev": "node scripts/copy-map-assets.mjs",
-    "prebuild": "node scripts/copy-map-assets.mjs"
+    "prebuild": "node scripts/copy-map-assets.mjs",
+    "perf:map": "node scripts/perf-map.mjs"
   },
   "dependencies": {
     "@phoenix/shared": "workspace:*",

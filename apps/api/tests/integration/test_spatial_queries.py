@@ -63,3 +63,50 @@ async def test_radius_search_uses_geography_index(session):
     plan = "\n".join((await session.execute(text("EXPLAIN " + sql))).scalars().all())
     assert "idx_events_location_geog" in plan, plan
     assert await _titles(session, center_lat=35.0, center_lng=139.0, radius_km=200) == ["tokyo"]
+
+
+@pytest.mark.asyncio
+async def test_duplicate_candidates_need_same_type_place_and_time(session):
+    repo = EventRepository(session)
+    when = datetime(2026, 9, 1, tzinfo=UTC)
+    # Near Tokyo: one flood (other type), one earthquake a week later (outside the window)
+    await repo.create(
+        type=EventType.flood, title="tokyo-flood", severity=SeverityLevel.low,
+        start_date=when, lat=35.6, lng=139.6,
+    )
+    await repo.create(
+        type=EventType.earthquake, title="tokyo-later", severity=SeverityLevel.low,
+        start_date=datetime(2026, 9, 8, tzinfo=UTC), lat=35.7, lng=139.7,
+    )
+    found = await repo.find_candidates_by_spatiotemporal(
+        event_type=EventType.earthquake, lat=35.65, lng=139.65, start_date=when,
+        radius_meters=50_000, window_hours=48,
+    )
+    assert [e.title for e in found] == ["tokyo"]
+    # Radius is in metres on the sphere: ~1,100 km from Fiji to Samoa across the antimeridian
+    far = await repo.find_candidates_by_spatiotemporal(
+        event_type=EventType.earthquake, lat=-17.7, lng=178.0, start_date=when,
+        radius_meters=1_200_000,
+    )
+    assert sorted(e.title for e in far) == ["fiji", "samoa"]
+
+
+@pytest.mark.asyncio
+async def test_clusters_group_by_geohash_and_keep_singles_apart(session):
+    from src.services.clustering_service import ClusteringService
+
+    repo = EventRepository(session)
+    for i, (lat, lng) in enumerate([(35.60, 139.60), (35.65, 139.70)]):
+        await repo.create(
+            type=EventType.flood, title=f"kanto-{i}",
+            severity=SeverityLevel.critical if i else SeverityLevel.low,
+            start_date=datetime(2026, 9, 2, tzinfo=UTC), lat=lat, lng=lng,
+        )
+    result = await ClusteringService(session).get_clusters(zoom=5, filters=EventFilter())
+    assert result.total_events == 5  # three fixture points + two floods
+    [kanto] = [c for c in result.clusters if 35 < c.center_lat < 36]
+    assert kanto.count == 3  # tokyo + both floods
+    assert 139.6 <= kanto.center_lng <= 139.7
+    assert kanto.max_severity == "critical"
+    # Fiji and Samoa are far apart: shown individually, not merged
+    assert sorted(e.title for e in result.unclustered) == ["fiji", "samoa"]
