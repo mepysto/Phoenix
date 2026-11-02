@@ -30,7 +30,7 @@ async def world():
     maker = async_sessionmaker(engine, expire_on_commit=False)
     async with maker() as s:
         await s.execute(text(
-            "TRUNCATE site_plan_versions, site_plans, connects, disclosures, offers, needs, org_memberships, "
+            "TRUNCATE challenge_votes, challenge_entries, challenges, site_plan_versions, site_plans, connects, disclosures, offers, needs, org_memberships, "
             "orgs, user_sessions, magic_link_tokens, users, events, event_sources, data_sources CASCADE"
         ))
         event = await EventRepository(s).create(

@@ -215,3 +215,21 @@ export const plansAPI = {
   attachToNeed: (needId: string, planId: string | null) =>
     call<Need>(`/api/v1/community/needs/${needId}`, { method: "PATCH", json: { plan_id: planId } }),
 };
+
+// --- design challenges ------------------------------------------------------
+
+export type ChallengeSummary = Camel<S["ChallengeSummary"]>;
+export type ChallengeOut = Camel<S["ChallengeOut"]>;
+export type ChallengeEntry = Camel<S["EntryOut"]>;
+
+export const challengesAPI = {
+  list: (eventId?: string) => call<{ data: ChallengeSummary[] }>(`/api/v1/challenges${qs({ event_id: eventId })}`),
+  get: (id: string) => call<ChallengeOut>(`/api/v1/challenges/${id}`),
+  create: (body: S["ChallengeCreate"]) => call<ChallengeOut>("/api/v1/challenges", { method: "POST", json: body }),
+  enter: (id: string, planId: string) =>
+    call<ChallengeOut>(`/api/v1/challenges/${id}/entries`, { method: "POST", json: { plan_id: planId } }),
+  vote: (entryId: string, on: boolean) =>
+    call<ChallengeOut>(`/api/v1/challenges/entries/${entryId}/${on ? "vote" : "unvote"}`, { method: "POST" }),
+  select: (id: string, entryId: string | null) =>
+    call<ChallengeOut>(`/api/v1/challenges/${id}/select`, { method: "POST", json: { entry_id: entryId } }),
+};

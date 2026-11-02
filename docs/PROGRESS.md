@@ -23,8 +23,11 @@ Phase 1 and the God's Eye View track (M0–M7, PR #1–#38) are complete; see
 - [x] Site plans saved with version history, forks, attached to needs (FR-4.2)
 - [x] Closed-tab area alerts (Web Push, opt-in) and an installable app with offline /lite (NFR-6)
 
-Still open: Phoenix's own AI damage model (FR-5.1 beyond Copernicus grading), reputation and
-verified-partner badges (FR-6.2), funding and logistics tracking (FR-7.3, out of scope for now).
+- [x] Verified-partner badges and personal contribution badges (FR-6.2)
+- [x] Design challenges: entries, votes, host selection (PRD scenario 2, recovery design hackathon)
+
+Still open: Phoenix's own AI damage model (FR-5.1 beyond Copernicus grading), funding and
+logistics tracking (FR-7.3, out of scope for now).
 
 ## Overview
 

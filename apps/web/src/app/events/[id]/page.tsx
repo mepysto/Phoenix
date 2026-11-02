@@ -375,6 +375,12 @@ export default function EventDetailPage() {
                   >
                     {t.plan.open}
                   </Link>
+                  <Link
+                    href={`/challenges?event=${event.id}`}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-200 transition-colors hover:bg-gray-800"
+                  >
+                    {t.challenges.title}
+                  </Link>
                   {position && (
                     <Link
                       href={`/alerts?lat=${position.lat.toFixed(2)}&lng=${position.lng.toFixed(2)}&name=${encodeURIComponent(event.location.country || event.title)}`}

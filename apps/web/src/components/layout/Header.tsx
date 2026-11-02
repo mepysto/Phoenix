@@ -57,7 +57,9 @@ export function Header() {
           </button>
           <Link href="/" className="flex items-center gap-2 text-gray-100">
             <PhoenixMark className="h-7 w-7" />
-            <span className="text-lg font-semibold tracking-tight text-white">Phoenix</span>
+            <span className="text-lg font-semibold tracking-tight text-white">
+              Phoenix
+            </span>
           </Link>
         </div>
 
@@ -66,7 +68,10 @@ export function Header() {
           className="hidden md:flex flex-1 max-w-md mx-8"
         >
           <div className="relative w-full">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+            <Search
+              className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              aria-hidden="true"
+            />
             <label htmlFor="global-search" className="sr-only">
               {t.common.search}
             </label>
@@ -83,16 +88,39 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <nav className="hidden md:flex items-center gap-6 mr-4">
-            <Link href="/" className={navClass("/")} aria-current={isActive("/") ? "page" : undefined}>
+            <Link
+              href="/"
+              className={navClass("/")}
+              aria-current={isActive("/") ? "page" : undefined}
+            >
               {t.common.home}
             </Link>
-            <Link href="/events" className={navClass("/events")} aria-current={isActive("/events") ? "page" : undefined}>
+            <Link
+              href="/events"
+              className={navClass("/events")}
+              aria-current={isActive("/events") ? "page" : undefined}
+            >
               {t.common.events}
             </Link>
-            <Link href="/connect" className={navClass("/connect")} aria-current={isActive("/connect") ? "page" : undefined}>
+            <Link
+              href="/connect"
+              className={navClass("/connect")}
+              aria-current={isActive("/connect") ? "page" : undefined}
+            >
               {t.connect.nav}
             </Link>
-            <Link href="/about" className={navClass("/about")} aria-current={isActive("/about") ? "page" : undefined}>
+            <Link
+              href="/challenges"
+              className={navClass("/challenges")}
+              aria-current={isActive("/challenges") ? "page" : undefined}
+            >
+              {t.challenges.nav}
+            </Link>
+            <Link
+              href="/about"
+              className={navClass("/about")}
+              aria-current={isActive("/about") ? "page" : undefined}
+            >
               {t.common.about}
             </Link>
           </nav>
@@ -126,7 +154,10 @@ export function Header() {
               </button>
             </div>
           ) : status === "signed-out" ? (
-            <Link href="/login" className="hidden rounded-full border border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-200 hover:bg-gray-800 sm:inline-flex">
+            <Link
+              href="/login"
+              className="hidden rounded-full border border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-200 hover:bg-gray-800 sm:inline-flex"
+            >
               {t.auth.signIn}
             </Link>
           ) : null}
@@ -183,6 +214,13 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               {status === "signed-in" ? t.connect.mine.title : t.auth.signIn}
+            </Link>
+            <Link
+              href="/challenges"
+              className="px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {t.challenges.nav}
             </Link>
             <Link
               href="/about"
