@@ -1,7 +1,7 @@
-# Phoenix - Phase 1 MVP Development Progress
+# Phoenix - Development Progress
 
-> **Last Updated**: 2026-11-01  
-> **Status**: Phase 1 MVP and Track 0/G done; Phase 2 (needs/offers) MVP shipped
+> **Last Updated**: 2026-11-02  
+> **Status**: Phase 1, Track 0/G and Phase 2 (community, planning, alerts) shipped; production deploy tooling ready
 
 ---
 
@@ -26,13 +26,23 @@ Phase 1 and the God's Eye View track (M0–M7, PR #1–#38) are complete; see
 - [x] Verified-partner badges and personal contribution badges (FR-6.2)
 - [x] Design challenges: entries, votes, host selection (PRD scenario 2, recovery design hackathon)
 
+Then, to run it and to make it pleasant to use (PR #41–#42 and the follow-up on `main`):
+
+- [x] One-command setup (`scripts/setup.sh`): development, or production with HTTPS (Caddy), backups and restore — see [DEPLOYMENT.md](./DEPLOYMENT.md)
+- [x] UI/UX pass: filters on phones and tablets, map icon toolbar, working light theme with a light basemap,
+      header language picker, readable badges, one date style, quick actions on event pages, RTL-safe map
+      overlays, shared loading and empty states
+
+Testing: 673 API tests (incl. PostGIS integration), 156 web unit tests, 11 Playwright end-to-end tests;
+map rendering benchmark in `apps/web/scripts/perf-map.mjs` (see 6.3).
+
 Still open: Phoenix's own AI damage model (FR-5.1 beyond Copernicus grading; plan and prerequisites in
 [AI_DAMAGE_MODEL_PLAN.md](./AI_DAMAGE_MODEL_PLAN.md)), funding and
 logistics tracking (FR-7.3, out of scope for now).
 
 ## Overview
 
-이 문서는 Phoenix 프로젝트의 Phase 1 MVP 개발 진행 상황을 추적합니다.  
+이 문서는 Phoenix의 개발 진행 상황을 추적합니다. 아래 체크리스트는 Phase 1 MVP 기준이고, 이후 작업은 위 업데이트 절에 정리했습니다.  
 각 기능과 작업 항목의 완료 상태를 체크하여 진척도를 파악할 수 있습니다.
 
 ### Progress Summary
@@ -195,7 +205,7 @@ logistics tracking (FR-7.3, out of scope for now).
 - [x] 레이어 On/Off 토글
 - [x] 레이어 투명도 조절 (0~100% 슬라이더, i18n 지원)
 - [x] 범례 컴포넌트
-- [ ] 타임라인 슬라이더 (선택적)
+- [x] 타임라인 슬라이더 (재생, 속도, 히스토그램; `components/map/Timeline.tsx`)
 
 ### 4.6 MiniMap Component
 
@@ -231,7 +241,9 @@ logistics tracking (FR-7.3, out of scope for now).
 ### 6.1 Backend Tests
 
 - [x] API 엔드포인트 테스트 (pytest) - 113개 테스트, 85% 커버리지
-- [ ] 데이터베이스 테스트 (PostGIS 쿼리)
+- [x] 데이터베이스 테스트 (PostGIS 쿼리) — `tests/integration/test_spatial_queries.py`: bbox(날짜변경선 포함),
+      반경 검색과 geography 인덱스 사용, 중복 후보 검색(유형·거리·시간), 지오해시 클러스터링;
+      경로·타임라인·뷰 요약 등 다른 통합 테스트도 실제 PostGIS에서 실행
 - [x] 외부 API 모킹 테스트 (GDACS RSS/API 모킹)
 
 ### 6.2 Frontend Tests
@@ -244,7 +256,19 @@ logistics tracking (FR-7.3, out of scope for now).
 
 - [x] 초기 로딩 시간 측정 및 최적화 (< 5s 달성)
 - [x] API 응답 시간 측정 (< 500ms 달성 - 2ms)
-- [ ] 3D 렌더링 성능 프로파일링
+- [x] 3D 렌더링 성능 프로파일링 — `pnpm --filter web perf:map [-- --headed --cesium --url …]`:
+      지도를 드래그하는 동안의 프레임 간격(중앙 fps, p95, 50 ms 초과 프레임, long task)과 JS 힙을 측정
+
+  기준값 (2026-11-02, 헤드리스 Chromium, 소프트웨어 WebGL, 타일 서버 차단 환경 — 같은 기계에서의 비교용 하한선):
+
+  | 보기 | 중앙 fps | p95 프레임 | 50 ms 초과 | long task |
+  | --- | --- | --- | --- | --- |
+  | MapLibre 지구본 (3D) | 20 | 66.6 ms | 18 | 31 |
+  | MapLibre 평면 (2D) | 30 | 50 ms | 1 | 0 |
+  | Cesium | 2.2 | 483 ms | 21 | 68 |
+
+  지도 준비 5.6 s, JS 힙 44 MB. GPU가 있는 실제 기기에서 `--headed`로 다시 재야 의미 있는 수치가 나옵니다.
+  소프트웨어 렌더링에서도 Cesium이 크게 느리므로 기본 엔진은 MapLibre를 유지합니다.
 
 ---
 
@@ -301,6 +325,9 @@ logistics tracking (FR-7.3, out of scope for now).
 
 | Date       | Version | Changes                                                                |
 | ---------- | ------- | ---------------------------------------------------------------------- |
+| 2026-11-02 | —       | UI/UX pass, light basemap, PostGIS dedup/cluster tests, map benchmark  |
+| 2026-11-02 | —       | Setup/deploy scripts, HTTPS production compose, backups (PR #41)       |
+| 2026-11-01 | —       | Community, site plans, damage, push alerts, badges, challenges (#39–40)|
 | 2026-01-05 | 0.18.0  | Phase 7: Offline Merge Job, GeoJSON Export, Clustering API             |
 | 2025-12-29 | 0.16.0  | Copernicus EMS 피해 평가 데이터 수집 기능 추가 (DamageAssessment)      |
 | 2025-12-29 | 0.15.0  | 레이어 투명도 조절 슬라이더 추가 (7개 언어 i18n 지원)                  |
@@ -334,19 +361,13 @@ logistics tracking (FR-7.3, out of scope for now).
 3. **Monorepo**: Turborepo + pnpm workspaces
 4. **타입 공유**: `@phoenix/shared` 패키지
 5. **GDACS 연동**: RSS 피드 파싱 방식
-6. **PostGIS 연기**: MVP에서는 lat/lon 컬럼 사용, PostGIS는 Phase 2에서 추가
+6. **PostGIS**: MVP의 lat/lon 컬럼에서 PostGIS geometry + geography 인덱스로 전환 완료
 
 ### Next Actions
 
-1. ~~테스트 코드 작성 (pytest, Vitest)~~ ✅ 완료
-2. ~~Alembic 마이그레이션 설정~~ ✅ 완료
-3. ~~에러 처리 및 재시도 로직 구현~~ ✅ 완료
-4. ~~API 문서 작성~~ ✅ 완료
-5. ~~CesiumJS 통합 (Resium, Terrain, Buildings)~~ ✅ 완료
-6. ~~초기 로딩 시간 최적화 (5초 목표)~~ ✅ 완료 (4.98s)
-7. ~~이벤트 클러스터링 구현~~ ✅ 완료
-8. ~~위성 영상 베이스맵 추가~~ ✅ 완료
-9. ~~E2E 테스트 (Playwright)~~ ✅ 완료 (9개 테스트)
-10. ~~ARCHITECTURE.md 문서 작성~~ ✅ 완료
-
-**Phase 1 MVP 완료!** 남은 작업은 Phase 2에서 진행합니다.
+1. 실서버 첫 배포: `scripts/setup.sh --prod DOMAIN EMAIL` 후 DNS·`PLATFORM_ADMIN_EMAILS`·`SMTP_*` 확인
+   (이 저장소의 개발 환경에는 Docker가 없어 컨테이너는 실제로 띄워 보지 않았습니다)
+2. 외부 서비스가 막힌 개발 환경에서 검증하지 못한 부분 확인: 지도 타일(밝은 지도 포함), Copernicus 수집,
+   웹 푸시 발송, 메일 발송
+3. GPU가 있는 기기에서 `perf:map --headed --cesium`으로 렌더링 기준값 다시 측정
+4. AI 피해 판독 모델: 자금·파트너, 첫 재난 유형, 검토 단체 결정 후 착수 ([AI_DAMAGE_MODEL_PLAN.md](./AI_DAMAGE_MODEL_PLAN.md))
