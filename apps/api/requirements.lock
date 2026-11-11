@@ -103,7 +103,7 @@ pydantic==2.13.5
     #   pydantic-settings
 pydantic-core==2.46.5
     # via pydantic
-pydantic-settings==2.15.0
+pydantic-settings==2.16.2
     # via phoenix-api (pyproject.toml)
 pyogrio==0.13.0
     # via geopandas
@@ -155,6 +155,7 @@ typing-extensions==4.16.0
     #   httpx2
     #   pydantic
     #   pydantic-core
+    #   pydantic-settings
     #   sqlalchemy
     #   starlette
     #   typing-inspection
