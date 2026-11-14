@@ -44,12 +44,14 @@ describe("Header", () => {
     expect(links).toEqual([
       ["Map", "/"],
       ["Disasters", "/events"],
+      ["Take part", "/act"],
       ["Overview", "/dashboard"],
     ]);
     // Secondary pages are not in the main menu any more
     expect(within(nav).queryByText("About")).not.toBeInTheDocument();
 
-    fireEvent.click(within(nav).getByRole("button", { name: /Take part/ }));
+    // The label opens /act; the chevron opens the three ways to help
+    fireEvent.click(within(nav).getByRole("button", { name: "Take part" }));
     expect(within(nav).getByRole("link", { name: /Needs and offers/ })).toHaveAttribute("href", "/connect");
     expect(within(nav).getByRole("link", { name: /Site planner/ })).toHaveAttribute("href", "/plan");
     expect(within(nav).getByRole("link", { name: /Design challenges/ })).toHaveAttribute("href", "/challenges");
@@ -67,12 +69,15 @@ describe("Header", () => {
     expect(within(banner).getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
   });
 
-  it("gives phones a four-tab bar with Take part opening the ways to help", () => {
+  it("gives phones a four-tab bar; Take part opens the page listing the ways to help", () => {
     render(<Header />);
     const tabs = document.getElementById("bottom-nav")!;
 
-    expect(within(tabs).getAllByRole("link").map((a) => a.textContent)).toEqual(["Map", "Disasters", "Overview"]);
-    fireEvent.click(within(tabs).getByRole("button", { name: "Take part" }));
-    expect(screen.getByRole("navigation", { name: "Take part" })).toBeInTheDocument();
+    expect(within(tabs).getAllByRole("link").map((a) => [a.textContent, a.getAttribute("href")])).toEqual([
+      ["Map", "/"],
+      ["Disasters", "/events"],
+      ["Take part", "/act"],
+      ["Overview", "/dashboard"],
+    ]);
   });
 });

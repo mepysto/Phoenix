@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { EmptyState } from "@/components/ui/States";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
@@ -24,6 +25,13 @@ import {
   type PushState,
 } from "@/lib/push";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { DisasterPick } from "@/components/alerts/DisasterPick";
+
+// Map in a dynamic import: MapLibre needs the browser
+const AreaPickerMap = dynamic(() => import("@/components/alerts/AreaPickerMap"), {
+  ssr: false,
+  loading: () => <div className="h-56 animate-pulse rounded-lg bg-gray-800" />,
+});
 import { formatMoment } from "@/lib/format";
 import { newId } from "@/lib/sphere";
 import { useAlertStore } from "@/store/alertStore";
@@ -314,42 +322,71 @@ function AlertsContent() {
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="area-lat" className="field-label">
-                  {a.latitude}
-                </label>
-                <input
-                  id="area-lat"
-                  inputMode="decimal"
-                  required
-                  className="field"
-                  value={lat}
-                  onChange={(e) => setLat(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="area-lng" className="field-label">
-                  {a.longitude}
-                </label>
-                <input
-                  id="area-lng"
-                  inputMode="decimal"
-                  required
-                  className="field"
-                  value={lng}
-                  onChange={(e) => setLng(e.target.value)}
-                />
-              </div>
+            {/* Choose the place without typing numbers (UX plan A-05) */}
+            <div>
+              <p className="field-label">{t.ux.alertsPickOnMap}</p>
+              <AreaPickerMap
+                lat={lat !== "" && Number.isFinite(latN) ? latN : null}
+                lng={lng !== "" && Number.isFinite(lngN) ? lngN : null}
+                radiusKm={radiusKm}
+                label={t.ux.alertsPickOnMap}
+                onPick={(la, lo) => {
+                  setLat(String(la));
+                  setLng(String(lo));
+                }}
+              />
+              <p className="mt-1.5 text-sm text-gray-300" aria-live="polite">
+                {lat !== "" && lng !== ""
+                  ? t.ux.alertsCentre.replace("{lat}", lat).replace("{lng}", lng)
+                  : t.ux.alertsPickFirst}
+              </p>
             </div>
             <button
               type="button"
               onClick={locate}
-              className="flex items-center gap-1.5 text-xs font-medium text-primary-300 hover:text-primary-200"
+              className="flex items-center gap-1.5 text-sm font-medium text-primary-300 hover:text-primary-200"
             >
-              <LocateFixed className="h-3.5 w-3.5" aria-hidden="true" />
+              <LocateFixed className="h-4 w-4" aria-hidden="true" />
               {locating === "busy" ? a.locating : a.useMyLocation}
             </button>
+            <DisasterPick
+              onPick={(place, la, lo) => {
+                setLat(String(la));
+                setLng(String(lo));
+                if (!name.trim()) setName(place);
+              }}
+            />
+            <details className="text-sm">
+              <summary className="cursor-pointer font-medium text-gray-300 hover:text-white">
+                {t.ux.alertsEnterCoords}
+              </summary>
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="area-lat" className="field-label">
+                    {a.latitude}
+                  </label>
+                  <input
+                    id="area-lat"
+                    inputMode="decimal"
+                    className="field"
+                    value={lat}
+                    onChange={(e) => setLat(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="area-lng" className="field-label">
+                    {a.longitude}
+                  </label>
+                  <input
+                    id="area-lng"
+                    inputMode="decimal"
+                    className="field"
+                    value={lng}
+                    onChange={(e) => setLng(e.target.value)}
+                  />
+                </div>
+              </div>
+            </details>
             {locating === "denied" && (
               <p role="alert" className="text-xs text-ember-300">
                 {a.locationDenied}

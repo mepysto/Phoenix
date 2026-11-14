@@ -23,6 +23,8 @@ export interface NavLink {
 
 export interface NavGroup {
   id: "take-part";
+  /** The group's own page (UX plan 5.4: /act) */
+  href: string;
   label: string;
   icon: LucideIcon;
   items: NavLink[];
@@ -44,7 +46,7 @@ export function primaryNav(t: Translations): NavItem[] {
   return [
     { href: "/", label: t.ux.navMap, icon: MapIcon },
     { href: "/events", label: t.ux.navDisasters, icon: List },
-    { id: "take-part", label: t.ux.navTakePart, icon: HandHeart, items: takePartLinks(t) },
+    { id: "take-part", href: "/act", label: t.ux.navTakePart, icon: HandHeart, items: takePartLinks(t) },
     { href: "/dashboard", label: t.dashboard.nav, icon: BarChart3 },
   ];
 }
@@ -56,7 +58,7 @@ export function isActivePath(pathname: string | null, href: string): boolean {
 
 export function isActiveItem(pathname: string | null, item: NavItem): boolean {
   return isGroup(item)
-    ? item.items.some((link) => isActivePath(pathname, link.href))
+    ? isActivePath(pathname, item.href) || item.items.some((link) => isActivePath(pathname, link.href))
     : isActivePath(pathname, item.href);
 }
 

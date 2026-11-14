@@ -10,46 +10,69 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { AccountMenu } from "./AccountMenu";
 import { BottomNav } from "./BottomNav";
 import { Dropdown } from "./Dropdown";
-import { followWithFilters, isActiveItem, isActivePath, isGroup, primaryNav, type NavGroup } from "./nav";
+import {
+  followWithFilters,
+  isActiveItem,
+  isActivePath,
+  isGroup,
+  primaryNav,
+  type NavGroup,
+} from "./nav";
 
 const NAV_LINK =
   "relative whitespace-nowrap py-1 text-sm font-medium transition-colors after:absolute after:inset-x-0 after:-bottom-[17px] after:h-0.5 after:rounded-full";
 const navTone = (active: boolean) =>
-  active ? "text-white after:bg-primary-400" : "text-gray-300 after:bg-transparent hover:text-white";
+  active
+    ? "text-white after:bg-primary-400"
+    : "text-gray-300 after:bg-transparent hover:text-white";
 
 /** "Take part": the three ways to help, each with a one-line description */
 function TakePartMenu({ group, active }: { group: NavGroup; active: boolean }) {
   const pathname = usePathname();
   return (
-    <Dropdown
-      align="start"
-      triggerClassName={(open) => `${NAV_LINK} ${navTone(active || open)} flex items-center gap-1`}
-      trigger={
-        <>
-          {group.label}
-          <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
-        </>
-      }
-      panelClassName="w-80"
-    >
-      <ul>
-        {group.items.map(({ href, label, hint, icon: Icon }) => (
-          <li key={href}>
-            <Link
-              href={href}
-              aria-current={isActivePath(pathname, href) ? "page" : undefined}
-              className="flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-800 aria-[current=page]:bg-gray-800/70"
-            >
-              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary-300" aria-hidden="true" />
-              <span>
-                <span className="block text-sm font-medium text-white">{label}</span>
-                {hint && <span className="block text-sm text-gray-400">{hint}</span>}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Dropdown>
+    <div className="flex items-center">
+      <Link
+        href={group.href}
+        aria-current={isActivePath(pathname, group.href) ? "page" : undefined}
+        className={`${NAV_LINK} ${navTone(active)}`}
+      >
+        {group.label}
+      </Link>
+      <Dropdown
+        align="start"
+        triggerLabel={group.label}
+        triggerClassName={(open) =>
+          `ms-0.5 rounded p-1 transition-colors hover:bg-gray-800 ${active || open ? "text-white" : "text-gray-300"}`
+        }
+        trigger={<ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />}
+        panelClassName="w-80"
+      >
+        <ul>
+          {group.items.map(({ href, label, hint, icon: Icon }) => (
+            <li key={href}>
+              <Link
+                href={href}
+                aria-current={isActivePath(pathname, href) ? "page" : undefined}
+                className="flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-800 aria-[current=page]:bg-gray-800/70"
+              >
+                <Icon
+                  className="mt-0.5 h-4 w-4 shrink-0 text-primary-300"
+                  aria-hidden="true"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-white">
+                    {label}
+                  </span>
+                  {hint && (
+                    <span className="block text-sm text-gray-400">{hint}</span>
+                  )}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Dropdown>
+    </div>
   );
 }
 
@@ -107,12 +130,20 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 flex h-14 items-center gap-3 border-b border-gray-800 bg-gray-950 px-4">
-        <Link href="/" className="flex shrink-0 items-center gap-2 text-gray-100">
+        <Link
+          href="/"
+          className="flex shrink-0 items-center gap-2 text-gray-100"
+        >
           <PhoenixMark className="h-7 w-7" />
-          <span className="text-lg font-semibold tracking-tight text-white">Phoenix</span>
+          <span className="text-lg font-semibold tracking-tight text-white">
+            Phoenix
+          </span>
         </Link>
 
-        <nav aria-label={t.common.menu} className="ms-4 hidden shrink-0 items-center gap-6 lg:flex">
+        <nav
+          aria-label={t.common.menu}
+          className="ms-4 hidden shrink-0 items-center gap-6 lg:flex"
+        >
           {nav.map((item) => {
             const active = isActiveItem(pathname, item);
             return isGroup(item) ? (
@@ -121,7 +152,9 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={(e) => followWithFilters(e, item.href, pathname, router.push)}
+                onClick={(e) =>
+                  followWithFilters(e, item.href, pathname, router.push)
+                }
                 aria-current={active ? "page" : undefined}
                 className={`${NAV_LINK} ${navTone(active)}`}
               >
@@ -148,13 +181,19 @@ export function Header() {
             aria-controls="mobile-search"
             className={`${iconButton} md:hidden`}
           >
-            {searchOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Search className="h-5 w-5" aria-hidden="true" />}
+            {searchOpen ? (
+              <X className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <Search className="h-5 w-5" aria-hidden="true" />
+            )}
           </button>
           <Link
             href="/alerts"
             aria-label={t.alerts.title}
             title={t.alerts.title}
-            aria-current={isActivePath(pathname, "/alerts") ? "page" : undefined}
+            aria-current={
+              isActivePath(pathname, "/alerts") ? "page" : undefined
+            }
             className={`${iconButton} ${isActivePath(pathname, "/alerts") ? "text-white" : ""}`}
           >
             <Bell className="h-5 w-5" aria-hidden="true" />
