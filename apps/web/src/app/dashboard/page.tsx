@@ -116,24 +116,52 @@ export default function DashboardPage() {
       });
     }
     const delta = s.newThisWeek - s.newWeekBefore;
+    // No estimate is not zero people (UX plan D-01): say so, and give the
+    // headline spot to a figure we do have
+    const hasAffected = s.affectedEstimated > 0;
+    const hasCountries = s.countriesActive > 0;
 
     body = (
       <div className="space-y-4">
         {/* Hero figure and headline tiles */}
         <div className="grid gap-3 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div className="rounded-xl border border-gray-800 bg-gray-900 px-5 py-4 sm:col-span-2 lg:col-span-1">
-            <p className="text-xs font-medium text-gray-400">{d.affected}</p>
-            <p className="mt-1 text-5xl font-semibold tracking-tight text-white">
-              {compact(s.affectedActive, lang)}
-            </p>
-            <p className="mt-1 text-xs text-gray-500">{d.affectedNote}</p>
+            {hasAffected ? (
+              <>
+                <p className="text-xs font-medium text-gray-400">{d.affected}</p>
+                <p className="mt-1 text-5xl font-semibold tracking-tight text-white">
+                  {compact(s.affectedActive, lang)}
+                </p>
+                <p className="mt-1 text-xs text-gray-400">
+                  {d.affectedBasis.replace("{n}", full(s.affectedEstimated, lang))}.{" "}
+                  {d.affectedNote}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-medium text-gray-400">{d.active}</p>
+                <p className="mt-1 text-5xl font-semibold tracking-tight text-white">
+                  {full(s.activeEvents, lang)}
+                </p>
+              </>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3 sm:col-span-2 lg:col-span-4 lg:grid-cols-4">
-            <StatTile label={d.active} value={full(s.activeEvents, lang)} />
+            {hasAffected ? (
+              <StatTile label={d.active} value={full(s.activeEvents, lang)} />
+            ) : (
+              <StatTile
+                label={d.affected}
+                value={d.notCounted}
+                note={d.affectedPending}
+                pending
+              />
+            )}
             <StatTile label={d.critical} value={full(s.criticalActive, lang)} />
             <StatTile
               label={d.countries}
-              value={full(s.countriesActive, lang)}
+              value={hasCountries ? full(s.countriesActive, lang) : d.notCounted}
+              pending={!hasCountries}
             />
             <StatTile
               label={d.newWeek}
@@ -188,27 +216,29 @@ export default function DashboardPage() {
               ]),
             }}
           >
-            <div
-              role="group"
-              aria-label={d.byType}
-              className="mb-4 inline-flex rounded-lg border border-gray-700 p-0.5 text-xs"
-            >
-              {(["events", "affected"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  aria-pressed={metric === m}
-                  onClick={() => setMetric(m)}
-                  className={`rounded-md px-3 py-1 font-medium ${
-                    metric === m
-                      ? "bg-gray-800 text-white"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  {m === "events" ? d.byTypeEvents : d.byTypePeople}
-                </button>
-              ))}
-            </div>
+            {hasAffected && (
+              <div
+                role="group"
+                aria-label={d.byType}
+                className="mb-4 inline-flex rounded-lg border border-gray-700 p-0.5 text-xs"
+              >
+                {(["events", "affected"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    aria-pressed={metric === m}
+                    onClick={() => setMetric(m)}
+                    className={`rounded-md px-3 py-1 font-medium ${
+                      metric === m
+                        ? "bg-gray-800 text-white"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    {m === "events" ? d.byTypeEvents : d.byTypePeople}
+                  </button>
+                ))}
+              </div>
+            )}
             <RankedBars
               data={types}
               format={(v) =>
@@ -224,6 +254,9 @@ export default function DashboardPage() {
               rows: s.topAffected.map((e) => [e.title, full(e.affected, lang)]),
             }}
           >
+            {s.topAffected.length === 0 && (
+              <p className="text-sm text-gray-400">{d.noChartData}</p>
+            )}
             <ol className="space-y-1">
               {s.topAffected.map((e) => (
                 <li key={e.id}>

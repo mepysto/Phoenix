@@ -61,6 +61,8 @@ async def test_overview_counts_public_active_data(world):
     assert s["active_events"] == 5
     assert s["critical_active"] == 1
     assert s["affected_active"] == 300_000 + 1_000 + 50_000 + 9
+    # The dashboard says "not yet counted" rather than 0 when no event has an estimate
+    assert s["affected_estimated"] == 4  # world's flood has no population figure
     assert s["countries_active"] == 3  # TUR, AUS, BGD (world's flood has no country)
     assert [x["severity"] for x in s["by_severity"]] == ["low", "medium", "high", "critical"]
     assert {x["severity"]: x["events"] for x in s["by_severity"]} == {"low": 1, "medium": 1, "high": 2, "critical": 1}

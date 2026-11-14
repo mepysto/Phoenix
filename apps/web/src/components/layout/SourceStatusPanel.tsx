@@ -15,6 +15,14 @@ const STATUS_DOT: Record<ApiSourceStatus["status"], string> = {
   never: "bg-gray-500",
 };
 
+// Warning colours only when a feed is behind or broken; "never synced" is neutral (UX plan M-09)
+const STATUS_TEXT: Record<ApiSourceStatus["status"], string> = {
+  fresh: "text-gray-400",
+  stale: "text-amber-400",
+  failing: "text-red-400",
+  never: "text-gray-400",
+};
+
 /** "3 min ago" in the UI language; null for sources that never synced. */
 export function formatAge(iso: string | null | undefined, lang: string, now = Date.now()): string | null {
   if (!iso) return null;
@@ -75,7 +83,7 @@ export function SourceStatusPanel() {
                 {source.name}
               </span>
               <span
-                className={`text-xs ${source.status === "fresh" ? "text-gray-500" : "text-amber-400"}`}
+                className={`text-xs ${STATUS_TEXT[source.status]}`}
                 title={source.lastError ?? undefined}
               >
                 {source.status === "fresh"

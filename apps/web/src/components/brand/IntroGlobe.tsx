@@ -8,6 +8,8 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { PhoenixMark } from "./PhoenixMark";
 
 const SEEN_KEY = "phoenix:intro-seen";
+// The intro steps aside on its own after this long (UX plan G-04)
+const AUTO_CLOSE_MS = 3000;
 const TILT = (23.4 * Math.PI) / 180;
 const DOTS = 2400;
 // Which lattice points fall on land (Natural Earth 1:110m via world-atlas),
@@ -42,9 +44,10 @@ const SEVERITY_SIZE: Record<string, number> = {
   critical: 5,
 };
 
+// Once per device, not per tab session: returning visitors go straight to the map
 function readSeen(): boolean {
   try {
-    return sessionStorage.getItem(SEEN_KEY) === "1";
+    return localStorage.getItem(SEEN_KEY) === "1";
   } catch {
     return false;
   }
@@ -52,10 +55,15 @@ function readSeen(): boolean {
 
 function writeSeen() {
   try {
-    sessionStorage.setItem(SEEN_KEY, "1");
+    localStorage.setItem(SEEN_KEY, "1");
   } catch {
     // Private mode: the intro will just show again next visit
   }
+}
+
+/** A shared link (event, view, filters) should open on what it points at */
+function arrivedWithMapState(): boolean {
+  return window.location.search.length > 1;
 }
 
 /** Evenly spread points on a sphere (Fibonacci lattice), as lat/lng radians */
@@ -72,7 +80,8 @@ function lattice(n: number): Array<[number, number]> {
 /**
  * First-visit intro: a dot globe turning on its axis, with every live event
  * glowing at its real position. Opening the map dives into the globe.
- * Shown once per browser session; static when the viewer prefers less motion.
+ * Shown once per device and closes itself after a few seconds; skipped for
+ * links that carry map state; static when the viewer prefers less motion.
  */
 export function IntroGlobe({ events }: IntroGlobeProps) {
   const { t } = useTranslation();
@@ -84,7 +93,7 @@ export function IntroGlobe({ events }: IntroGlobeProps) {
 
   useEffect(() => {
     // Decided after mount so server and client render the same markup
-    if (!readSeen()) setOpen(true);
+    if (!readSeen() && !arrivedWithMapState()) setOpen(true);
   }, []);
 
   useEffect(() => {
@@ -108,6 +117,12 @@ export function IntroGlobe({ events }: IntroGlobeProps) {
     setLeaving(true);
     window.setTimeout(() => setOpen(false), 650);
   }, []);
+
+  useEffect(() => {
+    if (!open || leaving) return;
+    const timer = window.setTimeout(close, AUTO_CLOSE_MS);
+    return () => window.clearTimeout(timer);
+  }, [open, leaving, close]);
 
   useEffect(() => {
     if (!open) return;

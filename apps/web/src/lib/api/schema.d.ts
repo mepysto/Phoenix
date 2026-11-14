@@ -2743,6 +2743,8 @@ export interface components {
             critical_active: number;
             /** Affected Active */
             affected_active: number;
+            /** Affected Estimated */
+            affected_estimated: number;
             /** Countries Active */
             countries_active: number;
             /** New This Week */

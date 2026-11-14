@@ -7,13 +7,6 @@ import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import dynamic from "next/dynamic";
 import {
   AlertTriangle,
-  Droplets,
-  Flame,
-  Wind,
-  Mountain,
-  Skull,
-  Factory,
-  Sun,
   MapPin,
   Users,
   Clock,
@@ -37,6 +30,7 @@ import { Header } from "@/components/layout/Header";
 import { ActiveBadge, SeverityBadge, TypeBadge } from "@/components/event/Badges";
 import { formatDate, formatDateTime, formatRelative } from "@/lib/format";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { EventTypeIcon } from "@/components/event/EventTypeIcon";
 import { ConfidenceRing, LifecycleTrack } from "@/components/trust/EventTrust";
 import { SitrepPanel } from "@/components/event/SitrepPanel";
 import { DamagePanel } from "@/components/event/DamagePanel";
@@ -51,22 +45,6 @@ const MiniMap = dynamic(() => import("@/components/map/MiniMap"), {
   ssr: false,
   loading: () => <div className="h-full w-full bg-gray-800 animate-pulse" />,
 });
-
-// Types without a dedicated icon fall back to `other`
-const EVENT_ICONS: Partial<Record<EventType, React.ReactNode>> & {
-  other: React.ReactNode;
-} = {
-  earthquake: <Mountain className="h-6 w-6" />,
-  flood: <Droplets className="h-6 w-6" />,
-  wildfire: <Flame className="h-6 w-6" />,
-  hurricane: <Wind className="h-6 w-6" />,
-  tsunami: <Droplets className="h-6 w-6" />,
-  volcano: <Mountain className="h-6 w-6" />,
-  war: <Skull className="h-6 w-6" />,
-  pollution: <Factory className="h-6 w-6" />,
-  drought: <Sun className="h-6 w-6" />,
-  other: <AlertTriangle className="h-6 w-6" />,
-};
 
 function InfoRow({
   icon,
@@ -212,7 +190,7 @@ export default function EventDetailPage() {
                       color: typeColor,
                     }}
                   >
-                    {EVENT_ICONS[event.type as EventType] ?? EVENT_ICONS.other}
+                    <EventTypeIcon type={event.type} className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
                     <div className="mb-2 flex flex-wrap items-center gap-2">

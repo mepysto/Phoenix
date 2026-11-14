@@ -37,7 +37,20 @@ describe("SourceStatusPanel", () => {
     expect(await screen.findByText("Data sources")).toBeInTheDocument();
     expect(screen.getByText("3 min. ago")).toBeInTheDocument();
     expect(screen.getByText("Failing")).toHaveAttribute("title", "ExternalAPIError");
-    expect(screen.getByLabelText("EONET: No data yet")).toBeInTheDocument();
+    expect(screen.getByLabelText("EONET: Not collected yet")).toBeInTheDocument();
+  });
+
+  it("keeps warning colours for broken feeds, not for ones that never synced", async () => {
+    vi.mocked(sourcesAPI.list).mockResolvedValue([
+      source({ name: "GDACS", status: "failing" }),
+      source({ name: "EONET", status: "never", lastSync: null }),
+    ] as never);
+
+    render(<SourceStatusPanel />);
+
+    expect(await screen.findByText("Failing")).toHaveClass("text-red-400");
+    expect(screen.getByText("Not collected yet")).toHaveClass("text-gray-400");
+    expect(screen.getByText("Not collected yet")).not.toHaveClass("text-amber-400");
   });
 
   it("renders nothing when the status API is unreachable", async () => {

@@ -151,11 +151,14 @@ export function StatTile({
   value,
   note,
   noteTone = "muted",
+  pending = false,
 }: {
   label: string;
   value: string;
   note?: string;
   noteTone?: "muted" | "up-bad" | "down-good";
+  /** The value is a "not yet counted" message, not a figure */
+  pending?: boolean;
 }) {
   const tone =
     noteTone === "up-bad"
@@ -166,7 +169,15 @@ export function StatTile({
   return (
     <div className="rounded-xl border border-gray-800 bg-gray-900 px-4 py-3.5">
       <p className="text-xs font-medium text-gray-400">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
+      <p
+        className={
+          pending
+            ? "mt-2 text-base font-medium text-gray-300"
+            : "mt-1 text-2xl font-semibold text-white"
+        }
+      >
+        {value}
+      </p>
       {note && <p className={`mt-0.5 text-xs ${tone}`}>{note}</p>}
     </div>
   );

@@ -123,6 +123,10 @@ export function AgentPanel({ onSelectEvent }: AgentPanelProps) {
     void send(draft);
   };
 
+  // No button at all when the server has no assistant (UX plan M-06):
+  // an offer that only answers "not set up" is a dead end
+  if (enabled !== true) return null;
+
   if (!open) {
     return (
       <button
@@ -166,8 +170,7 @@ export function AgentPanel({ onSelectEvent }: AgentPanelProps) {
       </header>
 
       <div className="flex-1 space-y-2 overflow-y-auto px-3 py-2" aria-live="polite">
-        {enabled === false && <p className="text-gray-400">{t.agent.disabled}</p>}
-        {enabled && messages.length === 0 && (
+        {messages.length === 0 && (
           <div className="space-y-2">
             {suggestions.map((suggestion) => (
               <button
@@ -210,51 +213,49 @@ export function AgentPanel({ onSelectEvent }: AgentPanelProps) {
         <div ref={listEnd} />
       </div>
 
-      {enabled && (
-        <form onSubmit={onSubmit} className="border-t border-gray-700/60 p-2">
-          <div className="flex gap-2">
-            <input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              maxLength={4000}
-              placeholder={t.agent.placeholder}
-              aria-label={t.agent.placeholder}
-              className="flex-1 rounded-md bg-gray-800 px-3 py-1.5 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-            />
-            {voice.listen && (
-              <button
-                type="button"
-                onClick={toggleListening}
-                disabled={busy}
-                aria-pressed={!!listening}
-                className={`rounded-md px-2 ${listening ? "animate-pulse bg-red-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"} disabled:opacity-40`}
-                aria-label={listening ? t.agent.stopListening : t.agent.speak}
-                title={listening ? t.agent.stopListening : t.agent.speak}
-              >
-                {listening ? <MicOff className="h-4 w-4" aria-hidden="true" /> : <Mic className="h-4 w-4" aria-hidden="true" />}
-              </button>
-            )}
+      <form onSubmit={onSubmit} className="border-t border-gray-700/60 p-2">
+        <div className="flex gap-2">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            maxLength={4000}
+            placeholder={t.agent.placeholder}
+            aria-label={t.agent.placeholder}
+            className="flex-1 rounded-md bg-gray-800 px-3 py-1.5 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+          />
+          {voice.listen && (
             <button
-              type="submit"
-              disabled={busy || !draft.trim()}
-              className="rounded-md bg-primary-600 px-3 text-white hover:bg-primary-500 disabled:opacity-40"
-              aria-label={t.agent.send}
+              type="button"
+              onClick={toggleListening}
+              disabled={busy}
+              aria-pressed={!!listening}
+              className={`rounded-md px-2 ${listening ? "animate-pulse bg-red-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"} disabled:opacity-40`}
+              aria-label={listening ? t.agent.stopListening : t.agent.speak}
+              title={listening ? t.agent.stopListening : t.agent.speak}
             >
-              <Send className="h-4 w-4" aria-hidden="true" />
+              {listening ? <MicOff className="h-4 w-4" aria-hidden="true" /> : <Mic className="h-4 w-4" aria-hidden="true" />}
             </button>
-          </div>
-          {usage && (
-            <div className="mt-1.5" title={t.agent.usage.replace("{used}", String(usage.used)).replace("{cap}", String(usage.cap))}>
-              <div className="h-1 overflow-hidden rounded bg-gray-800">
-                <div
-                  className="h-full bg-primary-500"
-                  style={{ width: `${Math.min(100, (usage.used / usage.cap) * 100)}%` }}
-                />
-              </div>
-            </div>
           )}
-        </form>
-      )}
+          <button
+            type="submit"
+            disabled={busy || !draft.trim()}
+            className="rounded-md bg-primary-600 px-3 text-white hover:bg-primary-500 disabled:opacity-40"
+            aria-label={t.agent.send}
+          >
+            <Send className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+        {usage && (
+          <div className="mt-1.5" title={t.agent.usage.replace("{used}", String(usage.used)).replace("{cap}", String(usage.cap))}>
+            <div className="h-1 overflow-hidden rounded bg-gray-800">
+              <div
+                className="h-full bg-primary-500"
+                style={{ width: `${Math.min(100, (usage.used / usage.cap) * 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </form>
     </section>
   );
 }
