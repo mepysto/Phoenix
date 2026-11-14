@@ -1,27 +1,29 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, MapPin } from "lucide-react";
-import { EVENT_TYPE_COLORS } from "@phoenix/shared/constants";
-import type { EventType } from "@phoenix/shared/types";
+import { ChevronDown, List, MapPin } from "lucide-react";
 import { formatAge } from "@/components/layout/SourceStatusPanel";
 import { viewAPI, type ApiDisasterEvent, type ApiNearby, type ApiViewSummary } from "@/lib/api/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { nearbyRadiusKm } from "@/lib/viewSummary";
 import { ALL_EVENT_TYPES, ALL_SEVERITIES, useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
+import { useUiStore } from "@/store/uiStore";
+import { severityColor } from "@/lib/severity";
 
 const FETCH_DEBOUNCE_MS = 300;
 
 interface ViewSummaryProps {
   onSelect: (event: ApiDisasterEvent) => void;
+  /** "panel": inside the left panel; "floating": over the map (phones) */
+  variant?: "panel" | "floating";
 }
 
 /**
  * "What is on screen": totals for the visible area under the current
  * filters and instant, plus the events nearest to the map centre.
  */
-export function ViewSummary({ onSelect }: ViewSummaryProps) {
+export function ViewSummary({ onSelect, variant = "floating" }: ViewSummaryProps) {
   const { t, lang } = useTranslation();
   const viewport = useMapStore((s) => s.viewport);
   // The viewport comes from the 2D map; in the 3D engine it would be stale
@@ -94,7 +96,11 @@ export function ViewSummary({ onSelect }: ViewSummaryProps) {
   return (
     <section
       aria-label={t.view.label}
-      className="pointer-events-auto w-60 rounded-lg bg-gray-900/90 text-xs text-gray-300 shadow-lg backdrop-blur"
+      className={
+        variant === "panel"
+          ? "rounded-lg border border-gray-700/80 bg-gray-950/40 text-sm text-gray-300"
+          : "hud-panel pointer-events-auto w-64 rounded-xl text-sm text-gray-300"
+      }
     >
       <div className="px-3 py-2" aria-live="polite">
         <div className="flex items-baseline justify-between">
@@ -123,9 +129,20 @@ export function ViewSummary({ onSelect }: ViewSummaryProps) {
           </div>
         )}
         {updated && (
-          <div className="mt-1 text-gray-500">{t.view.updated.replace("{time}", updated)}</div>
+          <div className="mt-1 text-xs text-gray-400">{t.view.updated.replace("{time}", updated)}</div>
         )}
       </div>
+
+      {summary.total > 0 && (
+        <button
+          type="button"
+          onClick={() => useUiStore.getState().setRightPanel("in-view")}
+          className="flex w-full items-center gap-1.5 border-t border-gray-700/60 px-3 py-2 font-medium text-primary-300 hover:bg-gray-800"
+        >
+          <List className="h-4 w-4" aria-hidden="true" />
+          {t.ux.listInView}
+        </button>
+      )}
 
       <button
         type="button"
@@ -154,7 +171,7 @@ export function ViewSummary({ onSelect }: ViewSummaryProps) {
                 <span
                   aria-hidden="true"
                   className="h-2 w-2 shrink-0 rounded-full"
-                  style={{ backgroundColor: EVENT_TYPE_COLORS[event.type as EventType] ?? "#808080" }}
+                  style={{ backgroundColor: severityColor(event.severity) }}
                 />
                 <span className="flex-1 truncate">{event.title}</span>
                 <span className="shrink-0 tabular-nums text-gray-500">

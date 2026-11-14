@@ -39,7 +39,7 @@ export function formatAge(iso: string | null | undefined, lang: string, now = Da
  * Freshness of each data source, so users can tell "no events" apart from
  * "the feed stopped updating".
  */
-export function SourceStatusPanel() {
+export function SourceStatusPanel({ bare = false }: { bare?: boolean }) {
   const { t, lang } = useTranslation();
   const [sources, setSources] = useState<ApiSourceStatus[] | null>(null);
 
@@ -62,8 +62,7 @@ export function SourceStatusPanel() {
 
   if (!sources?.length) return null;
 
-  return (
-    <FilterSection title={t.sources.title} icon={<Radio className="h-4 w-4" />}>
+  const list = (
       <ul className="space-y-1.5">
         {sources.map((source) => {
           const label = t.sources[source.status];
@@ -94,6 +93,21 @@ export function SourceStatusPanel() {
           );
         })}
       </ul>
+  );
+  if (bare) {
+    return (
+      <section aria-label={t.sources.title}>
+        <h2 className="mb-2 flex items-center gap-2 px-2 text-sm font-semibold text-gray-100">
+          <Radio className="h-4 w-4 text-gray-400" aria-hidden="true" />
+          {t.sources.title}
+        </h2>
+        {list}
+      </section>
+    );
+  }
+  return (
+    <FilterSection title={t.sources.title} icon={<Radio className="h-4 w-4" />}>
+      {list}
     </FilterSection>
   );
 }

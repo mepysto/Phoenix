@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pause, Play, Radio } from "lucide-react";
+import { ChevronDown, ChevronUp, Pause, Play, Radio } from "lucide-react";
 import { timelineAPI, type ApiTimeline } from "@/lib/api/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import {
@@ -31,6 +31,8 @@ export function Timeline() {
   // Fixed per mount so positions stay stable while scrubbing
   const [window] = useState(() => timelineWindow(new Date()));
   const [histogram, setHistogram] = useState<ApiTimeline | null>(null);
+  // Folded to one line until asked for (UX plan 5.1): the map comes first
+  const [expanded, setExpanded] = useState(false);
 
   // Histogram follows the type/severity filters
   useEffect(() => {
@@ -96,8 +98,40 @@ export function Timeline() {
           new Date(at),
         ) + " UTC";
 
+  const shortDate = (iso: string) =>
+    new Intl.DateTimeFormat(lang, { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(iso));
+  const collapsedLabel = t.ux.timelineCollapsed.replace("{period}", t.events.period30);
+  const backToLive = at !== null && (
+    <button
+      type="button"
+      onClick={() => setAt(null)}
+      className="flex items-center gap-1 rounded px-2 py-0.5 text-green-400 hover:bg-gray-800"
+    >
+      <Radio className="h-3 w-3" aria-hidden="true" />
+      {t.timeline.backToLive}
+    </button>
+  );
+
+  if (!expanded) {
+    return (
+      <div className="hud-panel pointer-events-auto inline-flex max-w-full items-center gap-2 rounded-xl px-2 py-1.5 text-sm text-gray-200">
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          aria-expanded={false}
+          className="flex min-w-0 items-center gap-2 rounded-lg px-2 py-1 hover:bg-gray-800"
+        >
+          <span className="truncate">{collapsedLabel}</span>
+          <span className={`truncate ${at === null ? "text-green-400" : "text-amber-300"}`}>{label}</span>
+          <ChevronUp className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+        </button>
+        {backToLive}
+      </div>
+    );
+  }
+
   return (
-    <div className="pointer-events-auto rounded-lg bg-gray-900/90 px-3 py-2 text-xs text-gray-300 shadow-lg backdrop-blur">
+    <div className="hud-panel pointer-events-auto rounded-xl px-3 py-2 text-sm text-gray-300">
       <div className="mb-1 flex items-center gap-2">
         <button
           type="button"
@@ -121,16 +155,16 @@ export function Timeline() {
         <span className={`flex-1 truncate ${at === null ? "text-green-400" : "text-amber-300"}`} aria-live="polite">
           {label}
         </span>
-        {at !== null && (
-          <button
-            type="button"
-            onClick={() => setAt(null)}
-            className="flex items-center gap-1 rounded px-2 py-0.5 text-green-400 hover:bg-gray-800"
-          >
-            <Radio className="h-3 w-3" aria-hidden="true" />
-            {t.timeline.backToLive}
-          </button>
-        )}
+        {backToLive}
+        <button
+          type="button"
+          onClick={() => setExpanded(false)}
+          aria-expanded={true}
+          aria-label={collapsedLabel}
+          className="rounded p-1 text-gray-400 hover:bg-gray-800 hover:text-white"
+        >
+          <ChevronDown className="h-4 w-4" aria-hidden="true" />
+        </button>
       </div>
 
       {/* Daily onset histogram; days up to the cursor are highlighted */}
@@ -138,7 +172,7 @@ export function Timeline() {
         {days.map(({ day, total }, index) => (
           <div
             key={day}
-            title={`${day}: ${total}`}
+            title={t.ux.dayCount.replace("{date}", shortDate(day)).replace("{n}", String(total))}
             className={index <= cursorDay ? "flex-1 bg-primary-500/70" : "flex-1 bg-gray-600/60"}
             style={{ height: `${Math.max(4, (total / maxTotal) * 100)}%` }}
           />
@@ -159,6 +193,10 @@ export function Timeline() {
         aria-label={t.timeline.scrub}
         aria-valuetext={label}
       />
+      <div className="flex justify-between text-xs text-gray-400" aria-hidden="true">
+        <span>{shortDate(window.start.toISOString())}</span>
+        <span>{t.ux.today}</span>
+      </div>
     </div>
   );
 }

@@ -18,7 +18,7 @@ test.describe("Home Page", () => {
     await page.goto("/");
 
     await expect(page.getByRole("banner")).toBeVisible();
-    await expect(page.getByText("Layers and filters")).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Disasters" })).toBeVisible();
     await expect(page.locator('[class*="maplibregl-map"]')).toBeVisible({
       timeout: 15000,
     });
@@ -28,30 +28,25 @@ test.describe("Home Page", () => {
     await page.goto("/");
     await page.waitForSelector('[class*="maplibregl-map"]', { timeout: 15000 });
 
-    const toggleButton = page.getByRole("button", {
-      name: /2D View|3D Globe/i,
-    });
-    await expect(toggleButton).toBeVisible();
+    // Globe/flat, map/satellite and view modes live in the named "View" menu
+    await page.getByRole("button", { name: "View", exact: true }).click();
+    const flat = page.getByRole("menuitemradio", { name: "2D View" });
+    await expect(flat).toHaveAttribute("aria-checked", "false");
+    await flat.click();
 
-    const initialText = await toggleButton.textContent();
-    await toggleButton.click();
-    const newText = await toggleButton.textContent();
-
-    expect(newText).not.toBe(initialText);
+    await page.getByRole("button", { name: "View", exact: true }).click();
+    await expect(page.getByRole("menuitemradio", { name: "2D View" })).toHaveAttribute("aria-checked", "true");
   });
 
   test("should toggle basemap between dark and satellite", async ({ page }) => {
     await page.goto("/");
     await page.waitForSelector('[class*="maplibregl-map"]', { timeout: 15000 });
 
-    // The map toolbar button; sidebar layers also mention "satellite"
-    const basemapButton = page.getByRole("button", { name: "Satellite", exact: true });
-    await expect(basemapButton).toBeVisible();
+    await page.getByRole("button", { name: "View", exact: true }).click();
+    await page.getByRole("menuitemradio", { name: "Satellite" }).click();
 
-    await basemapButton.click();
-
-    // Now offers the way back
-    await expect(page.getByRole("button", { name: "Dark", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "View", exact: true }).click();
+    await expect(page.getByRole("menuitemradio", { name: "Satellite" })).toHaveAttribute("aria-checked", "true");
   });
 
   test("should display event markers on the map", async ({ page }) => {
