@@ -120,7 +120,7 @@ describe("EventStream", () => {
   });
 
   it("derives ws/wss URLs from the API base URL", () => {
-    expect(eventStreamUrl("http://localhost:28000")).toBe("ws://localhost:28000/ws/events");
+    expect(eventStreamUrl("http://localhost:23180")).toBe("ws://localhost:23180/ws/events");
     expect(eventStreamUrl("https://api.phoenix.org/")).toBe("wss://api.phoenix.org/ws/events");
   });
 });

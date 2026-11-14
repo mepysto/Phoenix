@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Phoenix — text version" };
 const API =
   process.env.API_INTERNAL_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:28000";
+  "http://localhost:23180";
 const LANGS = Object.keys(translations) as Language[];
 const RANK: Record<string, number> = {
   critical: 0,

@@ -12,7 +12,7 @@ services:
     build:
       target: dev
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:28000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:23180}
     volumes:
       - ../../apps/web/src:/app/apps/web/src
       - ../../packages/shared/src:/app/packages/shared/src

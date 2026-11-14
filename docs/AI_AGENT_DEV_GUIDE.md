@@ -38,7 +38,7 @@
 
 ```
 phoenix/
-├── apps/api/                        # FastAPI 백엔드 (Python 3.12, uvicorn 포트 28000)
+├── apps/api/                        # FastAPI 백엔드 (Python 3.12, uvicorn 포트 23180)
 │   ├── alembic/versions/            # DB 마이그레이션 (파일명: YYYY_MM_DD_HHMM-<rev>_<슬러그>.py)
 │   ├── scripts/                     # 운영 CLI (seed_data.py, offline_merge.py 등)
 │   ├── src/
@@ -58,7 +58,7 @@ phoenix/
 │   │   ├── api/v1/                  # FastAPI 라우터 (events, geodata, sync, admin, websocket)
 │   │   └── utils/                   # geojson.py, geo.py
 │   └── tests/                       # pytest (api/ 라우터 테스트, services/ 단위 테스트)
-├── apps/web/                        # Next.js 15 App Router (포트 23000)
+├── apps/web/                        # Next.js 15 App Router (포트 23100)
 │   └── src/
 │       ├── app/                     # 페이지 (page.tsx, layout.tsx, loading.tsx, error.tsx)
 │       ├── components/layout/       # Header, Sidebar, Footer
@@ -87,8 +87,8 @@ api/v1(라우터) → services(로직) → repositories(쿼리) → models(테�
 
 | 항목 | 값 |
 |------|-----|
-| 웹 개발 서버 | `http://localhost:23000` (`pnpm dev:web`) |
-| API 서버 | `http://localhost:28000` (`pnpm dev:api`), 문서 `/docs` |
+| 웹 개발 서버 | `http://localhost:23100` (`pnpm dev:web`) |
+| API 서버 | `http://localhost:23180` (`pnpm dev:api`), 문서 `/docs` |
 | PostgreSQL (docker) | 호스트 포트 **5434** (PostGIS + TimescaleDB) |
 | Redis (docker) | 호스트 포트 **6381** |
 | 인프라 기동 | `pnpm docker:up` / 종료 `pnpm docker:down` |
@@ -113,7 +113,7 @@ pnpm dev                # web + api 동시 (turbo)
 ```bash
 cd apps/api
 source .venv/bin/activate
-uvicorn src.main:app --reload --port 28000
+uvicorn src.main:app --reload --port 23180
 ```
 
 ### 4.3 검증 명령 (티켓 종료 전 필수 — 전부 통과해야 함)
@@ -137,7 +137,7 @@ pnpm build
 ### 4.4 OpenAPI 타입 재생성 (API 스키마 변경 시 필수)
 
 ```bash
-# API 서버가 28000에서 실행 중이어야 함
+# API 서버가 23180에서 실행 중이어야 함
 pnpm generate:types     # → apps/web/src/lib/api/schema.d.ts 갱신
 ```
 
@@ -311,7 +311,7 @@ pnpm generate:types     # → apps/web/src/lib/api/schema.d.ts 갱신
 | 2 | 이벤트가 병합되어 `is_canonical=False`일 수 있음 | 모든 목록/집계 쿼리에 canonical 필터. 상세 조회는 `merged_into_id` 따라 리다이렉트 고려 |
 | 3 | 좌표가 NULL인 이벤트 존재 (국가 수준 소스) | 지도 표출은 `display_point`(location 또는 admin centroid) 사용, NULL이면 지도 스킵하되 목록엔 표시 |
 | 4 | `schema.d.ts`는 자동 생성 | 손으로 고치면 다음 재생성 때 소실. API 쪽을 고칠 것 |
-| 5 | 포트가 표준과 다름 (web 23000 / api 28000 / pg 5434 / redis 6381) | §3 표의 값만 사용. 5432/6379 가정 금지 |
+| 5 | 포트가 표준과 다름 (web 23100 / api 23180 / pg 5434 / redis 6381) | §3 표의 값만 사용. 5432/6379 가정 금지 |
 | 6 | `GlobeViewer.tsx`에 MOCK_EVENTS 폴백 존재 | 지도에 데이터가 보인다고 API 연동 성공이라 판단하지 말 것. 네트워크 탭/API 직접 호출로 확인 |
 | 7 | lifespan에서 시작 시 GDACS sync 실행 | 테스트/로컬에서 외부 호출 유발. 테스트는 conftest 패턴으로 차단, 새 startup 작업 추가 시 동일 고려 |
 | 8 | `EventSource` upsert 유니크 키 = (source_id, external_id) | 커넥터가 external_id를 안정적으로(불변) 생성해야 중복 방지됨 |

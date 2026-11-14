@@ -35,11 +35,11 @@ DEV_SYNC_KEY = "dev-sync-key"
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=_ENV_FILES, env_file_encoding="utf-8", extra="ignore")
 
-    database_url: str = "postgresql://phoenix:phoenix@localhost:5432/phoenix_db"
-    redis_url: str = "redis://localhost:6379"
+    database_url: str = "postgresql://phoenix:phoenix@localhost:23154/phoenix_db"
+    redis_url: str = "redis://localhost:23163"
 
     api_host: str = "0.0.0.0"
-    api_port: int = 28000
+    api_port: int = 23180
     api_debug: bool = False
     # SQL statement logging (includes bound parameters) — never enable in production
     db_echo: bool = False
@@ -50,7 +50,7 @@ class Settings(BaseSettings):
 
     api_sync_key: str = DEV_SYNC_KEY
 
-    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:23000", "http://127.0.0.1:23000"]
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:23100", "http://127.0.0.1:23100"]
     # Upper bound on concurrent WebSocket clients per API process
     ws_max_connections: int = 1000
 
@@ -97,7 +97,7 @@ class Settings(BaseSettings):
 
     # Accounts (Phase 2: needs, offers, connections). Login is by emailed
     # one-time link; there are no passwords.
-    public_web_url: str = "http://localhost:23000"
+    public_web_url: str = "http://localhost:23100"
     # Platform operators who approve organisations, e.g. '["ops@example.org"]'
     platform_admin_emails: Annotated[list[str], NoDecode] = []
     magic_link_ttl_minutes: int = 15

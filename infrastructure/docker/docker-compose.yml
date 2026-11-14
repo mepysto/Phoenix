@@ -11,7 +11,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-phoenix_db}
     ports:
       # Loopback only: reachable by host-run dev servers, not the network
-      - "127.0.0.1:25432:5432"
+      - "127.0.0.1:23154:5432"
     volumes:
       - phoenix_db_data:/home/postgres/pgdata/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
@@ -31,7 +31,7 @@ services:
     container_name: phoenix-redis
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-phoenix-dev-redis}"]
     ports:
-      - "127.0.0.1:26379:6379"
+      - "127.0.0.1:23163:6379"
     volumes:
       - phoenix_redis_data:/data
     healthcheck:
@@ -58,10 +58,10 @@ services:
       API_DEBUG: ${API_DEBUG:-false}
       API_SYNC_KEY: ${API_SYNC_KEY:-dev-sync-key}
       ENVIRONMENT: ${ENVIRONMENT:-development}
-      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-http://localhost:23000}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:23000,http://127.0.0.1:23000}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-http://localhost:23100}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:23100,http://127.0.0.1:23100}
     ports:
-      - "28000:8000"
+      - "23180:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -76,13 +76,13 @@ services:
       target: runner
       args:
         # Inlined into the browser bundle at build time: the URL browsers use
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:28000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:23180}
     container_name: phoenix-web
     environment:
       # Server-rendered pages (/lite) reach the API over the container network
       API_INTERNAL_URL: http://api:8000
     ports:
-      - "23000:23000"
+      - "23100:23100"
     depends_on:
       api:
         condition: service_healthy

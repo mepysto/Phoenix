@@ -13,7 +13,7 @@ scripts/setup.sh --seed   # install, .env, database in Docker, migrations, sampl
 pnpm start                # API and web with hot reload (tmux session "phoenix")
 ```
 
-- Web http://localhost:23000 · API docs http://localhost:28000/docs
+- Web http://localhost:23100 · API docs http://localhost:23180/docs
 - Sign in without a mail server: the sign-in link is shown in the browser
   (`AUTH_DEV_RETURN_LINK=true`, refused in production).
 - Put your address in `PLATFORM_ADMIN_EMAILS` to approve organisations.

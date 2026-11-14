@@ -92,22 +92,22 @@ main() {
     print_banner
     
     echo -e "${BLUE}Docker Containers:${NC}"
-    check_container "phoenix-db" "PostgreSQL+TimescaleDB" "25432"
-    check_container "phoenix-redis" "Redis" "26379"
-    check_container "phoenix-api" "API (Docker)" "28000"
-    check_container "phoenix-web" "Web (Docker)" "23000"
+    check_container "phoenix-db" "PostgreSQL+TimescaleDB" "23154"
+    check_container "phoenix-redis" "Redis" "23163"
+    check_container "phoenix-api" "API (Docker)" "23180"
+    check_container "phoenix-web" "Web (Docker)" "23100"
     echo ""
     
     echo -e "${BLUE}Local Processes:${NC}"
-    check_process "uvicorn src.main:app" "API (uvicorn)" "28000"
-    check_process "next dev" "Web (next dev)" "23000"
+    check_process "uvicorn src.main:app" "API (uvicorn)" "23180"
+    check_process "next dev" "Web (next dev)" "23100"
     echo ""
     
     echo -e "${BLUE}Port Status:${NC}"
-    check_port 23000 "Frontend"
-    check_port 28000 "API"
-    check_port 25432 "Database"
-    check_port 26379 "Redis"
+    check_port 23100 "Frontend"
+    check_port 23180 "API"
+    check_port 23154 "Database"
+    check_port 23163 "Redis"
     echo ""
     
     echo -e "${BLUE}Development Session:${NC}"
@@ -115,9 +115,9 @@ main() {
     echo ""
     
     echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "  ${BLUE}Frontend:${NC}  http://localhost:23000"
-    echo -e "  ${BLUE}API:${NC}       http://localhost:28000"
-    echo -e "  ${BLUE}API Docs:${NC}  http://localhost:28000/docs"
+    echo -e "  ${BLUE}Frontend:${NC}  http://localhost:23100"
+    echo -e "  ${BLUE}API:${NC}       http://localhost:23180"
+    echo -e "  ${BLUE}API Docs:${NC}  http://localhost:23180/docs"
     echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
 }
 

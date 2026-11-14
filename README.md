@@ -58,9 +58,9 @@ scripts/setup.sh --seed   # dependencies, .env with secrets, database, migration
 pnpm start                # API + web with hot reload
 ```
 
-- Frontend: http://localhost:23000
-- API: http://localhost:28000
-- API Docs: http://localhost:28000/docs
+- Frontend: http://localhost:23100
+- API: http://localhost:23180
+- API Docs: http://localhost:23180/docs
 
 ### Production (one server, HTTPS)
 

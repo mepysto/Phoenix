@@ -3,7 +3,7 @@
  * Map rendering benchmark: frame times on the home map while the camera is
  * dragged, for the MapLibre globe (2D/3D) and optionally the Cesium engine.
  *
- *   pnpm --filter web perf:map                     # http://localhost:23000
+ *   pnpm --filter web perf:map                     # http://localhost:23100
  *   pnpm --filter web perf:map -- --url https://phoenix.example.org --headed --cesium
  *
  * CHROME_PATH=/path/to/chromium uses a specific browser build.
@@ -19,7 +19,7 @@ const arg = (name, fallback) => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 && args[i + 1] && !args[i + 1].startsWith("--") ? args[i + 1] : fallback;
 };
-const URL_BASE = arg("url", "http://localhost:23000");
+const URL_BASE = arg("url", "http://localhost:23100");
 const SECONDS = Number(arg("seconds", "6"));
 const HEADED = args.includes("--headed");
 const WITH_CESIUM = args.includes("--cesium");
