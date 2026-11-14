@@ -431,6 +431,11 @@ PRD 4장의 페르소나를 과업으로 바꾼 것이다. 각 흐름은 3번 �
 
 ### 5단계 — 재난 상세 허브
 
+> 구현 완료 (2026-11-14, `feat/ux-stage5`). 데이터는 `hooks/useEventHub.ts`가 한 번에 불러온다(탭 건수용). 화면은
+> `components/event/hub/`의 `EventHeader`(넓은 화면은 위에 고정, 휴대폰은 하단 탭 위 행동 막대), `SummaryCells`, `SituationTab`과
+> `EventCommunity.tsx`의 `EventNeeds`·`EventDesign`·`EventUpdates`로 나뉜다. 탭은 `?tab=`으로 링크할 수 있다. 전후 비교는 발생 7일 전과
+> 2일 뒤를 기본으로 하고, 발생 2일이 지나기 전에는 "아직 없는 정보"에 들어간다(`lib/compare.ts`의 `compareReady`).
+
 - 5.3의 머리 부분, 요약 4칸, 탭 4개, 빈 섹션 규칙, 붙는 행동 버튼.
 - 완료 조건: 부가 데이터가 없는 재난의 "상황" 탭이 1440×900에서 2화면 이내다. 행동 버튼이 스크롤 없이 보인다.
 

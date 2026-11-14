@@ -78,22 +78,32 @@ export function compareTileUrl(
   return `${GIBS}/${COMPARE_LAYER}/default/${date}/GoogleMapsCompatible_Level9/${z}/${t.y}/${t.x}.jpg`;
 }
 
+/** Daily mosaics are assembled over about two days; later ones may still have gaps */
+const MOSAIC_LAG_MS = 2 * DAY_MS;
+const BEFORE_MS = 7 * DAY_MS;
+
 /**
- * Default dates: the day before onset, and the latest complete day after it
- * (today's mosaic is still being assembled, so never later than yesterday).
+ * Default dates (UX plan 5.3): a week before onset, so the "before" view is
+ * clearly pre-event and likely cloud-free on some day nearby, and two days
+ * after onset, never later than the newest complete mosaic.
  */
 export function defaultCompareDates(
   start: Date,
   now: Date = new Date(),
 ): { before: string; after: string } {
-  const before = new Date(start.getTime() - DAY_MS);
-  const yesterday = new Date(now.getTime() - DAY_MS);
-  const afterTarget = new Date(start.getTime() + 2 * DAY_MS);
-  const after = afterTarget < yesterday ? afterTarget : yesterday;
+  const before = new Date(start.getTime() - BEFORE_MS);
+  const latestComplete = new Date(now.getTime() - MOSAIC_LAG_MS);
+  const afterTarget = new Date(start.getTime() + MOSAIC_LAG_MS);
+  const after = afterTarget < latestComplete ? afterTarget : latestComplete;
   return {
     before: isoDate(before),
     after: isoDate(after < before ? before : after),
   };
+}
+
+/** Whether imagery from after the onset can exist yet */
+export function compareReady(start: Date, now: Date = new Date()): boolean {
+  return now.getTime() - start.getTime() >= MOSAIC_LAG_MS;
 }
 
 /** Zoom that suits the event: tighter for local events, wider for storms */
