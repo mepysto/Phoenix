@@ -11,12 +11,13 @@ from src.db.database import get_db
 from src.models.event import EventType, SeverityLevel
 from src.schemas.event import (
     EventDetailResponse,
+    EventFacets,
     EventFilter,
     EventListResponse,
     TimelineBucket,
     TimelineResponse,
 )
-from src.repositories.event_repository import EventRepository
+from src.repositories.event_repository import EventRepository, EventSort
 from src.services.damage import DamageSummary, damage_for_event
 from src.services.event_service import EventService
 
@@ -54,6 +55,11 @@ async def list_events(
     at: datetime | None = Query(default=None, description="Only events ongoing at this time"),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    sort: EventSort = Query(
+        default="recent",
+        description="recent: newest first; importance: severity, then people affected, then newest; "
+        "affected: most people affected first",
+    ),
 ) -> EventListResponse:
     """List disaster events with filtering and pagination.
 
@@ -93,7 +99,26 @@ async def list_events(
         is_active=is_active,
         at=at,
     )
-    return await event_service.list_events(filters, limit, offset)
+    return await event_service.list_events(filters, limit, offset, sort)
+
+
+@router.get("/facets", response_model=EventFacets)
+async def event_facets(
+    session: Annotated[AsyncSession, Depends(get_db)],
+    q: Annotated[str | None, Query(min_length=1, max_length=100)] = None,
+    types: Annotated[list[EventType] | None, Query()] = None,
+    severities: Annotated[list[SeverityLevel] | None, Query()] = None,
+    start_date: datetime | None = None,
+    is_active: bool | None = None,
+) -> EventFacets:
+    """Counts by type and by severity for the list's filter chips.
+
+    Declared before /{event_id} so "facets" is not parsed as a UUID.
+    """
+    filters = EventFilter(
+        q=q, types=types, severities=severities, start_date=start_date, is_active=is_active
+    )
+    return EventFacets(**await EventRepository(session).facets(filters))
 
 
 TIMELINE_MAX_BUCKETS = {"hour": 24 * 14, "day": 366, "week": 520}

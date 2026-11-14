@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { compactNumber } from "@/lib/format";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 /*
@@ -11,11 +12,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
  * every chart so no value depends on colour or hovering.
  */
 
-export const compact = (n: number, lang: string) =>
-  new Intl.NumberFormat(lang, {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(n);
+export const compact = compactNumber;
 export const full = (n: number, lang: string) =>
   new Intl.NumberFormat(lang).format(n);
 

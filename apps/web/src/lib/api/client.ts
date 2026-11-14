@@ -127,6 +127,32 @@ export type ApiGeoJSONFeatureCollection = CamelCaseKeys<
 export type EventType = components["schemas"]["EventType"];
 export type SeverityLevel = components["schemas"]["SeverityLevel"];
 
+/** List order (UX plan 5.2); the API default is "recent" */
+export type EventSort = "importance" | "recent" | "affected";
+
+export interface EventFacets {
+  total: number;
+  byType: Partial<Record<EventType, number>>;
+  bySeverity: Partial<Record<SeverityLevel, number>>;
+}
+
+/** The facets response after key camel-casing; values stay as sent */
+interface ApiFacets {
+  total: number;
+  byType: { value: string; count: number }[];
+  bySeverity: { value: string; count: number }[];
+}
+
+export function facetsFromApi(data: ApiFacets): EventFacets {
+  const toRecord = (rows: { value: string; count: number }[]) =>
+    Object.fromEntries(rows.map((r) => [r.value, r.count]));
+  return {
+    total: data.total,
+    byType: toRecord(data.byType),
+    bySeverity: toRecord(data.bySeverity),
+  };
+}
+
 export interface EventFilter {
   /** Free-text search over title and region */
   q?: string;
@@ -150,6 +176,7 @@ export const eventsAPI = {
     filter?: EventFilter,
     limit = 50,
     offset = 0,
+    sort?: EventSort,
   ): Promise<ApiEventListResponse> => {
     const { data, error, response } = await client.GET("/api/v1/events", {
       params: {
@@ -167,6 +194,7 @@ export const eventsAPI = {
           at: filter?.at,
           limit,
           offset,
+          sort,
         },
       },
     });
@@ -176,6 +204,25 @@ export const eventsAPI = {
     }
 
     return data as unknown as ApiEventListResponse;
+  },
+
+  /** Counts behind the list's filter chips: each dimension under the other filters */
+  facets: async (filter?: EventFilter): Promise<EventFacets> => {
+    const { data, error, response } = await client.GET("/api/v1/events/facets", {
+      params: {
+        query: {
+          q: filter?.q || undefined,
+          types: filter?.types,
+          severities: filter?.severities,
+          start_date: filter?.startDate,
+          is_active: filter?.isActive,
+        },
+      },
+    });
+    if (error) {
+      throw new APIError(response.status, "Failed to fetch event counts");
+    }
+    return facetsFromApi(data as unknown as ApiFacets);
   },
 
   get: async (id: string): Promise<ApiDisasterEventDetail> => {
@@ -287,7 +334,7 @@ export const timelineAPI = {
 
 export type ApiViewSummary = CamelCaseKeys<components["schemas"]["ViewSummary"]>;
 export type ApiNearby = CamelCaseKeys<components["schemas"]["NearbyResponse"]>;
-type ViewFilter = Pick<EventFilter, "types" | "severities" | "at">;
+type ViewFilter = Pick<EventFilter, "types" | "severities" | "at" | "q" | "startDate">;
 
 /** What the current map view contains (G-5) */
 export const viewAPI = {
@@ -308,6 +355,8 @@ export const viewAPI = {
           types: filter?.types,
           severities: filter?.severities,
           at: filter?.at,
+          q: filter?.q || undefined,
+          start_date: filter?.startDate,
         },
       },
       signal,
@@ -332,6 +381,8 @@ export const viewAPI = {
           types: filter?.types,
           severities: filter?.severities,
           at: filter?.at,
+          q: filter?.q || undefined,
+          start_date: filter?.startDate,
         },
       },
       signal,

@@ -73,3 +73,8 @@ export function formatMoment(
   });
   return `${formatRelative(value, lang, now)} · ${exact} UTC`;
 }
+
+/** Large counts, shortened in the reader's language ("120K", "12만") */
+export function compactNumber(n: number, lang: string): string {
+  return new Intl.NumberFormat(lang, { notation: "compact", maximumFractionDigits: 1 }).format(n);
+}

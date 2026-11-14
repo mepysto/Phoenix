@@ -91,10 +91,19 @@ async def get_events_geojson(
 
 
 def _view_filter(
-    types: list[EventType] | None, severities: list[SeverityLevel] | None, at: datetime | None, **bbox: float | None
+    types: list[EventType] | None,
+    severities: list[SeverityLevel] | None,
+    at: datetime | None,
+    q: str | None = None,
+    start_date: datetime | None = None,
+    **bbox: float | None,
 ) -> EventFilter:
-    # A past instant has its own "ongoing" test; otherwise only active events
-    return EventFilter(types=types, severities=severities, at=at, is_active=None if at else True, **bbox)
+    # A past instant has its own "ongoing" test; otherwise only active events.
+    # Search and period match the event list, so the map's figures agree with it.
+    return EventFilter(
+        types=types, severities=severities, at=at, q=q, start_date=start_date,
+        is_active=None if at else True, **bbox,
+    )
 
 
 @router.get("/summary", response_model=ViewSummary)
@@ -107,10 +116,13 @@ async def get_view_summary(
     types: Annotated[list[EventType] | None, Query()] = None,
     severities: Annotated[list[SeverityLevel] | None, Query()] = None,
     at: datetime | None = Query(default=None, description="Events ongoing at this time"),
+    q: Annotated[str | None, Query(min_length=1, max_length=100)] = None,
+    start_date: datetime | None = Query(default=None, description="Events that began at or after this time"),
 ) -> ViewSummary:
     """Totals for the current map view (omit the bbox for the whole world)."""
     filters = _view_filter(
-        types, severities, at, min_lng=min_lng, min_lat=min_lat, max_lng=max_lng, max_lat=max_lat
+        types, severities, at, q, start_date,
+        min_lng=min_lng, min_lat=min_lat, max_lng=max_lng, max_lat=max_lat,
     )
     return await event_service.summarize_view(filters)
 
@@ -125,7 +137,9 @@ async def get_nearby_events(
     types: Annotated[list[EventType] | None, Query()] = None,
     severities: Annotated[list[SeverityLevel] | None, Query()] = None,
     at: datetime | None = Query(default=None, description="Events ongoing at this time"),
+    q: Annotated[str | None, Query(min_length=1, max_length=100)] = None,
+    start_date: datetime | None = Query(default=None, description="Events that began at or after this time"),
 ) -> NearbyResponse:
     """Events around a point, nearest first."""
-    filters = _view_filter(types, severities, at)
+    filters = _view_filter(types, severities, at, q, start_date)
     return await event_service.nearby(filters, lat, lng, radius_km, limit)
