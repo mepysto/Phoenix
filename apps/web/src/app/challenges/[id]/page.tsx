@@ -23,6 +23,7 @@ import {
   type PlanSummary,
 } from "@/lib/api/community";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDateTime } from "@/lib/format";
 import { evaluate, fromWire } from "@/lib/sphere";
 import { useAuthStore } from "@/store/authStore";
 
@@ -171,10 +172,7 @@ export default function ChallengePage() {
                     <Clock className="h-4 w-4" aria-hidden="true" />
                     {(ch.isOpen ? c.closes : c.closedOn).replace(
                       "{date}",
-                      new Date(ch.closesAt).toLocaleString(lang, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      }),
+                      formatDateTime(ch.closesAt, lang),
                     )}
                   </span>
                 </p>
@@ -185,7 +183,7 @@ export default function ChallengePage() {
 
               {ch.isOpen && (
                 <section
-                  className="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-4"
+                  className="mt-6 rounded-xl border border-gray-700/80 bg-gray-900 p-4"
                   aria-labelledby="enter-title"
                 >
                   <h2

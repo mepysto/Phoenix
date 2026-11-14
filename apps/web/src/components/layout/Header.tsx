@@ -2,107 +2,84 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Bell,
-  Languages,
-  LogOut,
-  Menu,
-  Search,
-  Settings,
-  X,
-} from "lucide-react";
+import { Bell, ChevronDown, Search, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import {
-  LANGUAGE_LABELS,
-  useSettingsStore,
-  type Language,
-} from "@/store/settingsStore";
 import { PhoenixMark } from "@/components/brand/PhoenixMark";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { AccountMenu } from "./AccountMenu";
+import { BottomNav } from "./BottomNav";
+import { Dropdown } from "./Dropdown";
+import { isActiveItem, isActivePath, isGroup, primaryNav, type NavGroup } from "./nav";
 
-function useNav() {
-  const { t } = useTranslation();
-  return [
-    { href: "/", label: t.common.home },
-    { href: "/events", label: t.common.events },
-    { href: "/dashboard", label: t.dashboard.nav },
-    { href: "/connect", label: t.connect.nav },
-    { href: "/plan", label: t.ux.plan },
-    { href: "/challenges", label: t.challenges.nav },
-    { href: "/about", label: t.common.about },
-  ];
-}
+const NAV_LINK =
+  "relative whitespace-nowrap py-1 text-sm font-medium transition-colors after:absolute after:inset-x-0 after:-bottom-[17px] after:h-0.5 after:rounded-full";
+const navTone = (active: boolean) =>
+  active ? "text-white after:bg-primary-400" : "text-gray-300 after:bg-transparent hover:text-white";
 
-/** Compact language picker: the interface serves seven languages, so it lives in the chrome */
-function LanguagePicker({ className = "" }: { className?: string }) {
-  const { t } = useTranslation();
-  const language = useSettingsStore((s) => s.language);
-  const setLanguage = useSettingsStore((s) => s.setLanguage);
+/** "Take part": the three ways to help, each with a one-line description */
+function TakePartMenu({ group, active }: { group: NavGroup; active: boolean }) {
+  const pathname = usePathname();
   return (
-    <label
-      className={`relative flex items-center rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white ${className}`}
-      title={t.ux.language}
+    <Dropdown
+      align="start"
+      triggerClassName={(open) => `${NAV_LINK} ${navTone(active || open)} flex items-center gap-1`}
+      trigger={
+        <>
+          {group.label}
+          <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+        </>
+      }
+      panelClassName="w-80"
     >
-      <Languages
-        className="pointer-events-none absolute start-2 h-4 w-4"
-        aria-hidden="true"
-      />
-      <span className="sr-only">{t.ux.language}</span>
-      <select
-        value={language}
-        onChange={(e) => setLanguage(e.target.value as Language)}
-        className="cursor-pointer appearance-none bg-transparent py-2 pe-2 ps-8 text-xs font-medium text-inherit focus:outline-none"
-      >
-        {(Object.keys(LANGUAGE_LABELS) as Language[]).map((code) => (
-          <option key={code} value={code}>
-            {LANGUAGE_LABELS[code]}
-          </option>
+      <ul>
+        {group.items.map(({ href, label, hint, icon: Icon }) => (
+          <li key={href}>
+            <Link
+              href={href}
+              aria-current={isActivePath(pathname, href) ? "page" : undefined}
+              className="flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-800 aria-[current=page]:bg-gray-800/70"
+            >
+              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary-300" aria-hidden="true" />
+              <span>
+                <span className="block text-sm font-medium text-white">{label}</span>
+                {hint && <span className="block text-sm text-gray-400">{hint}</span>}
+              </span>
+            </Link>
+          </li>
         ))}
-      </select>
-    </label>
+      </ul>
+    </Dropdown>
   );
 }
 
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const { me, status, refresh, logout } = useAuthStore();
+  const { status, refresh } = useAuthStore();
   const { t } = useTranslation();
-  const nav = useNav();
+  const nav = primaryNav(t);
   const [searchQuery, setSearchQuery] = useState("");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     if (status === "unknown") void refresh();
   }, [status, refresh]);
 
-  // Close the menu on navigation and on Escape
-  useEffect(() => setMobileMenuOpen(false), [pathname]);
-  useEffect(() => {
-    if (!mobileMenuOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMobileMenuOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [mobileMenuOpen]);
-
-  const isActive = (href: string) =>
-    pathname === href || (href !== "/" && !!pathname?.startsWith(href));
+  useEffect(() => setSearchOpen(false), [pathname]);
 
   const handleSearch = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       if (searchQuery.trim()) {
         router.push(`/events?q=${encodeURIComponent(searchQuery.trim())}`);
-        setMobileMenuOpen(false);
+        setSearchOpen(false);
       }
     },
     [searchQuery, router],
   );
 
-  const searchField = (id: string) => (
+  const searchField = (id: string, autoFocus = false) => (
     <div className="relative w-full">
       <Search
         className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
@@ -114,6 +91,8 @@ export function Header() {
       <input
         id={id}
         type="search"
+        // Opened on purpose by the search button, so focus follows
+        autoFocus={autoFocus}
         placeholder={t.common.searchPlaceholder}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
@@ -122,155 +101,79 @@ export function Header() {
     </div>
   );
 
-  const iconLink =
-    "rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-800 hover:text-white";
+  const iconButton =
+    "rounded-lg p-2 text-gray-300 transition-colors hover:bg-gray-800 hover:text-white";
 
   return (
     <>
       <header className="sticky top-0 z-50 flex h-14 items-center gap-3 border-b border-gray-800 bg-gray-950 px-4">
-        <button
-          type="button"
-          className="-ms-1 rounded-lg p-2 text-gray-300 hover:bg-gray-800 lg:hidden"
-          onClick={() => setMobileMenuOpen((o) => !o)}
-          aria-label={t.common.menu}
-          aria-expanded={mobileMenuOpen}
-          aria-controls="mobile-menu"
-        >
-          {mobileMenuOpen ? (
-            <X className="h-5 w-5" aria-hidden="true" />
-          ) : (
-            <Menu className="h-5 w-5" aria-hidden="true" />
-          )}
-        </button>
         <Link href="/" className="flex shrink-0 items-center gap-2 text-gray-100">
           <PhoenixMark className="h-7 w-7" />
-          <span className="text-lg font-semibold tracking-tight text-white">
-            Phoenix
-          </span>
+          <span className="text-lg font-semibold tracking-tight text-white">Phoenix</span>
         </Link>
+
+        <nav aria-label={t.common.menu} className="ms-4 hidden shrink-0 items-center gap-6 lg:flex">
+          {nav.map((item) => {
+            const active = isActiveItem(pathname, item);
+            return isGroup(item) ? (
+              <TakePartMenu key={item.id} group={item} active={active} />
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`${NAV_LINK} ${navTone(active)}`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
         <form
           onSubmit={handleSearch}
           role="search"
-          className="mx-auto hidden min-w-0 max-w-md flex-1 md:flex lg:mx-6"
+          className="ms-auto hidden min-w-0 max-w-sm flex-1 md:flex"
         >
           {searchField("global-search")}
         </form>
 
-        <nav
-          aria-label={t.common.menu}
-          className="hidden shrink-0 items-center gap-4 lg:flex xl:gap-5"
-        >
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={isActive(item.href) ? "page" : undefined}
-              className={`relative whitespace-nowrap py-1 text-sm transition-colors after:absolute after:inset-x-0 after:-bottom-[17px] after:h-0.5 after:rounded-full ${
-                isActive(item.href)
-                  ? "text-white after:bg-primary-400"
-                  : "text-gray-400 after:bg-transparent hover:text-white"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="ms-auto flex shrink-0 items-center gap-1 lg:ms-2">
-          <LanguagePicker className="hidden sm:flex" />
+        <div className="ms-auto flex shrink-0 items-center gap-1 md:ms-2">
+          <button
+            type="button"
+            onClick={() => setSearchOpen((o) => !o)}
+            aria-label={t.common.search}
+            aria-expanded={searchOpen}
+            aria-controls="mobile-search"
+            className={`${iconButton} md:hidden`}
+          >
+            {searchOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Search className="h-5 w-5" aria-hidden="true" />}
+          </button>
           <Link
             href="/alerts"
             aria-label={t.alerts.title}
             title={t.alerts.title}
-            aria-current={isActive("/alerts") ? "page" : undefined}
-            className={`${iconLink} ${isActive("/alerts") ? "text-white" : ""}`}
+            aria-current={isActivePath(pathname, "/alerts") ? "page" : undefined}
+            className={`${iconButton} ${isActivePath(pathname, "/alerts") ? "text-white" : ""}`}
           >
             <Bell className="h-5 w-5" aria-hidden="true" />
           </Link>
-          {status === "signed-in" && me ? (
-            <>
-              <Link
-                href="/connect/mine"
-                title={me.email}
-                aria-label={`${t.auth.account}: ${me.email}`}
-                className="mx-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary-400/20 text-sm font-semibold uppercase text-primary-100 ring-1 ring-primary-400/40 hover:bg-primary-400/30"
-              >
-                {me.email.charAt(0)}
-              </Link>
-              <button
-                type="button"
-                onClick={() => void logout()}
-                aria-label={t.auth.signOut}
-                title={t.auth.signOut}
-                className={`${iconLink} hidden sm:inline-flex`}
-              >
-                <LogOut className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </>
-          ) : status === "signed-out" ? (
-            <Link
-              href="/login"
-              className="mx-1 hidden whitespace-nowrap rounded-full border border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-800 sm:inline-flex"
-            >
-              {t.auth.signIn}
-            </Link>
-          ) : null}
-          <Link
-            href="/settings"
-            aria-label={t.common.settings}
-            title={t.common.settings}
-            aria-current={isActive("/settings") ? "page" : undefined}
-            className={iconLink}
-          >
-            <Settings className="h-5 w-5" aria-hidden="true" />
-          </Link>
+          <AccountMenu />
         </div>
       </header>
 
-      {mobileMenuOpen && (
-        <div
-          id="mobile-menu"
-          className="fixed inset-x-0 top-14 z-[60] max-h-[calc(100dvh-3.5rem)] animate-panel-in overflow-y-auto border-b border-gray-800 bg-gray-900 shadow-panel lg:hidden"
+      {searchOpen && (
+        <form
+          id="mobile-search"
+          onSubmit={handleSearch}
+          role="search"
+          className="sticky top-14 z-50 border-b border-gray-800 bg-gray-950 p-3 md:hidden"
         >
-          <form onSubmit={handleSearch} role="search" className="p-4 md:hidden">
-            {searchField("mobile-search")}
-          </form>
-          <nav aria-label={t.common.menu} className="flex flex-col pb-2">
-            {nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={isActive(item.href) ? "page" : undefined}
-                className={`border-s-2 px-4 py-3 transition-colors ${
-                  isActive(item.href)
-                    ? "border-primary-400 bg-gray-800/60 font-medium text-white"
-                    : "border-transparent text-gray-300 hover:bg-gray-800 hover:text-white"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="flex items-center justify-between gap-2 border-t border-gray-800 px-4 py-3">
-            {status === "signed-in" && me ? (
-              <button
-                type="button"
-                onClick={() => void logout()}
-                className="btn-ghost"
-              >
-                <LogOut className="h-4 w-4" aria-hidden="true" />
-                {t.auth.signOut}
-              </button>
-            ) : (
-              <Link href="/login" className="btn-primary">
-                {t.auth.signIn}
-              </Link>
-            )}
-            <LanguagePicker />
-          </div>
-        </div>
+          {searchField("mobile-search-input", true)}
+        </form>
       )}
+
+      <BottomNav />
     </>
   );
 }

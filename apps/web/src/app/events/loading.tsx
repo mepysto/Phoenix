@@ -26,7 +26,7 @@ export default function EventsLoading() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-lg border border-gray-800 bg-gray-900 p-4"
+                className="rounded-lg border border-gray-700/80 bg-gray-900 p-4"
               >
                 <div className="flex items-start gap-3">
                   <div className="h-10 w-10 animate-pulse rounded-lg bg-gray-800" />

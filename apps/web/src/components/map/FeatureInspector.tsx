@@ -33,7 +33,7 @@ export function FeatureInspector() {
         type="button"
         onClick={() => setFollow(active ? null : target)}
         aria-pressed={active}
-        className={`rounded px-2 py-0.5 text-[11px] ${active ? "bg-emerald-700 text-white" : "border border-gray-600 text-gray-300 hover:bg-gray-800"}`}
+        className={`rounded px-2 py-0.5 text-xs ${active ? "bg-emerald-700 text-white" : "border border-gray-600 text-gray-300 hover:bg-gray-800"}`}
       >
         {active ? t.ops.following : t.ops.follow}
       </button>

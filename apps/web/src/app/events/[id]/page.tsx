@@ -28,7 +28,7 @@ import {
 } from "@/lib/api/client";
 import { Header } from "@/components/layout/Header";
 import { ActiveBadge, SeverityBadge, TypeBadge } from "@/components/event/Badges";
-import { formatDate, formatDateTime, formatRelative } from "@/lib/format";
+import { formatDate, formatMoment } from "@/lib/format";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { EventTypeIcon } from "@/components/event/EventTypeIcon";
 import { ConfidenceRing, LifecycleTrack } from "@/components/trust/EventTrust";
@@ -123,12 +123,12 @@ export default function EventDetailPage() {
         >
           <div className="mx-auto grid max-w-6xl gap-6 pt-10 lg:grid-cols-3">
             <div className="space-y-6 lg:col-span-2">
-              <div className="h-40 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
-              <div className="h-80 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
+              <div className="h-40 animate-pulse rounded-xl border border-gray-700/80 bg-gray-900" />
+              <div className="h-80 animate-pulse rounded-xl border border-gray-700/80 bg-gray-900" />
             </div>
             <div className="space-y-6">
-              <div className="h-48 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
-              <div className="h-64 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
+              <div className="h-48 animate-pulse rounded-xl border border-gray-700/80 bg-gray-900" />
+              <div className="h-64 animate-pulse rounded-xl border border-gray-700/80 bg-gray-900" />
             </div>
           </div>
         </main>
@@ -181,7 +181,7 @@ export default function EventDetailPage() {
 
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="min-w-0 space-y-6 lg:col-span-2">
-              <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+              <div className="rounded-xl border border-gray-700/80 bg-gray-900 p-6">
                 <div className="flex items-start gap-4">
                   <div
                     className="flex h-14 w-14 items-center justify-center rounded-xl"
@@ -239,7 +239,7 @@ export default function EventDetailPage() {
                 </nav>
               </div>
 
-              <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+              <div className="rounded-xl border border-gray-700/80 bg-gray-900 overflow-hidden">
                 <div className="h-64 lg:h-80">
                   {position ? (
                     <MiniMap lat={position.lat} lng={position.lng} />
@@ -265,7 +265,7 @@ export default function EventDetailPage() {
               )}
 
               {event.sources && event.sources.length > 0 && (
-                <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+                <div className="rounded-xl border border-gray-700/80 bg-gray-900 p-6">
                   <h2 className="text-lg font-semibold text-white mb-4">
                     {t.detail.dataSources}
                   </h2>
@@ -295,7 +295,7 @@ export default function EventDetailPage() {
 
             <div className="space-y-6">
               {event.trust && (
-                <section className="rounded-xl border border-gray-800 bg-gray-900 p-6" aria-labelledby="trust-title">
+                <section className="rounded-xl border border-gray-700/80 bg-gray-900 p-6" aria-labelledby="trust-title">
                   <h2 id="trust-title" className="mb-4 text-lg font-semibold text-white">
                     {t.trust.title}
                   </h2>
@@ -305,7 +305,7 @@ export default function EventDetailPage() {
                   </div>
                 </section>
               )}
-              <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+              <div className="rounded-xl border border-gray-700/80 bg-gray-900 p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">
                   {t.detail.details}
                 </h2>
@@ -334,7 +334,7 @@ export default function EventDetailPage() {
                   <InfoRow
                     icon={<Calendar className="h-4 w-4" />}
                     label={t.detail.startDate}
-                    value={formatDate(event.startDate, lang)}
+                    value={formatMoment(event.startDate, lang)}
                   />
                   {event.endDate && (
                     <InfoRow
@@ -346,13 +346,13 @@ export default function EventDetailPage() {
                   <InfoRow
                     icon={<Clock className="h-4 w-4" />}
                     label={t.detail.lastUpdated}
-                    value={`${formatDateTime(event.updatedAt, lang)} · ${formatRelative(event.updatedAt, lang)}`}
+                    value={formatMoment(event.updatedAt, lang)}
                   />
                 </div>
               </div>
 
               <EventCommunity eventId={event.id} />
-              <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+              <div className="rounded-xl border border-gray-700/80 bg-gray-900 p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">
                   {t.detail.actions}
                 </h2>

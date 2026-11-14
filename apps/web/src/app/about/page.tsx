@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   Globe,
   Database,
@@ -8,7 +7,6 @@ import {
   RefreshCw,
   Code2,
   ExternalLink,
-  ArrowLeft,
   Satellite,
   Shield,
   Users,
@@ -98,13 +96,6 @@ export default function AboutPage() {
 
       <main className="flex-1 px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
-          <Link
-            href="/"
-            className="mb-6 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t.common.backToMap}
-          </Link>
 
           <section className="mb-12 text-center">
             <div className="mb-4 flex justify-center">
@@ -127,7 +118,7 @@ export default function AboutPage() {
               {FEATURES.map((feature) => (
                 <div
                   key={feature.title}
-                  className="rounded-lg border border-gray-800 bg-gray-900 p-5"
+                  className="rounded-lg border border-gray-700/80 bg-gray-900 p-5"
                 >
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600/20">
                     <feature.icon className="h-5 w-5 text-primary-500" />
@@ -152,7 +143,7 @@ export default function AboutPage() {
                   href={source.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between rounded-lg border border-gray-800 bg-gray-900 p-4 hover:border-gray-700 hover:bg-gray-800/50 transition-all"
+                  className="flex items-center justify-between rounded-lg border border-gray-700/80 bg-gray-900 p-4 hover:border-gray-700 hover:bg-gray-800/50 transition-all"
                 >
                   <div className="flex items-center gap-3">
                     <Database className="h-5 w-5 text-primary-500" />
@@ -204,7 +195,7 @@ export default function AboutPage() {
           </section>
 
           <section className="mb-12">
-            <div className="rounded-lg border border-gray-800 bg-gray-900 p-6 text-center">
+            <div className="rounded-lg border border-gray-700/80 bg-gray-900 p-6 text-center">
               <Code2 className="mx-auto mb-4 h-8 w-8 text-white" />
               <h2 className="mb-2 text-xl font-bold text-white">
                 {t.about.openSource}

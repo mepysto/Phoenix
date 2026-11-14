@@ -5,7 +5,7 @@ test.describe("Navigation", () => {
     await page.goto("/");
     await expect(page.getByRole("banner")).toBeVisible();
 
-    await page.getByRole("link", { name: /Events/i }).click();
+    await page.getByRole("banner").getByRole("link", { name: "Disasters" }).click();
     await expect(page).toHaveURL(/\/events/);
 
     await page.goto("/");

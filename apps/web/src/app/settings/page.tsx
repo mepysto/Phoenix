@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import {
-  ArrowLeft,
   Palette,
   Map,
   RefreshCw,
@@ -35,7 +33,7 @@ function SettingsSection({
   children,
 }: SettingsSectionProps) {
   return (
-    <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+    <div className="rounded-lg border border-gray-700/80 bg-gray-900 p-6">
       <div className="mb-4 flex items-start gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600/20">
           {icon}
@@ -173,13 +171,6 @@ export default function SettingsPage() {
 
       <main className="flex-1 px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl">
-          <Link
-            href="/"
-            className="mb-6 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t.common.backToMap}
-          </Link>
 
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-white">
@@ -277,7 +268,7 @@ export default function SettingsPage() {
               </button>
             </div>
 
-            <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-4 text-center text-sm text-gray-500">
+            <div className="rounded-lg border border-gray-700/80 bg-gray-900/50 p-4 text-center text-sm text-gray-500">
               <p className="text-primary-400">{t.settings.changesApplied}</p>
               <p className="mt-1">{t.settings.autoSaved}</p>
             </div>

@@ -768,6 +768,16 @@ export interface Translations {
     legend: string;
     language: string;
     mapTools: string;
+    navMap: string;
+    navDisasters: string;
+    navTakePart: string;
+    navNeeds: string;
+    navNeedsHint: string;
+    navPlan: string;
+    navPlanHint: string;
+    navChallenges: string;
+    navChallengesHint: string;
+    myActivity: string;
     viewMode: string;
     actions: string;
     updated: string;

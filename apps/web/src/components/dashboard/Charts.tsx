@@ -85,7 +85,7 @@ export function ChartCard({
   return (
     <section
       aria-labelledby={`${id}-title`}
-      className={`flex min-w-0 flex-col rounded-xl border border-gray-800 bg-gray-900 p-5 ${className}`}
+      className={`flex min-w-0 flex-col rounded-xl border border-gray-700/80 bg-gray-900 p-5 ${className}`}
     >
       <h2 id={`${id}-title`} className="font-semibold text-white">
         {title}
@@ -167,7 +167,7 @@ export function StatTile({
         ? "text-primary-300"
         : "text-gray-400";
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 px-4 py-3.5">
+    <div className="rounded-xl border border-gray-700/80 bg-gray-900 px-4 py-3.5">
       <p className="text-xs font-medium text-gray-400">{label}</p>
       <p
         className={
@@ -213,7 +213,7 @@ export function ColumnChart({
             className="absolute inset-x-0 border-t border-gray-800"
             style={{ bottom: `${(v / top) * 100}%` }}
           >
-            <span className="absolute -top-2 start-0 text-[10px] tabular-nums text-gray-500">
+            <span className="absolute -top-2 start-0 text-xs tabular-nums text-gray-400">
               {compact(v, lang)}
             </span>
           </div>
@@ -248,7 +248,7 @@ export function ColumnChart({
       </div>
       <div
         aria-hidden="true"
-        className="mt-1.5 flex justify-between ps-9 text-[10px] text-gray-500"
+        className="mt-1.5 flex justify-between ps-9 text-xs text-gray-400"
       >
         <span>{data[0]?.label}</span>
         <span>{data[last]?.label}</span>

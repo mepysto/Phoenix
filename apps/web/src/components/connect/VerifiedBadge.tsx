@@ -7,7 +7,7 @@ export function VerifiedBadge({ compact = false }: { compact?: boolean }) {
   return (
     <span
       title={t.badges.verifiedHelp}
-      className="inline-flex items-center gap-1 rounded-full bg-primary-400/15 px-1.5 py-0.5 text-[11px] font-medium text-primary-200"
+      className="inline-flex items-center gap-1 rounded-full bg-primary-400/15 px-1.5 py-0.5 text-xs font-medium text-primary-200"
     >
       <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
       {compact ? (

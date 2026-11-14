@@ -156,7 +156,7 @@ export function RoutePlanner() {
               </p>
             )}
             {note && <p className="text-amber-300">{note}</p>}
-            <p className="text-[11px] text-gray-500">{t.routing.disclaimer}</p>
+            <p className="text-xs text-gray-400">{t.routing.disclaimer}</p>
           </>
         )}
       </div>

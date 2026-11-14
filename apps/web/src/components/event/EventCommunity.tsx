@@ -69,7 +69,7 @@ export function EventCommunity({ eventId }: { eventId: string }) {
   return (
     <>
       <section
-        className="rounded-xl border border-gray-800 bg-gray-900 p-6"
+        className="rounded-xl border border-gray-700/80 bg-gray-900 p-6"
         aria-labelledby="event-needs-title"
       >
         <div className="mb-4 flex items-center justify-between gap-2">
@@ -134,7 +134,7 @@ export function EventCommunity({ eventId }: { eventId: string }) {
       </section>
 
       <section
-        className="rounded-xl border border-gray-800 bg-gray-900 p-6"
+        className="rounded-xl border border-gray-700/80 bg-gray-900 p-6"
         aria-labelledby="plans-title"
       >
         <div className="mb-4 flex items-center justify-between gap-2">
@@ -191,7 +191,7 @@ export function EventCommunity({ eventId }: { eventId: string }) {
       </section>
 
       <section
-        className="rounded-xl border border-gray-800 bg-gray-900 p-6"
+        className="rounded-xl border border-gray-700/80 bg-gray-900 p-6"
         aria-labelledby="updates-title"
       >
         <h2

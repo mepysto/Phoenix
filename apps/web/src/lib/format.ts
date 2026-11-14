@@ -55,3 +55,21 @@ export function formatWhen(
     ? formatRelative(value, lang, now)
     : formatDate(value, lang);
 }
+
+/**
+ * A moment on a detail view: how long ago, then the exact time in UTC so
+ * readers in different time zones agree ("3 hours ago · Nov 2, 2026, 09:18 UTC").
+ */
+export function formatMoment(
+  value: DateInput,
+  lang: string,
+  now: number = Date.now(),
+): string {
+  const exact = toDate(value).toLocaleString(lang, {
+    dateStyle: "medium",
+    timeStyle: "short",
+    hourCycle: "h23",
+    timeZone: "UTC",
+  });
+  return `${formatRelative(value, lang, now)} · ${exact} UTC`;
+}

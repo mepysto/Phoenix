@@ -90,7 +90,7 @@ export function CameraViewer({ id, name, direction, source, snapshotMinutes, str
           onError={() => setFailed(true)}
         />
       )}
-      <p className="px-3 py-1.5 text-[11px] text-gray-500">
+      <p className="px-3 py-1.5 text-xs text-gray-400">
         {t.cameras.notRecorded}
         {direction ? ` · ${t.cameras.approxView}` : ""}
         {live ? ` · ${t.cameras.liveDirect}` : ""}

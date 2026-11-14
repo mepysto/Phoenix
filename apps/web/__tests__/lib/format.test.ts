@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatRelative, formatWhen } from "@/lib/format";
+import { formatDate, formatMoment, formatRelative, formatWhen } from "@/lib/format";
 
 const NOW = Date.parse("2026-11-02T12:00:00Z");
 
@@ -20,5 +20,11 @@ describe("format", () => {
 
   it("never prints a bare numeric date", () => {
     expect(formatDate("2026-10-20T12:00:00Z", "en")).toMatch(/Oct/);
+  });
+
+  it("writes a detail moment as relative time plus the exact UTC time", () => {
+    const at = "2026-11-02T09:00:00Z";
+    expect(formatMoment(at, "en", NOW)).toBe("3 hours ago · Nov 2, 2026, 09:00 UTC");
+    expect(formatMoment(at, "ko", NOW)).toMatch(/^3시간 전 · 2026\. 11\. 2\..*09:00 UTC$/);
   });
 });

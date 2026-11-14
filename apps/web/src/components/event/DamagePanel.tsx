@@ -11,6 +11,7 @@ import {
   type DamageGrade,
 } from "@/lib/damage";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate } from "@/lib/format";
 
 const DamageMap = dynamic(() => import("./DamageMap"), {
   ssr: false,
@@ -38,7 +39,7 @@ export function DamagePanel({
 
   return (
     <section
-      className="overflow-hidden rounded-xl border border-gray-800 bg-gray-900"
+      className="overflow-hidden rounded-xl border border-gray-700/80 bg-gray-900"
       aria-labelledby="damage-title"
     >
       <header className="flex flex-wrap items-baseline justify-between gap-2 px-5 pb-3 pt-4">
@@ -53,7 +54,7 @@ export function DamagePanel({
           <span className="text-xs text-gray-400">
             {d.areas.replace("{n}", data.total.toLocaleString(lang))}
             {data.updatedAt
-              ? ` · ${d.updated.replace("{time}", new Date(data.updatedAt).toLocaleDateString(lang, { dateStyle: "medium" }))}`
+              ? ` · ${d.updated.replace("{time}", formatDate(data.updatedAt, lang))}`
               : ""}
           </span>
         )}

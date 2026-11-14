@@ -46,7 +46,7 @@ export function TelemetryCard({ icon, title, subtitle, rows, footer, onClose }: 
           </div>
         ))}
       </dl>
-      {footer && <p className="border-t border-gray-700/60 px-3 py-1.5 text-[11px] text-gray-500">{footer}</p>}
+      {footer && <p className="border-t border-gray-700/60 px-3 py-1.5 text-xs text-gray-400">{footer}</p>}
     </section>
   );
 }
