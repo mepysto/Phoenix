@@ -6,6 +6,7 @@ import { applyMapActions, buildMapContext } from "@/lib/agent/actions";
 import { canListen, canSpeak, listenOnce, speak, stopSpeaking } from "@/lib/agent/speech";
 import { agentAPI, APIError, type ApiDisasterEvent } from "@/lib/api/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useUiStore } from "@/store/uiStore";
 
 const SESSION_KEY = "phoenix:agent-session";
 const HISTORY_SENT = 20;
@@ -37,7 +38,10 @@ interface AgentPanelProps {
 /** Chat with the map assistant; its answers can move and filter the map */
 export function AgentPanel({ onSelectEvent }: AgentPanelProps) {
   const { t, lang } = useTranslation();
-  const [open, setOpen] = useState(false);
+  // Shares the map's right-hand panel with the event summary and in-view list
+  const open = useUiStore((s) => s.rightPanel === "assistant");
+  const setRightPanel = useUiStore((s) => s.setRightPanel);
+  const setOpen = (next: boolean) => setRightPanel(next ? "assistant" : null);
   // Voice (Web Speech API); detected after mount so server and client render alike
   const [voice, setVoice] = useState({ listen: false, speak: false });
   const [listening, setListening] = useState<{ stop: () => void } | null>(null);

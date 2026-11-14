@@ -1,91 +1,70 @@
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock the eventStore
-const mockToggleEventType = vi.fn();
-const mockToggleSeverity = vi.fn();
-
-vi.mock("@/store/eventStore", () => ({
-  useEventStore: () => ({
-    filter: {},
-    visibleTypes: new Set(["earthquake", "flood"]),
-    visibleSeverities: new Set(["high"]),
-    toggleEventType: mockToggleEventType,
-    toggleSeverity: mockToggleSeverity,
-    events: [],
-    isLoading: false,
-  }),
+vi.mock("@/lib/api/client", async (orig) => ({
+  ...(await orig<typeof import("@/lib/api/client")>()),
+  eventsAPI: { list: vi.fn().mockResolvedValue({ data: [], pagination: { total: 0 } }), facets: vi.fn() },
 }));
 
-describe("Sidebar", () => {
+import { Sidebar } from "@/components/layout/Sidebar";
+import { plainLayerName } from "@/components/layout/sidebar/LayerList";
+import { eventsAPI } from "@/lib/api/client";
+import { useEventStore } from "@/store/eventStore";
+import { useMapStore } from "@/store/mapStore";
+import { useSettingsStore } from "@/store/settingsStore";
+
+describe("Map filter panel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useSettingsStore.getState().setLanguage("en");
+    useEventStore.getState().setVisibility(undefined, undefined);
+    vi.mocked(eventsAPI.facets).mockResolvedValue({
+      total: 150,
+      byType: { earthquake: 120, flood: 30 },
+      bySeverity: { critical: 5, medium: 145 },
+    });
   });
 
-  it("renders the sidebar title", () => {
+  it("shows severity and the types that have events, each with its count", async () => {
     render(<Sidebar />);
+    const types = screen.getByRole("region", { name: "Event types" });
 
-    expect(screen.getByText("Layers and filters")).toBeInTheDocument();
+    await waitFor(() => expect(within(types).getByText("120")).toBeInTheDocument());
+    expect(within(types).getByText("Earthquake")).toBeInTheDocument();
+    expect(within(types).queryByText("Tsunami")).not.toBeInTheDocument();
+    expect(within(screen.getByRole("region", { name: "Severity" })).getByText("5")).toBeInTheDocument();
+
+    fireEvent.click(within(types).getByRole("button", { name: "15 more types" }));
+    expect(within(types).getByText("Tsunami")).toBeInTheDocument();
   });
 
-  it("renders Event Types section", () => {
+  it("clears and restores every type at once", async () => {
     render(<Sidebar />);
-
-    expect(screen.getByText("Event types")).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole("button", { name: "Clear all" }));
+    expect(useEventStore.getState().visibleTypes.size).toBe(0);
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }));
+    expect(useEventStore.getState().visibleTypes.size).toBeGreaterThan(10);
   });
 
-  it("renders Severity section", () => {
+  it("groups overlays in plain words, with source and zoom on the line below", () => {
     render(<Sidebar />);
+    fireEvent.click(screen.getByRole("tab", { name: "Layers" }));
 
-    expect(screen.getByText("Severity")).toBeInTheDocument();
+    for (const group of ["Hazards", "Satellite imagery", "Infrastructure", "Live tracking"]) {
+      expect(screen.getByRole("region", { name: group })).toBeInTheDocument();
+    }
+    const aircraft = screen.getByRole("switch", { name: "Aircraft" });
+    expect(aircraft).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByText("adsb.lol · From zoom 5")).toBeInTheDocument();
+
+    fireEvent.click(aircraft);
+    expect(useMapStore.getState().layers.find((l) => l.id === "aircraft")?.visible).toBe(true);
+    expect(screen.getByRole("switch", { name: "Aircraft" })).toHaveAttribute("aria-checked", "true");
   });
 
-  it("renders Layers section", () => {
-    render(<Sidebar />);
-
-    expect(screen.getByText("Layers")).toBeInTheDocument();
-  });
-
-  it("renders event type filter options", () => {
-    render(<Sidebar />);
-
-    // Check for some event types from EVENT_TYPE_LABELS
-    expect(screen.getByText("Earthquake")).toBeInTheDocument();
-    expect(screen.getByText("Flood")).toBeInTheDocument();
-    expect(screen.getByText("Wildfire")).toBeInTheDocument();
-  });
-
-  it("renders severity filter options", () => {
-    render(<Sidebar />);
-
-    // Check for severity levels from SEVERITY_LABELS
-    expect(screen.getByText("Low")).toBeInTheDocument();
-    expect(screen.getByText("Medium")).toBeInTheDocument();
-    expect(screen.getByText("High")).toBeInTheDocument();
-    expect(screen.getByText("Critical")).toBeInTheDocument();
-  });
-
-  it("renders layer options", () => {
-    render(<Sidebar />);
-
-    expect(screen.getByText("Satellite Imagery")).toBeInTheDocument();
-    expect(screen.getByText("Precipitation Radar")).toBeInTheDocument();
-    expect(screen.getByText("Infrared Clouds (GOES-East)")).toBeInTheDocument();
-    expect(screen.getByText("Night Lights (VIIRS)")).toBeInTheDocument();
-    // Placeholders that never rendered anything are gone
-    expect(screen.queryByText("3D Buildings")).not.toBeInTheDocument();
-  });
-
-  it("displays event count in footer", () => {
-    render(<Sidebar />);
-
-    expect(screen.getByText("0 events")).toBeInTheDocument();
-  });
-
-  it("displays data source attribution", () => {
-    render(<Sidebar />);
-
-    expect(screen.getByText("Data: GDACS, Copernicus EMS")).toBeInTheDocument();
+  it("strips technical detail from layer names", () => {
+    expect(plainLayerName("Aircraft (ADS-B, zoom 5+)")).toBe("Aircraft");
+    expect(plainLayerName("Night Lights (VIIRS)")).toBe("Night Lights");
+    expect(plainLayerName("Hospitals")).toBe("Hospitals");
   });
 });

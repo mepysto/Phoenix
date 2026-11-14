@@ -10,6 +10,7 @@ import type {
 import type { ApiDisasterEvent } from "@/lib/api/client";
 import { useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
+import { useUiStore } from "@/store/uiStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getEventPosition } from "@/lib/eventPosition";
@@ -19,6 +20,7 @@ import { currentViewport } from "@/lib/map/viewport";
 import { setMapInstance } from "@/lib/map/mapInstance";
 import { configureMaplibreWorker } from "@/lib/map/maplibreWorker";
 import { addEventLayers, eventsToGeoJSON, readView } from "@/lib/map/eventLayers";
+import { initialView as defaultView } from "@/lib/map/initialView";
 import { viewModeFilter } from "@/lib/map/viewModes";
 import { EventInfoPanel } from "./EventInfoPanel";
 import { MapControls } from "./MapControls";
@@ -107,6 +109,8 @@ export default function GlobeViewer({
       const currentBasemap = useMapStore.getState().basemap;
       const style = await loadBasemapStyle(currentBasemap);
       if (cancelled || !mapContainer.current || map.current) return;
+      // Without a view in the URL: a globe filling most of the map, facing the reader
+      const fallback = defaultView(mapContainer.current.clientWidth, mapContainer.current.clientHeight);
       map.current = new maplibregl.Map({
         container: mapContainer.current,
         style,
@@ -114,8 +118,8 @@ export default function GlobeViewer({
         attributionControl: { compact: true },
         center: initialViewRef.current
           ? [initialViewRef.current.lng, initialViewRef.current.lat]
-          : [0, 20],
-        zoom: initialViewRef.current?.zoom ?? 2,
+          : [fallback.lng, fallback.lat],
+        zoom: initialViewRef.current?.zoom ?? fallback.zoom,
         bearing: initialViewRef.current?.bearing ?? 0,
         pitch: initialViewRef.current?.pitch ?? 0,
       });
@@ -151,6 +155,7 @@ export default function GlobeViewer({
         addEventLayers(map.current, {
           getEvents: () => eventsRef.current,
           onSelect: (clickedEvent) => {
+            useUiStore.getState().setRightPanel(null);
             setSelectedEvent(clickedEvent);
             onEventClickRef.current?.(clickedEvent);
           },
@@ -196,6 +201,12 @@ export default function GlobeViewer({
     };
   }, []);
 
+  // The in-view list or the assistant take the right-hand panel's place
+  const rightPanel = useUiStore((s) => s.rightPanel);
+  useEffect(() => {
+    if (rightPanel) setSelectedEvent(null);
+  }, [rightPanel]);
+
   // Share the ready map with tools that draw their own layers (route planner)
   useEffect(() => {
     if (!mapReady || !map.current) return;
@@ -220,6 +231,7 @@ export default function GlobeViewer({
   useEffect(() => {
     if (!map.current || !mapReady || !focusEvent) return;
     const position = getEventPosition(focusEvent);
+    useUiStore.getState().setRightPanel(null);
     setSelectedEvent(focusEvent);
     if (position) {
       map.current.flyTo({ center: [position.lng, position.lat], zoom: 5 });

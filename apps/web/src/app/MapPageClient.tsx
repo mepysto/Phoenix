@@ -1,8 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Suspense, useEffect, useState } from "react";
-import { eventsAPI, type ApiDisasterEvent } from "@/lib/api/client";
+import { Suspense, useEffect } from "react";
+import { eventsAPI } from "@/lib/api/client";
 import { useEventStore } from "@/store/eventStore";
 import { DEMO_EVENTS, DEMO_MODE } from "@/lib/demo/demoEvents";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -20,8 +20,11 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { RoutePlanner } from "@/components/map/RoutePlanner";
 import { Timeline } from "@/components/map/Timeline";
 import { ViewSummary } from "@/components/map/ViewSummary";
+import { InViewList } from "@/components/map/InViewList";
+import { LiveStatus } from "@/components/map/LiveStatus";
 import { IntroGlobe } from "@/components/brand/IntroGlobe";
 import { MapFilterChips } from "@/components/map/MapFilterChips";
+import { useUiStore } from "@/store/uiStore";
 import { PhoenixMark } from "@/components/brand/PhoenixMark";
 
 const MapEngineWrapper = dynamic(
@@ -57,7 +60,9 @@ function MapPageContent() {
 
   // "View on Globe" links to /?event=<id>: load it even if outside the current filter
   const focusId = initial.event;
-  const [focusEvent, setFocusEvent] = useState<ApiDisasterEvent | null>(null);
+  const focusEvent = useUiStore((s) => s.focusEvent);
+  const setFocusEvent = useUiStore((s) => s.setFocusEvent);
+  const rightPanel = useUiStore((s) => s.rightPanel);
   useEffect(() => {
     if (!focusId) return;
     let cancelled = false;
@@ -72,7 +77,7 @@ function MapPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [focusId]);
+  }, [focusId, setFocusEvent]);
 
   return (
     <main className="relative flex-1">
@@ -94,27 +99,10 @@ function MapPageContent() {
         initialProjection={initial.projection}
         onViewChange={onViewChange}
       />
-      {/* Beside the map toolbar: live status, new events, what is in view */}
-      <div className="pointer-events-none absolute left-[4.25rem] top-4 z-30 flex flex-col items-start gap-2">
+      {/* Under the map toolbar: live status, new events, filters from the link, what is in view (phones) */}
+      <div className="pointer-events-none absolute left-4 top-16 z-30 flex flex-col items-start gap-2">
         <div className="flex flex-wrap items-center gap-2">
-        {liveStatus !== "stopped" && (
-          <div
-            role="status"
-            className="hud-panel flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-gray-200"
-          >
-            <span aria-hidden="true" className="relative flex h-2 w-2">
-              {liveStatus === "live" && (
-                <span className="absolute inset-0 animate-ring-pulse rounded-full bg-primary-400" />
-              )}
-              <span
-                className={`relative h-2 w-2 rounded-full ${
-                  liveStatus === "live" ? "bg-primary-400" : "animate-pulse bg-amber-400"
-                }`}
-              />
-            </span>
-            {liveStatus === "live" ? t.map.live : t.map.reconnecting}
-          </div>
-        )}
+        {liveStatus !== "stopped" && <LiveStatus status={liveStatus === "live" ? "live" : "reconnecting"} />}
         <NewEventsBadge
           onSelect={(event) => {
             selectEvent(event); // clears its new mark
@@ -123,9 +111,12 @@ function MapPageContent() {
         />
         </div>
         <MapFilterChips />
-        {/* A fresh object so picking the same event again flies there again */}
-        <ViewSummary onSelect={(event) => setFocusEvent({ ...event })} />
+        {/* On wide screens the in-view card lives in the left panel */}
+        <div className="lg:hidden">
+          <ViewSummary onSelect={setFocusEvent} />
+        </div>
       </div>
+      {rightPanel === "in-view" && <InViewList onSelect={setFocusEvent} />}
       <div className="pointer-events-none absolute left-1/2 top-4 z-40 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2">
         <BriefPlayer />
       </div>

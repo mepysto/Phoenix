@@ -1,263 +1,73 @@
 "use client";
 
-import { severityColor } from "@/lib/severity";
-import {
-  Layers,
-  Filter,
-  AlertTriangle,
-  Eye,
-  EyeOff,
-  KeyRound,
-} from "lucide-react";
-import type { SeverityLevel } from "@phoenix/shared/types";
-import {
-  EVENT_TYPE_COLORS,
-  EVENT_TYPES,
-} from "@phoenix/shared/constants";
-import { useEventStore } from "@/store/eventStore";
-import { useMapStore } from "@/store/mapStore";
-import { useUiStore } from "@/store/uiStore";
-import { LAYER_DEFINITIONS_BY_ID } from "@/lib/layers/registry";
+import { useState } from "react";
+import { Filter, Layers } from "lucide-react";
+import { ViewSummary } from "@/components/map/ViewSummary";
 import { useTranslation } from "@/lib/i18n/useTranslation";
-import { EventTypeIcon } from "@/components/event/EventTypeIcon";
-import { SourceStatusPanel } from "./SourceStatusPanel";
-import { FilterSection } from "./FilterSection";
+import { useUiStore } from "@/store/uiStore";
+import { DisasterFilters } from "./sidebar/DisasterFilters";
+import { LayerList } from "./sidebar/LayerList";
 
-const SEVERITY_LEVELS: SeverityLevel[] = ["low", "medium", "high", "critical"];
+type Tab = "disasters" | "layers";
 
-const LAYER_ID_TO_TRANSLATION_KEY: Record<string, string> = {
-  events: "disasterEvents",
-  satellite: "satelliteImagery",
-  radar: "radar",
-  "clouds-infrared": "cloudsInfrared",
-  "night-lights": "nightLights",
-  cyclones: "cyclones",
-  shakemaps: "shakemaps",
-  fires: "fires",
-  "power-plants": "powerPlants",
-  dams: "dams",
-  hospitals: "hospitals",
-  "submarine-cables": "submarineCables",
-  satellites: "satellites",
-  aircraft: "aircraft",
-  vessels: "vessels",
-  cameras: "cameras",
-  launches: "launches",
-};
-
-interface LayerItemProps {
-  layer: {
-    id: string;
-    name: string;
-    visible: boolean;
-    opacity: number;
-  };
-  translationKey: string;
-  onToggle: () => void;
-  onOpacityChange: (opacity: number) => void;
-  t: Record<string, string>;
-}
-
-function LayerItem({
-  layer,
-  translationKey,
-  onToggle,
-  onOpacityChange,
-  t,
-}: LayerItemProps) {
-  const opacityPercent = Math.round(layer.opacity * 100);
-  const auth = LAYER_DEFINITIONS_BY_ID.get(layer.id)?.auth;
-  const needsKey = auth !== undefined && auth !== "keyless";
+/**
+ * Map filters in two tabs (UX plan 5.1): what disasters to show, and which
+ * overlays to draw. Shared by the desktop panel and the phone drawer.
+ */
+export function FilterPanel({ showSummary = true }: { showSummary?: boolean }) {
+  const { t } = useTranslation();
+  const setFocusEvent = useUiStore((s) => s.setFocusEvent);
+  const [tab, setTab] = useState<Tab>("disasters");
+  const tabs: { id: Tab; label: string; icon: typeof Filter }[] = [
+    { id: "disasters", label: t.ux.navDisasters, icon: Filter },
+    { id: "layers", label: t.sidebar.layers, icon: Layers },
+  ];
 
   return (
-    <div className="rounded px-2 py-1.5 hover:bg-gray-800/50">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onToggle}
-          className="flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-          aria-label={`${t[translationKey] || layer.name}: ${layer.visible ? t.hideLayer || "Hide layer" : t.showLayer || "Show layer"}`}
-          aria-pressed={layer.visible}
-        >
-          {layer.visible ? (
-            <Eye className="h-4 w-4 text-primary-500" />
-          ) : (
-            <EyeOff className="h-4 w-4" />
-          )}
-        </button>
-        <span
-          className={`flex-1 text-sm ${layer.visible ? "text-gray-300" : "text-gray-500"}`}
-        >
-          {t[translationKey] || layer.name}
-        </span>
-        {/* Keys are upgrades: the layer works only when the server has its key */}
-        {needsKey && (
-          <span title={t.keyRequired} aria-label={t.keyRequired}>
-            <KeyRound className="h-3.5 w-3.5 text-amber-400" aria-hidden="true" />
-          </span>
-        )}
-        {layer.visible && (
-          <span className="min-w-[36px] text-end text-xs text-gray-500">
-            {opacityPercent}%
-          </span>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div role="tablist" aria-label={t.sidebar.layersAndFilters} className="flex border-b border-gray-800 px-2">
+        {tabs.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            id={`filter-tab-${id}`}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            aria-controls={`filter-panel-${id}`}
+            onClick={() => setTab(id)}
+            className={`flex flex-1 items-center justify-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
+              tab === id ? "border-primary-400 text-white" : "border-transparent text-gray-400 hover:text-white"
+            }`}
+          >
+            <Icon className="h-4 w-4" aria-hidden="true" />
+            {label}
+          </button>
+        ))}
+      </div>
+      <div
+        id={`filter-panel-${tab}`}
+        role="tabpanel"
+        aria-labelledby={`filter-tab-${tab}`}
+        className="flex-1 space-y-5 overflow-y-auto p-3"
+      >
+        {tab === "disasters" ? (
+          <>
+            {showSummary && <ViewSummary variant="panel" onSelect={setFocusEvent} />}
+            <DisasterFilters />
+          </>
+        ) : (
+          <LayerList />
         )}
       </div>
-
-      {layer.visible && (
-        <div className="ms-7 mt-2 pe-1">
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={opacityPercent}
-            onChange={(e) => onOpacityChange(Number(e.target.value) / 100)}
-            className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer
-              [&::-webkit-slider-thumb]:appearance-none
-              [&::-webkit-slider-thumb]:w-3
-              [&::-webkit-slider-thumb]:h-3
-              [&::-webkit-slider-thumb]:bg-primary-500
-              [&::-webkit-slider-thumb]:rounded-full
-              [&::-webkit-slider-thumb]:cursor-pointer
-              [&::-webkit-slider-thumb]:transition-transform
-              [&::-webkit-slider-thumb]:hover:scale-125
-              [&::-moz-range-thumb]:w-3
-              [&::-moz-range-thumb]:h-3
-              [&::-moz-range-thumb]:bg-primary-500
-              [&::-moz-range-thumb]:rounded-full
-              [&::-moz-range-thumb]:border-0
-              [&::-moz-range-thumb]:cursor-pointer
-              [&::-moz-range-track]:bg-gray-700
-              [&::-moz-range-track]:rounded-lg"
-            aria-label={`${t[translationKey] || layer.name} ${t.opacity || "opacity"}`}
-          />
-        </div>
-      )}
     </div>
   );
 }
 
-/** Event-type, severity and layer filters; shared by the sidebar and the mobile drawer */
-export function FilterPanel() {
-  const {
-    visibleTypes,
-    visibleSeverities,
-    toggleEventType,
-    toggleSeverity,
-    events,
-    isLoading,
-  } = useEventStore();
-  const layers = useMapStore((s) => s.layers);
-  const toggleLayer = useMapStore((s) => s.toggleLayer);
-  const setLayerOpacity = useMapStore((s) => s.setLayerOpacity);
-  const { t } = useTranslation();
-
-  return (
-    <>
-      <div className="flex-1 overflow-y-auto">
-        <FilterSection
-          title={t.sidebar.eventTypes}
-          icon={<Filter className="h-4 w-4" />}
-        >
-          <div className="space-y-1">
-            {EVENT_TYPES.map((type) => (
-              <label
-                key={type}
-                className="flex cursor-pointer items-center gap-3 rounded px-2 py-1.5 hover:bg-gray-800/50"
-              >
-                <input
-                  type="checkbox"
-                  checked={visibleTypes.has(type)}
-                  onChange={() => toggleEventType(type)}
-                  className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500"
-                />
-                <span style={{ color: EVENT_TYPE_COLORS[type] }}>
-                  <EventTypeIcon type={type} className="h-4 w-4" />
-                </span>
-                <span className="text-sm text-gray-300">{t.sidebar[type]}</span>
-              </label>
-            ))}
-          </div>
-        </FilterSection>
-
-        <FilterSection
-          title={t.sidebar.severity}
-          icon={<AlertTriangle className="h-4 w-4" />}
-        >
-          <div className="space-y-1">
-            {SEVERITY_LEVELS.map((severity) => (
-              <label
-                key={severity}
-                className="flex cursor-pointer items-center gap-3 rounded px-2 py-1.5 hover:bg-gray-800/50"
-              >
-                <input
-                  type="checkbox"
-                  checked={visibleSeverities.has(severity)}
-                  onChange={() => toggleSeverity(severity)}
-                  className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500"
-                />
-                <span
-                  className="h-3 w-3 rounded-full"
-                  style={{ backgroundColor: severityColor(severity) }}
-                />
-                <span className="text-sm text-gray-300">
-                  {t.sidebar[severity]}
-                </span>
-              </label>
-            ))}
-          </div>
-        </FilterSection>
-
-        <FilterSection
-          title={t.sidebar.layers}
-          icon={<Layers className="h-4 w-4" />}
-        >
-          <div className="space-y-1">
-            {layers.map((layer) => (
-              <LayerItem
-                key={layer.id}
-                layer={layer}
-                translationKey={
-                  LAYER_ID_TO_TRANSLATION_KEY[layer.id] || layer.id
-                }
-                onToggle={() => toggleLayer(layer.id)}
-                onOpacityChange={(opacity) =>
-                  setLayerOpacity(layer.id, opacity)
-                }
-                t={t.sidebar}
-              />
-            ))}
-          </div>
-        </FilterSection>
-
-        <SourceStatusPanel />
-      </div>
-
-      <div className="border-t border-gray-800 px-4 py-3">
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>{t.sidebar.dataSource}</span>
-          <span className="text-gray-400">
-            {isLoading
-              ? t.common.loading
-              : `${events.length} ${t.sidebar.eventsCount}`}
-          </span>
-        </div>
-      </div>
-    </>
-  );
-}
-
 export function Sidebar() {
-  const { t } = useTranslation();
   const hidden = useUiStore((s) => s.sidebarHidden || s.opsMode);
-
   if (hidden) return null;
   return (
-    <aside className="hidden w-72 flex-col border-e border-gray-800 bg-gray-900 lg:flex">
-      <div className="flex items-center gap-2 border-b border-gray-800 px-4 py-3">
-        <Layers className="h-5 w-5 text-primary-500" aria-hidden="true" />
-        <h2 className="font-semibold text-white">
-          {t.sidebar.layersAndFilters}
-        </h2>
-      </div>
+    <aside className="hidden w-80 flex-col border-e border-gray-800 bg-gray-900 lg:flex">
       <FilterPanel />
     </aside>
   );
