@@ -5,7 +5,7 @@ test.describe("Home Page", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       try {
-        sessionStorage.setItem("phoenix:intro-seen", "1");
+        localStorage.setItem("phoenix:intro-seen", "1");
       } catch {
         // storage blocked: the intro test below covers dismissal by click
       }

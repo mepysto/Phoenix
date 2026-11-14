@@ -279,6 +279,15 @@ export default function GlobeViewer({
         );
       }
 
+      if (map.current.getLayer("events-icon")) {
+        map.current.setLayoutProperty(
+          "events-icon",
+          "visibility",
+          eventsVisible ? "visible" : "none",
+        );
+        map.current.setPaintProperty("events-icon", "icon-opacity", eventsOpacity);
+      }
+
       if (map.current.getLayer("clusters")) {
         map.current.setLayoutProperty(
           "clusters",

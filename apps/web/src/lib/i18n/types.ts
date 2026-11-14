@@ -128,6 +128,9 @@ export interface Translations {
     satellite: string;
     dark: string;
     activeEvents: string;
+    legendSeverity: string;
+    legendType: string;
+    onMapTotal: string;
     initializingGlobe: string;
     live: string;
     reconnecting: string;
@@ -785,6 +788,10 @@ export interface Translations {
     updated: string;
     affected: string;
     affectedNote: string;
+    notCounted: string;
+    affectedBasis: string;
+    affectedPending: string;
+    noChartData: string;
     active: string;
     critical: string;
     countries: string;

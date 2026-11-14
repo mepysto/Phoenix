@@ -6,13 +6,6 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   AlertTriangle,
-  Droplets,
-  Flame,
-  Wind,
-  Mountain,
-  Skull,
-  Factory,
-  Sun,
   MapPin,
   Users,
   Clock,
@@ -35,22 +28,7 @@ import { ActiveBadge, SeverityBadge, TypeBadge } from "@/components/event/Badges
 import { formatDate, formatWhen } from "@/lib/format";
 import { formatPosition, getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
-
-// Types without a dedicated icon fall back to `other`
-const EVENT_ICONS: Partial<Record<EventType, React.ReactNode>> & {
-  other: React.ReactNode;
-} = {
-  earthquake: <Mountain className="h-5 w-5" />,
-  flood: <Droplets className="h-5 w-5" />,
-  wildfire: <Flame className="h-5 w-5" />,
-  hurricane: <Wind className="h-5 w-5" />,
-  tsunami: <Droplets className="h-5 w-5" />,
-  volcano: <Mountain className="h-5 w-5" />,
-  war: <Skull className="h-5 w-5" />,
-  pollution: <Factory className="h-5 w-5" />,
-  drought: <Sun className="h-5 w-5" />,
-  other: <AlertTriangle className="h-5 w-5" />,
-};
+import { EventTypeIcon } from "@/components/event/EventTypeIcon";
 
 function EventCard({ event }: { event: DisasterEvent }) {
   const { t, lang } = useTranslation();
@@ -67,7 +45,7 @@ function EventCard({ event }: { event: DisasterEvent }) {
             className="flex h-10 w-10 items-center justify-center rounded-lg"
             style={{ backgroundColor: `${typeColor}20`, color: typeColor }}
           >
-            {EVENT_ICONS[event.type as EventType] ?? EVENT_ICONS.other}
+            <EventTypeIcon type={event.type} className="h-5 w-5" />
           </div>
           <div className="flex-1">
             <h3 className="font-medium text-white">{event.title}</h3>
@@ -197,7 +175,7 @@ function EventsPageContent() {
                       className="[&>svg]:h-3.5 [&>svg]:w-3.5"
                       style={{ color: on ? EVENT_TYPE_COLORS[type] : undefined }}
                     >
-                      {EVENT_ICONS[type] ?? EVENT_ICONS.other}
+                      <EventTypeIcon type={type} className="h-5 w-5" />
                     </span>
                     {t.sidebar[type] ?? EVENT_TYPE_LABELS[type]}
                   </button>

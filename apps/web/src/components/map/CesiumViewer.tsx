@@ -15,8 +15,8 @@ import {
   type Cesium3DTileset,
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
-import type { ApiDisasterEvent, EventType, SeverityLevel } from "@/lib/api/client";
-import { EVENT_TYPE_COLORS } from "@phoenix/shared/constants";
+import type { ApiDisasterEvent, SeverityLevel } from "@/lib/api/client";
+import { readSeverityColors } from "@/lib/map/eventLayers";
 import { getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SATELLITE_SOURCE } from "@/lib/map/basemaps";
@@ -82,6 +82,8 @@ export default function CesiumViewer({ events = NO_EVENTS, onEventClick }: Cesiu
   const [selected, setSelected] = useState<ApiDisasterEvent | null>(null);
   const imagery = useMemo(() => baseLayer(), []);
   const terrain = useMemo(() => (ION_TOKEN ? Terrain.fromWorldTerrain() : undefined), []);
+  // Read once: the Cesium view is reopened rather than re-themed in place
+  const severityColors = useMemo(() => readSeverityColors(), []);
 
   return (
     <div className="relative h-full w-full">
@@ -117,7 +119,7 @@ export default function CesiumViewer({ events = NO_EVENTS, onEventClick }: Cesiu
             >
               <PointGraphics
                 pixelSize={MARKER_SIZE[event.severity as SeverityLevel] ?? 13}
-                color={Color.fromCssColorString(EVENT_TYPE_COLORS[event.type as EventType] ?? "#808080")}
+                color={Color.fromCssColorString(severityColors[event.severity as SeverityLevel] ?? severityColors.low)}
                 outlineColor={Color.WHITE}
                 outlineWidth={2}
                 disableDepthTestDistance={Number.POSITIVE_INFINITY}

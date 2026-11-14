@@ -5,18 +5,11 @@ import {
   Layers,
   Filter,
   AlertTriangle,
-  Droplets,
-  Flame,
-  Wind,
-  Mountain,
-  Skull,
-  Factory,
-  Sun,
   Eye,
   EyeOff,
   KeyRound,
 } from "lucide-react";
-import type { EventType, SeverityLevel } from "@phoenix/shared/types";
+import type { SeverityLevel } from "@phoenix/shared/types";
 import {
   EVENT_TYPE_COLORS,
   EVENT_TYPES,
@@ -26,24 +19,9 @@ import { useMapStore } from "@/store/mapStore";
 import { useUiStore } from "@/store/uiStore";
 import { LAYER_DEFINITIONS_BY_ID } from "@/lib/layers/registry";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { EventTypeIcon } from "@/components/event/EventTypeIcon";
 import { SourceStatusPanel } from "./SourceStatusPanel";
 import { FilterSection } from "./FilterSection";
-
-// Types without a dedicated icon fall back to `other`
-const EVENT_ICONS: Partial<Record<EventType, React.ReactNode>> & {
-  other: React.ReactNode;
-} = {
-  earthquake: <Mountain className="h-4 w-4" />,
-  flood: <Droplets className="h-4 w-4" />,
-  wildfire: <Flame className="h-4 w-4" />,
-  hurricane: <Wind className="h-4 w-4" />,
-  tsunami: <Droplets className="h-4 w-4" />,
-  volcano: <Mountain className="h-4 w-4" />,
-  war: <Skull className="h-4 w-4" />,
-  pollution: <Factory className="h-4 w-4" />,
-  drought: <Sun className="h-4 w-4" />,
-  other: <AlertTriangle className="h-4 w-4" />,
-};
 
 const SEVERITY_LEVELS: SeverityLevel[] = ["low", "medium", "high", "critical"];
 
@@ -192,7 +170,7 @@ export function FilterPanel() {
                   className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500"
                 />
                 <span style={{ color: EVENT_TYPE_COLORS[type] }}>
-                  {EVENT_ICONS[type] ?? EVENT_ICONS.other}
+                  <EventTypeIcon type={type} className="h-4 w-4" />
                 </span>
                 <span className="text-sm text-gray-300">{t.sidebar[type]}</span>
               </label>

@@ -70,6 +70,8 @@ class OverviewStats(BaseModel):
     active_events: int
     critical_active: int
     affected_active: int
+    # Active events that carry a people-affected figure; 0 means "not yet counted", not "nobody"
+    affected_estimated: int
     countries_active: int
     new_this_week: int
     new_week_before: int
@@ -105,6 +107,7 @@ class StatsService:
                     func.count().filter(Event.severity == SeverityLevel.critical),
                     affected,
                     func.count(func.distinct(Event.country_code)),
+                    func.count().filter(Event.affected_population > 0),
                 ).where(*active)
             )
         ).one()
@@ -191,6 +194,7 @@ class StatsService:
             active_events=totals[0],
             critical_active=totals[1],
             affected_active=int(totals[2]),
+            affected_estimated=totals[4],
             countries_active=totals[3],
             new_this_week=recent[0],
             new_week_before=recent[1],

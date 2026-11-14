@@ -258,25 +258,29 @@ function Planner() {
                 aria-keyshortcuts={key}
                 title={`${label} (${key})`}
                 onClick={() => setTool(id)}
-                className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
+                className={`flex h-10 min-w-10 items-center justify-center gap-2 rounded-lg transition-colors lg:justify-start lg:px-2.5 ${
                   tool === id
                     ? "bg-gray-700 text-white"
                     : "text-gray-300 hover:bg-gray-800"
                 }`}
               >
                 <Icon
-                  className="h-5 w-5"
+                  className="h-5 w-5 shrink-0"
                   style={
                     id !== "remove" ? { color: KIND_COLORS[id] } : undefined
                   }
                   aria-hidden="true"
                 />
-                <span className="sr-only">{label}</span>
+                {/* Named on wide screens; phones show the chosen tool in the hint below */}
+                <span className="sr-only text-sm font-medium lg:not-sr-only">{label}</span>
               </button>
             );
           })}
         </div>
-        <p className="hud-panel pointer-events-none absolute bottom-3 start-3 end-24 rounded-lg px-3 py-2 text-xs text-gray-300 md:right-auto md:max-w-sm">
+        <p className="hud-panel pointer-events-none absolute start-3 end-16 top-[4.5rem] rounded-lg px-3 py-2 text-xs text-gray-300 lg:bottom-3 lg:end-auto lg:top-auto lg:max-w-sm">
+          <span className="font-semibold text-white lg:hidden">
+            {tool === "remove" ? t.plan.remove : t.plan.kinds[tool]}:{" "}
+          </span>
           {t.plan.hint}
         </p>
       </div>
