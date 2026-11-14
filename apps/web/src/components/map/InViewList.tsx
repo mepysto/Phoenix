@@ -24,7 +24,7 @@ export function InViewList({ onSelect }: { onSelect: (event: ApiDisasterEvent) =
   return (
     <section
       aria-label={t.ux.inViewTitle}
-      className="hud-panel pointer-events-auto absolute right-14 top-4 z-30 flex max-h-[calc(100%-2rem)] w-80 animate-panel-in flex-col rounded-xl"
+      className="hud-panel pointer-events-auto absolute inset-x-2 bottom-2 z-40 max-h-[60%] lg:inset-x-auto lg:bottom-auto lg:right-14 lg:top-4 flex lg:max-h-[calc(100%-2rem)] lg:w-80 animate-panel-in flex-col rounded-xl"
     >
       <div className="flex items-center justify-between gap-2 border-b border-gray-700/80 px-4 py-3">
         <h2 className="text-sm font-semibold text-white">

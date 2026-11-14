@@ -21,6 +21,9 @@ import { setMapInstance } from "@/lib/map/mapInstance";
 import { configureMaplibreWorker } from "@/lib/map/maplibreWorker";
 import { addEventLayers, eventsToGeoJSON, readView } from "@/lib/map/eventLayers";
 import { initialView as defaultView } from "@/lib/map/initialView";
+
+/** Below the "lg" breakpoint the map is a phone/tablet layout */
+const PHONE_MAX_WIDTH = 1024;
 import { viewModeFilter } from "@/lib/map/viewModes";
 import { EventInfoPanel } from "./EventInfoPanel";
 import { MapControls } from "./MapControls";
@@ -135,6 +138,11 @@ export default function GlobeViewer({
 
       map.current.on("load", () => {
         if (!map.current) return;
+        // Phones: start the credits folded into their (i) button, as MapLibre's compact
+        // mode intends, so the map stays visible; one tap opens them
+        if (map.current.getContainer().clientWidth < PHONE_MAX_WIDTH) {
+          map.current.getContainer().querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");
+        }
         useMapStore.getState().setViewport(currentViewport(map.current));
 
         if ("setProjection" in map.current) {

@@ -8,6 +8,7 @@ import { VIEW_MODES } from "@/lib/map/viewModes";
 import { useMapStore } from "@/store/mapStore";
 import { currentMapTheme } from "@/lib/map/basemaps";
 import { useEventStore } from "@/store/eventStore";
+import { useUiStore } from "@/store/uiStore";
 import { SlideOver } from "@/components/connect/SlideOver";
 import { FilterPanel } from "@/components/layout/Sidebar";
 
@@ -65,6 +66,8 @@ export function MapControls({ is3D, onToggleProjection }: MapControlsProps) {
   const viewMode = useMapStore((s) => s.viewMode);
   const setViewMode = useMapStore((s) => s.setViewMode);
   const setEngine = useMapStore((s) => s.setEngine);
+  const phoneOverlay = useUiStore((s) => s.phoneOverlay);
+  const togglePhoneOverlay = useUiStore((s) => s.togglePhoneOverlay);
   const hiddenFilters = useEventStore(
     (s) => EVENT_TYPES.length - s.visibleTypes.size + (4 - s.visibleSeverities.size),
   );
@@ -164,6 +167,29 @@ export function MapControls({ is3D, onToggleProjection }: MapControlsProps) {
                 </Choice>
               ))}
             </MenuGroup>
+            {/* Phones keep the map clear: the timeline and legend open from here */}
+            <div className="py-1 lg:hidden">
+              <button
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked={phoneOverlay === "timeline"}
+                onClick={() => togglePhoneOverlay("timeline")}
+                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-start text-sm text-gray-300 hover:bg-gray-800 hover:text-white"
+              >
+                {t.ux.timelineMenu}
+                {phoneOverlay === "timeline" && <Check className="h-4 w-4 text-primary-400" aria-hidden="true" />}
+              </button>
+              <button
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked={phoneOverlay === "legend"}
+                onClick={() => togglePhoneOverlay("legend")}
+                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-start text-sm text-gray-300 hover:bg-gray-800 hover:text-white"
+              >
+                {t.ux.legend}
+                {phoneOverlay === "legend" && <Check className="h-4 w-4 text-primary-400" aria-hidden="true" />}
+              </button>
+            </div>
             <div className="py-1">
               {/* Phones keep only Filters and View on the map; sharing moves here */}
               <button

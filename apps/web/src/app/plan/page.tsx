@@ -5,6 +5,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Check,
+  ChevronUp,
   Cross,
   Droplet,
   Eraser,
@@ -62,9 +63,19 @@ const STATUS_STYLE = {
   fail: { text: "text-amber-300", bar: "bg-amber-400", Icon: TriangleAlert },
 } as const;
 
-function KpiRow({ kpi, lang, started }: { kpi: Kpi; lang: string; started: boolean }) {
+function KpiRow({
+  kpi,
+  lang,
+  started,
+}: {
+  kpi: Kpi;
+  lang: string;
+  started: boolean;
+}) {
   const { t } = useTranslation();
-  const s = started ? STATUS_STYLE[kpi.status] : { text: "text-gray-400", bar: "bg-gray-600", Icon: null };
+  const s = started
+    ? STATUS_STYLE[kpi.status]
+    : { text: "text-gray-400", bar: "bg-gray-600", Icon: null };
   const unit =
     kpi.id === "space" || kpi.id === "siteArea"
       ? " m²"
@@ -127,6 +138,7 @@ function Planner() {
   const [copied, setCopied] = useState(false);
   // Without a disaster, a saved plan or a shared one, ask which disaster first (UX plan A-02)
   const [blank, setBlank] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [sharedInHash] = useState(
     () => typeof window !== "undefined" && /plan=/.test(window.location.hash),
   );
@@ -250,8 +262,10 @@ function Planner() {
   if (chooseFirst) return <PlanStart onBlank={() => setBlank(true)} />;
 
   return (
-    <main className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
-      <div className="relative h-[62vh] min-h-[340px] shrink-0 lg:h-auto lg:flex-1">
+    // Phones: the map fills the screen and the panel is a sheet over its bottom (UX plan 5.4)
+    <main className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
+      {/* Phones: ends above the folded sheet so the map credits stay visible */}
+      <div className="relative mb-[3.75rem] min-h-0 flex-1 lg:mb-0">
         <PlanMap
           center={center}
           items={items}
@@ -264,7 +278,7 @@ function Planner() {
         {eventTitle && eventId && (
           <Link
             href={`/events/${eventId}`}
-            className="hud-panel absolute bottom-3 start-3 z-10 max-w-[calc(100%-6rem)] truncate rounded-lg px-3 py-2 text-sm text-gray-100 hover:bg-gray-800 lg:bottom-auto lg:start-1/2 lg:top-3 lg:-translate-x-1/2"
+            className="hud-panel absolute end-16 start-3 top-3 z-10 truncate rounded-lg px-3 py-2 text-sm text-gray-100 hover:bg-gray-800 lg:end-auto lg:start-1/2 lg:max-w-[calc(100%-6rem)] lg:-translate-x-1/2"
           >
             <span className="text-gray-400">{t.ux.planFor} · </span>
             <span className="font-semibold">{eventTitle}</span>
@@ -273,7 +287,7 @@ function Planner() {
         <div
           role="toolbar"
           aria-label={t.plan.tools}
-          className="hud-panel absolute start-3 top-3 flex gap-1 rounded-xl p-1.5 lg:flex-col"
+          className="hud-panel absolute bottom-3 start-3 z-10 flex gap-1 rounded-xl p-1.5 lg:bottom-auto lg:top-3 lg:flex-col"
         >
           {TOOLS.map(({ id, icon: Icon, key }) => {
             const label = id === "remove" ? t.plan.remove : t.plan.kinds[id];
@@ -299,12 +313,16 @@ function Planner() {
                   aria-hidden="true"
                 />
                 {/* Named on wide screens; phones show the chosen tool in the hint below */}
-                <span className="sr-only text-sm font-medium lg:not-sr-only">{label}</span>
+                <span className="sr-only text-sm font-medium lg:not-sr-only">
+                  {label}
+                </span>
               </button>
             );
           })}
         </div>
-        <p className="hud-panel pointer-events-none absolute start-3 end-16 top-[4.5rem] rounded-lg px-3 py-2 text-xs text-gray-300 lg:bottom-3 lg:end-auto lg:top-auto lg:max-w-sm">
+        <p
+          className={`hud-panel pointer-events-none absolute end-16 start-3 rounded-lg px-3 py-2 text-xs text-gray-300 lg:bottom-3 lg:end-auto lg:top-auto lg:max-w-sm ${eventTitle ? "top-16" : "top-3"}`}
+        >
           <span className="font-semibold text-white lg:hidden">
             {tool === "remove" ? t.plan.remove : t.plan.kinds[tool]}:{" "}
           </span>
@@ -312,120 +330,156 @@ function Planner() {
         </p>
       </div>
 
-      <aside className="w-full shrink-0 overflow-y-auto border-gray-800 bg-gray-950 p-5 lg:w-96 lg:border-s">
-        <h1 className="text-2xl font-semibold tracking-tight text-white">
-          {t.plan.title}
-        </h1>
-        {eventTitle && (
-          <p className="mt-1 text-sm font-medium text-ember-300">
-            {eventTitle}
-          </p>
-        )}
-        <p className="mt-2 text-sm text-gray-300">{t.plan.intro}</p>
-
-        <label htmlFor="pop" className="field-label mt-5">
-          {t.plan.population}
-        </label>
-        <input
-          id="pop"
-          type="number"
-          min={1}
-          max={100000}
-          step={50}
-          value={population}
-          onChange={(e) =>
-            setPopulation(
-              Math.max(0, Math.min(100_000, Number(e.target.value) || 0)),
-            )
-          }
-          className="field tabular-nums"
-        />
-        <p className="mt-1.5 text-xs text-gray-400">
-          {t.plan.waterNeed.replace(
-            "{litres}",
-            waterLitresPerDay(population).toLocaleString(lang),
-          )}
-        </p>
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            className="btn-primary col-span-2"
-            onClick={() => {
-              setItems(autoLayout(center, population));
-              setFitSignal((n) => n + 1);
-            }}
-          >
-            <Sparkles className="h-4 w-4" aria-hidden="true" />
-            {t.plan.autoLayout}
-          </button>
-          <button
-            type="button"
-            className="btn-ghost"
-            onClick={share}
-            disabled={items.length === 0}
-          >
-            <Link2 className="h-4 w-4" aria-hidden="true" />
-            <span aria-live="polite">
-              {copied ? t.plan.copied : t.plan.share}
+      <aside
+        className={`absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-2xl border-t border-gray-700 bg-gray-950 shadow-panel lg:static lg:max-h-none lg:w-96 lg:shrink-0 lg:rounded-none lg:border-s lg:border-t-0 lg:shadow-none ${
+          sheetOpen ? "max-h-[75%]" : ""
+        }`}
+      >
+        {/* Phones: the panel folds to one line; the checklist score says how the site is doing */}
+        <button
+          type="button"
+          onClick={() => setSheetOpen((o) => !o)}
+          aria-expanded={sheetOpen}
+          aria-controls="plan-panel"
+          className="flex w-full items-center gap-3 px-5 py-4 text-start lg:hidden"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-white">
+              {items.length === 0
+                ? `${t.ux.planSettings} · ${t.ux.kpiNotStarted}`
+                : t.ux.planChecklist
+                    .replace("{met}", String(met))
+                    .replace("{total}", String(kpis.length))}
             </span>
-          </button>
-          <button
-            type="button"
-            className="btn-ghost"
-            onClick={() => setItems([])}
-            disabled={items.length === 0}
-          >
-            <Trash2 className="h-4 w-4" aria-hidden="true" />
-            {t.plan.clear}
-          </button>
-        </div>
-        <label className="mt-3 flex items-center gap-2 text-sm text-gray-300">
-          <input
-            type="checkbox"
-            checked={showReach}
-            onChange={(e) => setShowReach(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-primary-500"
-          />
-          {t.plan.reach}
-        </label>
-
-        <PlanSaveBar
-          plan={plan}
-          items={items}
-          population={population}
-          eventId={eventId}
-          defaultTitle={
-            eventTitle ? `${eventTitle} — ${t.plan.title}` : t.plans.untitled
-          }
-          onPlan={(next) =>
-            applyPlan(
-              next,
-              next.id !== plan?.id || next.version !== plan?.version,
-            )
-          }
-        />
-
-        <div className="mt-6 flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold text-gray-200">Sphere</h2>
-          <span
-            className="text-sm tabular-nums text-gray-400"
-            aria-live="polite"
-          >
-            {items.length === 0
-              ? t.ux.kpiNotStarted
-              : `${met}/${kpis.length} · ${t.plan.itemCount.replace("{n}", String(items.length))}`}
           </span>
+          <ChevronUp
+            className={`h-5 w-5 text-gray-400 transition-transform ${sheetOpen ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          />
+        </button>
+        <div
+          id="plan-panel"
+          className={`${sheetOpen ? "block" : "hidden"} min-h-0 overflow-y-auto px-5 pb-5 lg:block lg:pt-5`}
+        >
+          <h1 className="text-2xl font-semibold tracking-tight text-white">
+            {t.plan.title}
+          </h1>
+          {eventTitle && (
+            <p className="mt-1 text-sm font-medium text-ember-300">
+              {eventTitle}
+            </p>
+          )}
+          <p className="mt-2 text-sm text-gray-300">{t.plan.intro}</p>
+
+          <label htmlFor="pop" className="field-label mt-5">
+            {t.plan.population}
+          </label>
+          <input
+            id="pop"
+            type="number"
+            min={1}
+            max={100000}
+            step={50}
+            value={population}
+            onChange={(e) =>
+              setPopulation(
+                Math.max(0, Math.min(100_000, Number(e.target.value) || 0)),
+              )
+            }
+            className="field tabular-nums"
+          />
+          <p className="mt-1.5 text-xs text-gray-400">
+            {t.plan.waterNeed.replace(
+              "{litres}",
+              waterLitresPerDay(population).toLocaleString(lang),
+            )}
+          </p>
+
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              className="btn-primary col-span-2"
+              onClick={() => {
+                setItems(autoLayout(center, population));
+                setFitSignal((n) => n + 1);
+              }}
+            >
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              {t.plan.autoLayout}
+            </button>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={share}
+              disabled={items.length === 0}
+            >
+              <Link2 className="h-4 w-4" aria-hidden="true" />
+              <span aria-live="polite">
+                {copied ? t.plan.copied : t.plan.share}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={() => setItems([])}
+              disabled={items.length === 0}
+            >
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
+              {t.plan.clear}
+            </button>
+          </div>
+          <label className="mt-3 flex items-center gap-2 text-sm text-gray-300">
+            <input
+              type="checkbox"
+              checked={showReach}
+              onChange={(e) => setShowReach(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-primary-500"
+            />
+            {t.plan.reach}
+          </label>
+
+          <PlanSaveBar
+            plan={plan}
+            items={items}
+            population={population}
+            eventId={eventId}
+            defaultTitle={
+              eventTitle ? `${eventTitle} — ${t.plan.title}` : t.plans.untitled
+            }
+            onPlan={(next) =>
+              applyPlan(
+                next,
+                next.id !== plan?.id || next.version !== plan?.version,
+              )
+            }
+          />
+
+          <div className="mt-6 flex items-baseline justify-between">
+            <h2 className="text-sm font-semibold text-gray-200">Sphere</h2>
+            <span
+              className="text-sm tabular-nums text-gray-400"
+              aria-live="polite"
+            >
+              {items.length === 0
+                ? t.ux.kpiNotStarted
+                : `${met}/${kpis.length} · ${t.plan.itemCount.replace("{n}", String(items.length))}`}
+            </span>
+          </div>
+          <ul className="divide-y divide-gray-800">
+            {kpis.map((k) => (
+              <KpiRow
+                key={k.id}
+                kpi={k}
+                lang={lang}
+                started={items.length > 0}
+              />
+            ))}
+          </ul>
+          <p className="mt-4 text-xs leading-relaxed text-gray-400">
+            {t.plan.disclaimer}
+          </p>
+          <p className="mt-2 text-xs text-gray-400">{t.plan.source}</p>
         </div>
-        <ul className="divide-y divide-gray-800">
-          {kpis.map((k) => (
-            <KpiRow key={k.id} kpi={k} lang={lang} started={items.length > 0} />
-          ))}
-        </ul>
-        <p className="mt-4 text-xs leading-relaxed text-gray-400">
-          {t.plan.disclaimer}
-        </p>
-        <p className="mt-2 text-xs text-gray-500">{t.plan.source}</p>
       </aside>
     </main>
   );
@@ -433,7 +487,7 @@ function Planner() {
 
 export default function PlanPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-gray-950 lg:h-screen">
+    <div className="flex h-screen flex-col bg-gray-950">
       <Header />
       <Suspense>
         <Planner />

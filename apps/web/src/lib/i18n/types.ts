@@ -856,6 +856,9 @@ export interface Translations {
     challengesStep1: string;
     challengesStep2: string;
     challengesStep3: string;
+    timelineMenu: string;
+    planChecklist: string;
+    planSettings: string;
     viewMode: string;
     actions: string;
     updated: string;
