@@ -15,10 +15,11 @@ import {
   Toilet,
   Trash2,
   TriangleAlert,
-  X,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
+import { PlanStart } from "@/components/plan/PlanStart";
 import { KIND_COLORS } from "@/components/plan/kindColors";
 import { PlanSaveBar } from "@/components/plan/PlanSaveBar";
 import { plansAPI, type PlanOut } from "@/lib/api/community";
@@ -54,15 +55,16 @@ const TOOLS: { id: Tool; icon: LucideIcon; key: string }[] = [
   { id: "remove", icon: Eraser, key: "0" },
 ];
 
+// Met = green check; short = amber with how far off; nothing placed yet = grey (UX plan A-03)
 const STATUS_STYLE = {
   ok: { text: "text-primary-300", bar: "bg-primary-400", Icon: Check },
   warn: { text: "text-amber-300", bar: "bg-amber-400", Icon: TriangleAlert },
-  fail: { text: "text-ember-400", bar: "bg-ember-500", Icon: X },
+  fail: { text: "text-amber-300", bar: "bg-amber-400", Icon: TriangleAlert },
 } as const;
 
-function KpiRow({ kpi, lang }: { kpi: Kpi; lang: string }) {
+function KpiRow({ kpi, lang, started }: { kpi: Kpi; lang: string; started: boolean }) {
   const { t } = useTranslation();
-  const s = STATUS_STYLE[kpi.status];
+  const s = started ? STATUS_STYLE[kpi.status] : { text: "text-gray-400", bar: "bg-gray-600", Icon: null };
   const unit =
     kpi.id === "space" || kpi.id === "siteArea"
       ? " m²"
@@ -76,10 +78,18 @@ function KpiRow({ kpi, lang }: { kpi: Kpi; lang: string }) {
         <span
           className={`flex items-center gap-1 text-sm font-semibold tabular-nums ${s.text}`}
         >
-          <s.Icon className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className="sr-only">{t.plan.status[kpi.status]}:</span>
-          {kpi.value.toLocaleString(lang)}
-          {unit}
+          {s.Icon ? (
+            <>
+              <s.Icon className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className={kpi.status === "ok" ? "sr-only" : ""}>
+                {kpi.status === "ok" ? `${t.plan.status.ok}:` : t.ux.kpiShort}
+              </span>{" "}
+              {kpi.value.toLocaleString(lang)}
+              {unit}
+            </>
+          ) : (
+            t.ux.kpiNotStarted
+          )}
         </span>
       </div>
       <div
@@ -115,6 +125,12 @@ function Planner() {
   const [showReach, setShowReach] = useState(true);
   const [fitSignal, setFitSignal] = useState(0);
   const [copied, setCopied] = useState(false);
+  // Without a disaster, a saved plan or a shared one, ask which disaster first (UX plan A-02)
+  const [blank, setBlank] = useState(false);
+  const [sharedInHash] = useState(
+    () => typeof window !== "undefined" && /plan=/.test(window.location.hash),
+  );
+  const chooseFirst = !blank && !planId && !eventId && !sharedInHash;
 
   /** Show a saved plan's version; keep its id in the address */
   const applyPlan = useCallback((next: PlanOut, fit: boolean) => {
@@ -231,6 +247,8 @@ function Planner() {
     }
   };
 
+  if (chooseFirst) return <PlanStart onBlank={() => setBlank(true)} />;
+
   return (
     <main className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
       <div className="relative h-[62vh] min-h-[340px] shrink-0 lg:h-auto lg:flex-1">
@@ -243,6 +261,15 @@ function Planner() {
           cursor={tool === "remove" ? "not-allowed" : "crosshair"}
           fitSignal={fitSignal}
         />
+        {eventTitle && eventId && (
+          <Link
+            href={`/events/${eventId}`}
+            className="hud-panel absolute bottom-3 start-3 z-10 max-w-[calc(100%-6rem)] truncate rounded-lg px-3 py-2 text-sm text-gray-100 hover:bg-gray-800 lg:bottom-auto lg:start-1/2 lg:top-3 lg:-translate-x-1/2"
+          >
+            <span className="text-gray-400">{t.ux.planFor} · </span>
+            <span className="font-semibold">{eventTitle}</span>
+          </Link>
+        )}
         <div
           role="toolbar"
           aria-label={t.plan.tools}
@@ -385,13 +412,14 @@ function Planner() {
             className="text-sm tabular-nums text-gray-400"
             aria-live="polite"
           >
-            {met}/{kpis.length} ·{" "}
-            {t.plan.itemCount.replace("{n}", String(items.length))}
+            {items.length === 0
+              ? t.ux.kpiNotStarted
+              : `${met}/${kpis.length} · ${t.plan.itemCount.replace("{n}", String(items.length))}`}
           </span>
         </div>
         <ul className="divide-y divide-gray-800">
           {kpis.map((k) => (
-            <KpiRow key={k.id} kpi={k} lang={lang} />
+            <KpiRow key={k.id} kpi={k} lang={lang} started={items.length > 0} />
           ))}
         </ul>
         <p className="mt-4 text-xs leading-relaxed text-gray-400">

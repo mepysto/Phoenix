@@ -238,6 +238,22 @@ function ChallengesContent() {
               className="md:col-span-2"
               icon={Trophy}
               title={c.none}
+              body={
+                // What a challenge is, with an example (UX plan A-06)
+                <div className="mt-1 space-y-3 text-start">
+                  <p className="text-center">{t.ux.challengesExample}</p>
+                  <ol className="space-y-2">
+                    {[t.ux.challengesStep1, t.ux.challengesStep2, t.ux.challengesStep3].map((step, i) => (
+                      <li key={step} className="flex gap-3 text-gray-300">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-400/15 text-xs font-semibold text-primary-200">
+                          {i + 1}
+                        </span>
+                        {step}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              }
               action={
                 status === "signed-in" ? (
                   <button

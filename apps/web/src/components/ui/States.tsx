@@ -63,7 +63,12 @@ export function EmptyState({
         )}
         <div className="min-w-0 text-sm">
           <p className="text-gray-300">{title}</p>
-          {body && <p className="mt-0.5 text-xs text-gray-400">{body}</p>}
+          {body &&
+            (typeof body === "string" ? (
+              <p className="mt-0.5 text-xs text-gray-400">{body}</p>
+            ) : (
+              <div className="mt-0.5 text-xs text-gray-400">{body}</div>
+            ))}
           {action && <div className="mt-2 flex flex-wrap gap-2">{action}</div>}
         </div>
       </div>
@@ -79,7 +84,13 @@ export function EmptyState({
         </span>
       )}
       <p className="font-medium text-gray-200">{title}</p>
-      {body && <p className="mt-1 max-w-md text-sm text-gray-400">{body}</p>}
+      {/* A paragraph for text; a block for richer bodies (lists cannot sit inside <p>) */}
+      {body &&
+        (typeof body === "string" ? (
+          <p className="mt-1 max-w-md text-sm text-gray-400">{body}</p>
+        ) : (
+          <div className="mt-1 max-w-md text-sm text-gray-400">{body}</div>
+        ))}
       {action && (
         <div className="mt-5 flex flex-wrap justify-center gap-2">{action}</div>
       )}

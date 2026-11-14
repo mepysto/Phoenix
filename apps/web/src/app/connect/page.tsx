@@ -236,7 +236,19 @@ function ConnectBoard() {
             <EmptyState
               icon={tab === "needs" ? HandHeart : Inbox}
               title={tab === "needs" ? t.connect.noNeeds : t.connect.noOffers}
-              body={tab === "needs" ? t.connect.needsEmptyHint : undefined}
+              body={
+                // How needs and offers meet, instead of pointing at a menu (UX plan A-01)
+                <ol className="mx-auto mt-2 max-w-md space-y-2 text-start">
+                  {[t.ux.helpStep1, t.ux.helpStep2, t.ux.helpStep3].map((step, i) => (
+                    <li key={step} className="flex gap-3 text-sm text-gray-300">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-400/15 text-xs font-semibold text-primary-200">
+                        {i + 1}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              }
               action={
                 category ? (
                   <button
@@ -246,6 +258,10 @@ function ConnectBoard() {
                   >
                     {t.ux.showAll}
                   </button>
+                ) : orgs.length === 0 ? (
+                  <Link href={status === "signed-in" ? "/connect/mine" : "/login"} className="btn-ghost">
+                    {t.ux.orgApply}
+                  </Link>
                 ) : undefined
               }
             />
