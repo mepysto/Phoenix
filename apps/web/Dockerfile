@@ -16,14 +16,14 @@ RUN pnpm install --frozen-lockfile
 FROM deps AS dev
 COPY apps/web/ ./apps/web/
 WORKDIR /app/apps/web
-EXPOSE 23000
-CMD ["pnpm", "exec", "next", "dev", "-p", "23000", "-H", "0.0.0.0"]
+EXPOSE 23100
+CMD ["pnpm", "exec", "next", "dev", "-p", "23100", "-H", "0.0.0.0"]
 
 # --- production build ---
 FROM deps AS build
 COPY apps/web/ ./apps/web/
 # NEXT_PUBLIC_* values are inlined at build time, not read at runtime
-ARG NEXT_PUBLIC_API_URL=http://localhost:28000
+ARG NEXT_PUBLIC_API_URL=http://localhost:23180
 # "1" drops non-commercial-only layers (see docs/DATA_SOURCES.md)
 ARG NEXT_PUBLIC_COMMERCIAL_DEPLOYMENT=""
 # Optional Cesium ion token (public by design; restrict it to your domain in ion)
@@ -37,14 +37,14 @@ RUN mkdir -p public && pnpm build
 
 # --- production runtime: standalone server only, non-root ---
 FROM node:20-alpine AS runner
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=23000 HOSTNAME=0.0.0.0
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=23100 HOSTNAME=0.0.0.0
 WORKDIR /app
 RUN addgroup -S phoenix && adduser -S phoenix -G phoenix
 COPY --from=build --chown=phoenix:phoenix /app/apps/web/.next/standalone ./
 COPY --from=build --chown=phoenix:phoenix /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build --chown=phoenix:phoenix /app/apps/web/public ./apps/web/public
 USER phoenix
-EXPOSE 23000
+EXPOSE 23100
 HEALTHCHECK --interval=15s --timeout=5s --retries=5 \
-  CMD wget -qO- http://127.0.0.1:23000/ >/dev/null || exit 1
+  CMD wget -qO- http://127.0.0.1:23100/ >/dev/null || exit 1
 CMD ["node", "apps/web/server.js"]

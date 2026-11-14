@@ -185,7 +185,7 @@ start_dev_servers() {
         
         # Create new tmux session
         tmux new-session -d -s phoenix -n api
-        tmux send-keys -t phoenix:api "cd $PROJECT_ROOT/apps/api && .venv/bin/python -m uvicorn src.main:app --host 0.0.0.0 --port 28000 --reload" C-m
+        tmux send-keys -t phoenix:api "cd $PROJECT_ROOT/apps/api && .venv/bin/python -m uvicorn src.main:app --host 0.0.0.0 --port 23180 --reload" C-m
         
         tmux new-window -t phoenix -n web
         tmux send-keys -t phoenix:web "cd $PROJECT_ROOT && pnpm dev:web" C-m
@@ -202,7 +202,7 @@ start_dev_servers() {
         
         # Start API server
         cd "$PROJECT_ROOT/apps/api"
-        nohup .venv/bin/python -m uvicorn src.main:app --host 0.0.0.0 --port 28000 --reload > /tmp/phoenix-api.log 2>&1 &
+        nohup .venv/bin/python -m uvicorn src.main:app --host 0.0.0.0 --port 23180 --reload > /tmp/phoenix-api.log 2>&1 &
         echo $! > /tmp/phoenix-api.pid
         
         # Start Web server
@@ -224,11 +224,11 @@ print_status() {
     echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
     echo -e "${GREEN}  Phoenix is running! 🚀${NC}"
     echo ""
-    echo -e "  ${BLUE}Frontend:${NC}  http://localhost:23000"
-    echo -e "  ${BLUE}API:${NC}       http://localhost:28000"
-    echo -e "  ${BLUE}API Docs:${NC}  http://localhost:28000/docs"
-    echo -e "  ${BLUE}Database:${NC}  localhost:25432 (PostgreSQL + TimescaleDB)"
-    echo -e "  ${BLUE}Redis:${NC}     localhost:26379"
+    echo -e "  ${BLUE}Frontend:${NC}  http://localhost:23100"
+    echo -e "  ${BLUE}API:${NC}       http://localhost:23180"
+    echo -e "  ${BLUE}API Docs:${NC}  http://localhost:23180/docs"
+    echo -e "  ${BLUE}Database:${NC}  localhost:23154 (PostgreSQL + TimescaleDB)"
+    echo -e "  ${BLUE}Redis:${NC}     localhost:23163"
     echo ""
     echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
 }
@@ -267,8 +267,8 @@ main() {
             wait_for_redis
             echo ""
             log_success "Database and Redis are ready"
-            echo -e "  ${BLUE}Database:${NC}  localhost:25432"
-            echo -e "  ${BLUE}Redis:${NC}     localhost:26379"
+            echo -e "  ${BLUE}Database:${NC}  localhost:23154"
+            echo -e "  ${BLUE}Redis:${NC}     localhost:23163"
             ;;
         *)
             log_error "Unknown mode: $MODE"

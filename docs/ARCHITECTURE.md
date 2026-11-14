@@ -168,8 +168,8 @@ The project is containerized using Docker:
 
 - **`docker-compose.yml`**: Orchestrates the API, Web, PostgreSQL/PostGIS, and Redis.
 - **Ports**:
-  - Web: `23000` (mapped to `3000` internally)
-  - API: `28000` (mapped to `8000` internally)
+  - Web: `23100` (mapped to `3000` internally)
+  - API: `23180` (mapped to `8000` internally)
   - Database: `5434` (PostgreSQL)
   - Redis: `6381`
 

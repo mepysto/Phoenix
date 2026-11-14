@@ -1,7 +1,16 @@
 import createClient, { type Middleware } from "openapi-fetch";
 import type { paths, components } from "./schema.d.ts";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:28000";
+const API_PORT = 23180;
+
+// Without NEXT_PUBLIC_API_URL, a browser reaches the API on the host it loaded
+// the page from, so LAN and Tailscale visitors do not call their own localhost.
+export function defaultApiUrl(): string {
+  if (typeof window === "undefined") return `http://localhost:${API_PORT}`;
+  return `${window.location.protocol}//${window.location.hostname}:${API_PORT}`;
+}
+
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || defaultApiUrl();
 
 type SnakeToCamel<S extends string> = S extends `${infer T}_${infer U}`
   ? `${T}${Capitalize<SnakeToCamel<U>>}`

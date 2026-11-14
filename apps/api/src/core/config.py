@@ -1,4 +1,5 @@
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal
@@ -35,11 +36,11 @@ DEV_SYNC_KEY = "dev-sync-key"
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=_ENV_FILES, env_file_encoding="utf-8", extra="ignore")
 
-    database_url: str = "postgresql://phoenix:phoenix@localhost:5432/phoenix_db"
-    redis_url: str = "redis://localhost:6379"
+    database_url: str = "postgresql://phoenix:phoenix@localhost:23154/phoenix_db"
+    redis_url: str = "redis://localhost:23163"
 
     api_host: str = "0.0.0.0"
-    api_port: int = 28000
+    api_port: int = 23180
     api_debug: bool = False
     # SQL statement logging (includes bound parameters) — never enable in production
     db_echo: bool = False
@@ -50,7 +51,10 @@ class Settings(BaseSettings):
 
     api_sync_key: str = DEV_SYNC_KEY
 
-    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:23000", "http://127.0.0.1:23000"]
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:23100", "http://127.0.0.1:23100"]
+    # Development only: also admit origins matching this pattern in full, e.g.
+    # every Tailscale name and address of this machine. Refused in production.
+    cors_origin_regex: str | None = None
     # Upper bound on concurrent WebSocket clients per API process
     ws_max_connections: int = 1000
 
@@ -97,7 +101,7 @@ class Settings(BaseSettings):
 
     # Accounts (Phase 2: needs, offers, connections). Login is by emailed
     # one-time link; there are no passwords.
-    public_web_url: str = "http://localhost:23000"
+    public_web_url: str = "http://localhost:23100"
     # Platform operators who approve organisations, e.g. '["ops@example.org"]'
     platform_admin_emails: Annotated[list[str], NoDecode] = []
     magic_link_ttl_minutes: int = 15
@@ -126,6 +130,12 @@ class Settings(BaseSettings):
     def _lists(cls, value: object) -> object:
         return _str_list(value)
 
+    def is_allowed_origin(self, origin: str) -> bool:
+        """Whether a browser page at `origin` may call the API (CORS and WebSocket)."""
+        if origin in self.cors_origins:
+            return True
+        return self.cors_origin_regex is not None and re.fullmatch(self.cors_origin_regex, origin) is not None
+
     @property
     def secure_cookies(self) -> bool:
         return self.public_web_url.startswith("https://")
@@ -139,6 +149,8 @@ class Settings(BaseSettings):
                 raise ValueError("API_DEBUG/DB_ECHO must be disabled in production")
             if self.auth_dev_return_link:
                 raise ValueError("AUTH_DEV_RETURN_LINK must be off in production")
+            if self.cors_origin_regex:
+                raise ValueError("CORS_ORIGIN_REGEX is for development; list origins in CORS_ORIGINS in production")
         return self
 
 

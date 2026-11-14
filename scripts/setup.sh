@@ -162,8 +162,8 @@ write_env() {
     pw="$(env_get POSTGRES_PASSWORD)"; user="$(env_get POSTGRES_USER)"; db="$(env_get POSTGRES_DB)"
     if [[ "$USE_DOCKER" == 1 ]]; then
       # Point at the Docker database and Redis this script starts
-      env_set DATABASE_URL "postgresql://${user:-phoenix}:${pw}@localhost:25432/${db:-phoenix_db}"
-      env_set REDIS_URL "redis://:$(env_get REDIS_PASSWORD)@localhost:26379"
+      env_set DATABASE_URL "postgresql://${user:-phoenix}:${pw}@localhost:23154/${db:-phoenix_db}"
+      env_set REDIS_URL "redis://:$(env_get REDIS_PASSWORD)@localhost:23163"
     fi
     # Sign in locally without a mail server (refused in production)
     env_default AUTH_DEV_RETURN_LINK true
@@ -205,7 +205,7 @@ database_dev() {
     info "Starting PostgreSQL (PostGIS, TimescaleDB) and Redis in Docker"
     compose up -d --build db redis
     wait_healthy phoenix-db 120 || die "The database did not become healthy; see: docker logs phoenix-db"
-    ok "Database is up on localhost:25432"
+    ok "Database is up on localhost:23154"
   else
     warn "--no-docker: using DATABASE_URL from .env; it needs PostGIS available"
   fi
@@ -271,8 +271,8 @@ main() {
     cat <<EOF
 
   Setup complete. Start the app:  pnpm start   (or: pnpm dev with the database already up)
-    Web  http://localhost:23000
-    API  http://localhost:28000/docs
+    Web  http://localhost:23100
+    API  http://localhost:23180/docs
   Sign-in links appear in the browser in development (AUTH_DEV_RETURN_LINK=true).
   Add your address to PLATFORM_ADMIN_EMAILS in .env to approve organisations.
 EOF

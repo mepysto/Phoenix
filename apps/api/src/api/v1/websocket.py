@@ -42,7 +42,7 @@ async def websocket_events(websocket: WebSocket) -> None:
     # page on any site could otherwise open this socket (cross-site WebSocket
     # hijacking). Non-browser clients send no Origin and are allowed.
     origin = websocket.headers.get("origin")
-    if origin is not None and origin not in settings.cors_origins:
+    if origin is not None and not settings.is_allowed_origin(origin):
         await websocket.close(code=WS_POLICY_VIOLATION)
         return
     if connection_manager.connection_count >= settings.ws_max_connections:

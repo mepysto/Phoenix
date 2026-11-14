@@ -294,9 +294,9 @@ uvicorn src.main:app --reload
 cd apps/api && uvicorn src.main:app --reload
 
 # 각 소스 동기화 테스트
-curl -X POST http://localhost:28000/api/v1/sync/gdacs
-curl -X POST http://localhost:28000/api/v1/sync/usgs
-curl -X POST http://localhost:28000/api/v1/sync/eonet
+curl -X POST http://localhost:23180/api/v1/sync/gdacs
+curl -X POST http://localhost:23180/api/v1/sync/usgs
+curl -X POST http://localhost:23180/api/v1/sync/eonet
 ```
 
 ---
