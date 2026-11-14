@@ -35,7 +35,7 @@ export function PlanStart({ onBlank }: { onBlank: () => void }) {
   }, [query]);
 
   return (
-    <main className="flex-1 px-4 py-8 md:px-6">
+    <main className="flex-1 overflow-y-auto px-4 py-8 md:px-6">
       <div className="mx-auto max-w-3xl">
         <h1 className="text-3xl font-semibold tracking-tight text-white">{t.ux.planStartTitle}</h1>
         <p className="mt-2 text-gray-300">{t.ux.planStartIntro}</p>

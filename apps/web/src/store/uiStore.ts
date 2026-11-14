@@ -16,10 +16,15 @@ export interface FollowTarget {
  */
 export type RightPanel = "in-view" | "assistant" | null;
 
+/** On phones the timeline and legend are opened from the View menu, one at a time (UX plan 5.1) */
+export type PhoneOverlay = "timeline" | "legend" | null;
+
 interface UiState {
   sidebarHidden: boolean;
   rightPanel: RightPanel;
   setRightPanel: (panel: RightPanel) => void;
+  phoneOverlay: PhoneOverlay;
+  togglePhoneOverlay: (overlay: Exclude<PhoneOverlay, null>) => void;
   /** An event to fly to and open; a fresh object each time so repeats fly again */
   focusEvent: ApiDisasterEvent | null;
   setFocusEvent: (event: ApiDisasterEvent | null) => void;
@@ -37,6 +42,8 @@ export const useUiStore = create<UiState>((set) => ({
   sidebarHidden: false,
   rightPanel: null,
   setRightPanel: (rightPanel) => set({ rightPanel }),
+  phoneOverlay: null,
+  togglePhoneOverlay: (overlay) => set((s) => ({ phoneOverlay: s.phoneOverlay === overlay ? null : overlay })),
   focusEvent: null,
   setFocusEvent: (event) => set({ focusEvent: event ? { ...event } : null }),
   opsMode: false,

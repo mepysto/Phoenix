@@ -19,8 +19,8 @@ import { useFollowCamera } from "@/hooks/useFollowCamera";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { RoutePlanner } from "@/components/map/RoutePlanner";
 import { Timeline } from "@/components/map/Timeline";
-import { ViewSummary } from "@/components/map/ViewSummary";
 import { InViewList } from "@/components/map/InViewList";
+import { MobileViewBar } from "@/components/map/MobileViewBar";
 import { LiveStatus } from "@/components/map/LiveStatus";
 import { IntroGlobe } from "@/components/brand/IntroGlobe";
 import { MapFilterChips } from "@/components/map/MapFilterChips";
@@ -63,6 +63,7 @@ function MapPageContent() {
   const focusEvent = useUiStore((s) => s.focusEvent);
   const setFocusEvent = useUiStore((s) => s.setFocusEvent);
   const rightPanel = useUiStore((s) => s.rightPanel);
+  const phoneOverlay = useUiStore((s) => s.phoneOverlay);
   useEffect(() => {
     if (!focusId) return;
     let cancelled = false;
@@ -111,11 +112,9 @@ function MapPageContent() {
         />
         </div>
         <MapFilterChips />
-        {/* On wide screens the in-view card lives in the left panel */}
-        <div className="lg:hidden">
-          <ViewSummary onSelect={setFocusEvent} />
-        </div>
       </div>
+      {/* Phones: one line at the bottom; wider screens show the in-view card in the left panel */}
+      <MobileViewBar />
       {rightPanel === "in-view" && <InViewList onSelect={setFocusEvent} />}
       <div className="pointer-events-none absolute left-1/2 top-4 z-40 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2">
         <BriefPlayer />
@@ -130,11 +129,16 @@ function MapPageContent() {
         <RoutePlanner />
       </div>
       {/* Bottom corner beside the legend on phones; above the scale bar and timeline on wider screens */}
-      <div className="pointer-events-none absolute bottom-4 right-4 z-40 flex flex-col items-end md:bottom-36">
+      <div className="pointer-events-none absolute bottom-16 right-4 z-40 flex flex-col items-end lg:bottom-36">
         <AgentPanel onSelectEvent={(event) => setFocusEvent({ ...event })} />
       </div>
       {/* Between the legend (max ~22rem) and the scale bar; above the legend and assistant buttons on phones */}
-      <div className="pointer-events-none absolute bottom-16 left-4 right-4 z-30 md:bottom-9 md:left-[23rem] md:right-32">
+      {/* Phones open the timeline from the View menu */}
+      <div
+        className={`pointer-events-none absolute bottom-16 left-2 right-2 z-30 lg:bottom-9 lg:left-[23rem] lg:right-32 lg:block ${
+          phoneOverlay === "timeline" ? "block" : "hidden"
+        }`}
+      >
         <Timeline />
       </div>
       {showEmptyState && (

@@ -42,10 +42,10 @@ export function EventInfoPanel({ event, onClose }: EventInfoPanelProps) {
     : "/alerts";
 
   return (
-    // right-14 keeps the zoom/compass controls (top-right) clickable
+    // Phones: a sheet at the bottom; wider: right-14 keeps the zoom controls (top-right) clickable
     <section
       aria-label={event.title}
-      className="hud-panel absolute right-14 top-4 max-h-[calc(100%-2rem)] w-80 animate-panel-in overflow-y-auto rounded-xl p-4"
+      className="hud-panel absolute inset-x-2 bottom-2 z-40 max-h-[60%] lg:inset-x-auto lg:bottom-auto lg:right-14 lg:top-4 lg:max-h-[calc(100%-2rem)] lg:w-80 animate-panel-in overflow-y-auto rounded-xl p-4"
     >
       <span
         aria-hidden="true"
