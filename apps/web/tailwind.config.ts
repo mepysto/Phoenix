@@ -7,7 +7,7 @@ import type { Config } from "tailwindcss";
  *
  * `gray` is overridden on purpose: the whole UI is built on gray-*, so the
  * retint applies everywhere at once, and the light theme swaps the scale
- * (globals.css). gray-500 stays >= 4.5:1 on gray-900/950 in both themes.
+ * (globals.css). gray-500 stays >= 4.5:1 on gray-800/900/950 in both themes.
  */
 const config: Config = {
   content: [
@@ -51,6 +51,17 @@ const config: Config = {
           high: "#ef4444",
           critical: "#7c3aed",
         },
+      },
+      // Full-height pages end above the phone tab bar (--bottom-nav-h, globals.css)
+      height: {
+        screen: "calc(100dvh - var(--bottom-nav-h, 0px))",
+      },
+      minHeight: {
+        screen: "calc(100dvh - var(--bottom-nav-h, 0px))",
+      },
+      // Readability floor (UX plan 6): the smallest step is 13px, not 12px
+      fontSize: {
+        xs: ["0.8125rem", { lineHeight: "1.125rem" }],
       },
       fontFamily: {
         sans: ["var(--font-sora)", "system-ui", "sans-serif"],

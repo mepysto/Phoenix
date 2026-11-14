@@ -3,17 +3,16 @@ import { Clock, Trophy, Users } from "lucide-react";
 import { VerifiedBadge } from "@/components/connect/VerifiedBadge";
 import type { ChallengeSummary } from "@/lib/api/community";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate } from "@/lib/format";
 
 export function ChallengeCard({ ch }: { ch: ChallengeSummary }) {
   const { t, lang } = useTranslation();
   const c = t.challenges;
-  const date = new Date(ch.closesAt).toLocaleDateString(lang, {
-    dateStyle: "medium",
-  });
+  const date = formatDate(ch.closesAt, lang);
   return (
     <Link
       href={`/challenges/${ch.id}`}
-      className="block rounded-xl border border-gray-800 bg-gray-900 p-5 transition-colors hover:border-gray-600"
+      className="block rounded-xl border border-gray-700/80 bg-gray-900 p-5 transition-colors hover:border-gray-600"
     >
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span

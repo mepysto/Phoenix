@@ -24,7 +24,7 @@ function Review({ org, onDone }: { org: OrgAdminView; onDone: () => void }) {
     }
   };
   return (
-    <li className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+    <li className="rounded-xl border border-gray-700/80 bg-gray-900 p-5">
       <p className="text-lg font-semibold text-white">{org.name}</p>
       <p className="mt-1 text-sm text-gray-300">
         {t.connect.orgTypes[org.orgType]} · {org.primaryEmail}
@@ -137,7 +137,7 @@ export default function AdminPage() {
               >
                 {t.badges.approvedOrgs}
               </h2>
-              <ul className="mt-3 divide-y divide-gray-800 rounded-xl border border-gray-800 bg-gray-900">
+              <ul className="mt-3 divide-y divide-gray-800 rounded-xl border border-gray-700/80 bg-gray-900">
                 {approved.map((o) => (
                   <li
                     key={o.id}

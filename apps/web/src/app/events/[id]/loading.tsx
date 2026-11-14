@@ -9,7 +9,7 @@ export default function EventDetailLoading() {
 
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-6">
-              <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+              <div className="rounded-lg border border-gray-700/80 bg-gray-900 p-6">
                 <div className="flex items-start gap-4">
                   <div className="h-14 w-14 animate-pulse rounded-xl bg-gray-800" />
                   <div className="flex-1">
@@ -23,13 +23,13 @@ export default function EventDetailLoading() {
                 <div className="mt-4 h-16 w-full animate-pulse rounded bg-gray-800" />
               </div>
 
-              <div className="rounded-lg border border-gray-800 bg-gray-900 overflow-hidden">
+              <div className="rounded-lg border border-gray-700/80 bg-gray-900 overflow-hidden">
                 <div className="h-64 lg:h-80 animate-pulse bg-gray-800" />
               </div>
             </div>
 
             <div className="space-y-6">
-              <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+              <div className="rounded-lg border border-gray-700/80 bg-gray-900 p-6">
                 <div className="h-6 w-32 animate-pulse rounded bg-gray-800 mb-4" />
                 <div className="space-y-4">
                   {Array.from({ length: 4 }).map((_, i) => (
@@ -47,7 +47,7 @@ export default function EventDetailLoading() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+              <div className="rounded-lg border border-gray-700/80 bg-gray-900 p-6">
                 <div className="h-6 w-24 animate-pulse rounded bg-gray-800 mb-4" />
                 <div className="h-10 w-full animate-pulse rounded-lg bg-gray-800" />
               </div>

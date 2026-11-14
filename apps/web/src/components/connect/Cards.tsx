@@ -104,7 +104,7 @@ function MatchRow({
         {match.reasons.map((r) => (
           <li
             key={r}
-            className="rounded bg-primary-400/10 px-1.5 py-0.5 text-[11px] text-primary-200"
+            className="rounded bg-primary-400/10 px-1.5 py-0.5 text-xs text-primary-200"
           >
             {t.connect.reasons[r as keyof typeof t.connect.reasons] ?? r}
           </li>
@@ -168,7 +168,7 @@ export function NeedCard({
   const canOfferMine = signedIn && !need.canEdit && need.status === "open";
 
   return (
-    <article className="relative overflow-hidden rounded-xl border border-gray-800 bg-gray-900 p-5">
+    <article className="relative overflow-hidden rounded-xl border border-gray-700/80 bg-gray-900 p-5">
       <span
         aria-hidden="true"
         className={`absolute inset-y-0 left-0 w-1 ${PRIORITY_EDGE[need.priority]}`}
@@ -337,7 +337,7 @@ export function NeedCard({
 export function OfferCard({ offer }: { offer: Offer }) {
   const { t, lang } = useTranslation();
   return (
-    <article className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+    <article className="rounded-xl border border-gray-700/80 bg-gray-900 p-5">
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="rounded bg-primary-400/15 px-1.5 py-0.5 font-semibold text-primary-200">
           {t.connect.offerTypes[offer.offerType]}

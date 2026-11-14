@@ -22,7 +22,7 @@ test.describe("Events Page", () => {
   }) => {
     await page.goto("/");
 
-    await page.getByRole("link", { name: /Events/i }).click();
+    await page.getByRole("banner").getByRole("link", { name: "Disasters" }).click();
 
     await expect(page).toHaveURL(/\/events/);
     await expect(

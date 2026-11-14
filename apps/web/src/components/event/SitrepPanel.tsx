@@ -78,7 +78,7 @@ export function SitrepPanel({ event, damage }: { event: ApiDisasterEvent; damage
 
   return (
     <section
-      className="sitrep rounded-xl border border-gray-800 bg-gray-900"
+      className="sitrep rounded-xl border border-gray-700/80 bg-gray-900"
       aria-labelledby="sitrep-title"
     >
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-5 py-4">

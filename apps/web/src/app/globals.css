@@ -12,7 +12,7 @@ html.dark {
   --gray-200: 201 211 226;
   --gray-300: 166 180 202;
   --gray-400: 139 155 181;
-  --gray-500: 120 137 166;
+  --gray-500: 130 147 176; /* >= 4.5:1 on gray-800 surfaces, not only on the page */
   --gray-600: 68 83 110;
   --gray-700: 44 58 82;
   --gray-800: 26 37 57;
@@ -106,7 +106,19 @@ html.no-animations * {
   transition: none !important;
 }
 
+/* Phones and tablets get a bottom tab bar (components/layout/BottomNav);
+   pages reserve its height so nothing ends up underneath it */
+:root {
+  --bottom-nav-h: 0px;
+}
+@media (max-width: 1023px) {
+  html:has(#bottom-nav) {
+    --bottom-nav-h: calc(3.75rem + env(safe-area-inset-bottom));
+  }
+}
+
 body {
+  padding-bottom: var(--bottom-nav-h);
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-sora), system-ui, sans-serif;

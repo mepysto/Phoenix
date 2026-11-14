@@ -113,7 +113,7 @@ export function BeforeAfterCompare({
 
   return (
     <section
-      className="overflow-hidden rounded-xl border border-gray-800 bg-gray-900"
+      className="overflow-hidden rounded-xl border border-gray-700/80 bg-gray-900"
       aria-labelledby="compare-title"
     >
       <header className="flex flex-wrap items-center justify-between gap-3 px-5 pb-3 pt-4">
@@ -200,7 +200,7 @@ export function BeforeAfterCompare({
           className="pointer-events-none absolute inset-y-0 w-px bg-gray-100/80 peer-focus-visible:w-0.5 peer-focus-visible:bg-primary-300"
           style={{ left: `${split}%` }}
         >
-          <span className="absolute left-1/2 top-1/2 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gray-100/70 bg-gray-950/80 text-[10px] text-gray-100">
+          <span className="absolute left-1/2 top-1/2 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gray-100/70 bg-gray-950/80 text-sm text-gray-100" aria-hidden="true">
             ⟷
           </span>
         </div>

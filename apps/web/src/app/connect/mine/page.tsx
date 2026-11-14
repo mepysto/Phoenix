@@ -77,7 +77,7 @@ function ConnectRow({ c, onChange }: { c: Connect; onChange: () => void }) {
   };
 
   return (
-    <li className="rounded-xl border border-gray-800 bg-gray-900 p-4">
+    <li className="rounded-xl border border-gray-700/80 bg-gray-900 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm text-gray-400">{c.need.org.name}</p>
@@ -192,7 +192,7 @@ function ApplyOrg({ onDone }: { onDone: () => void }) {
   return (
     <form
       onSubmit={submit}
-      className="space-y-3 rounded-xl border border-gray-800 bg-gray-900 p-5"
+      className="space-y-3 rounded-xl border border-gray-700/80 bg-gray-900 p-5"
     >
       <h3 className="font-semibold text-white">{m.apply}</h3>
       <p className="text-sm text-gray-400">{m.applyHint}</p>
@@ -405,7 +405,7 @@ export default function MyConnectionsPage() {
               {offers.map((o) => (
                 <li
                   key={o.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900 px-4 py-3"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-gray-700/80 bg-gray-900 px-4 py-3"
                 >
                   <span className="min-w-0 truncate text-sm text-gray-100">
                     {o.title}
@@ -442,7 +442,7 @@ export default function MyConnectionsPage() {
             {me?.memberships.map(({ org, role }) => (
               <div
                 key={org.id}
-                className="rounded-xl border border-gray-800 bg-gray-900 p-4"
+                className="rounded-xl border border-gray-700/80 bg-gray-900 p-4"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">

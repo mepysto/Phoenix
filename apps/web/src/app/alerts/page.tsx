@@ -24,6 +24,7 @@ import {
   type PushState,
 } from "@/lib/push";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatMoment } from "@/lib/format";
 import { newId } from "@/lib/sphere";
 import { useAlertStore } from "@/store/alertStore";
 
@@ -134,7 +135,7 @@ function AlertsContent() {
           <p className="mt-2 max-w-xl text-gray-300">{a.intro}</p>
           <p className="mt-1 max-w-xl text-sm text-gray-400">{a.how}</p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-gray-800 bg-gray-900 px-4 py-3">
+          <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-gray-700/80 bg-gray-900 px-4 py-3">
             {perm === "granted" ? (
               <BellRing
                 className="h-5 w-5 text-primary-400"
@@ -168,7 +169,7 @@ function AlertsContent() {
           </div>
 
           <section
-            className="mt-3 rounded-xl border border-gray-800 bg-gray-900 px-4 py-3"
+            className="mt-3 rounded-xl border border-gray-700/80 bg-gray-900 px-4 py-3"
             aria-labelledby="push-title"
           >
             <div className="flex flex-wrap items-center gap-3">
@@ -227,7 +228,7 @@ function AlertsContent() {
               title={a.noRecent}
             />
           ) : (
-            <ul className="mt-3 divide-y divide-gray-800 rounded-xl border border-gray-800 bg-gray-900">
+            <ul className="mt-3 divide-y divide-gray-800 rounded-xl border border-gray-700/80 bg-gray-900">
               {recent.map((r) => (
                 <li key={r.key} className="flex items-start gap-3 px-4 py-3">
                   <BellRing
@@ -247,7 +248,7 @@ function AlertsContent() {
                         .replace("{name}", r.areaName)}{" "}
                       ·{" "}
                       <time dateTime={r.at}>
-                        {new Date(r.at).toLocaleString(lang)}
+                        {formatMoment(r.at, lang)}
                       </time>
                     </p>
                   </div>
@@ -266,7 +267,7 @@ function AlertsContent() {
               {areas.map((area) => (
                 <li
                   key={area.id}
-                  className="flex items-start justify-between gap-2 rounded-xl border border-gray-800 bg-gray-900 px-4 py-3"
+                  className="flex items-start justify-between gap-2 rounded-xl border border-gray-700/80 bg-gray-900 px-4 py-3"
                 >
                   <div>
                     <p className="flex items-center gap-1.5 font-medium text-white">
@@ -297,7 +298,7 @@ function AlertsContent() {
 
           <form
             onSubmit={save}
-            className="space-y-3 rounded-xl border border-gray-800 bg-gray-900 p-5"
+            className="space-y-3 rounded-xl border border-gray-700/80 bg-gray-900 p-5"
           >
             <h3 className="font-semibold text-white">{a.add}</h3>
             <div>

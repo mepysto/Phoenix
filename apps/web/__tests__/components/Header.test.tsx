@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { Header } from "@/components/layout/Header";
 
@@ -36,18 +36,43 @@ describe("Header", () => {
     expect(searchInput.value).toBe("earthquake");
   });
 
-  it("renders navigation links", () => {
+  it("offers four top-level destinations, with the ways to help under Take part", () => {
     render(<Header />);
+    const nav = within(screen.getByRole("banner")).getByRole("navigation");
 
-    expect(screen.getByText("Events")).toBeInTheDocument();
-    expect(screen.getByText("About")).toBeInTheDocument();
+    const links = within(nav).getAllByRole("link").map((a) => [a.textContent, a.getAttribute("href")]);
+    expect(links).toEqual([
+      ["Map", "/"],
+      ["Disasters", "/events"],
+      ["Overview", "/dashboard"],
+    ]);
+    // Secondary pages are not in the main menu any more
+    expect(within(nav).queryByText("About")).not.toBeInTheDocument();
+
+    fireEvent.click(within(nav).getByRole("button", { name: /Take part/ }));
+    expect(within(nav).getByRole("link", { name: /Needs and offers/ })).toHaveAttribute("href", "/connect");
+    expect(within(nav).getByRole("link", { name: /Site planner/ })).toHaveAttribute("href", "/plan");
+    expect(within(nav).getByRole("link", { name: /Design challenges/ })).toHaveAttribute("href", "/challenges");
   });
 
-  it("renders the settings button", () => {
+  it("keeps sign-in, language, settings and about in one account menu", () => {
     render(<Header />);
+    const banner = screen.getByRole("banner");
 
-    // Settings button should exist
-    const buttons = screen.getAllByRole("button");
-    expect(buttons.length).toBeGreaterThan(0);
+    fireEvent.click(within(banner).getByRole("button", { name: "Account" }));
+
+    expect(within(banner).getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
+    expect(within(banner).getByLabelText("Language")).toBeInTheDocument();
+    expect(within(banner).getByRole("link", { name: "Settings" })).toHaveAttribute("href", "/settings");
+    expect(within(banner).getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
+  });
+
+  it("gives phones a four-tab bar with Take part opening the ways to help", () => {
+    render(<Header />);
+    const tabs = document.getElementById("bottom-nav")!;
+
+    expect(within(tabs).getAllByRole("link").map((a) => a.textContent)).toEqual(["Map", "Disasters", "Overview"]);
+    fireEvent.click(within(tabs).getByRole("button", { name: "Take part" }));
+    expect(screen.getByRole("navigation", { name: "Take part" })).toBeInTheDocument();
   });
 });

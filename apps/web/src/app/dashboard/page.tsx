@@ -62,13 +62,13 @@ export default function DashboardPage() {
           {Array.from({ length: 5 }, (_, i) => (
             <div
               key={i}
-              className="h-24 animate-pulse rounded-xl border border-gray-800 bg-gray-900"
+              className="h-24 animate-pulse rounded-xl border border-gray-700/80 bg-gray-900"
             />
           ))}
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className="h-72 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
-          <div className="h-72 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
+          <div className="h-72 animate-pulse rounded-xl border border-gray-700/80 bg-gray-900" />
+          <div className="h-72 animate-pulse rounded-xl border border-gray-700/80 bg-gray-900" />
         </div>
       </div>
     );
@@ -125,7 +125,7 @@ export default function DashboardPage() {
       <div className="space-y-4">
         {/* Hero figure and headline tiles */}
         <div className="grid gap-3 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
-          <div className="rounded-xl border border-gray-800 bg-gray-900 px-5 py-4 sm:col-span-2 lg:col-span-1">
+          <div className="rounded-xl border border-gray-700/80 bg-gray-900 px-5 py-4 sm:col-span-2 lg:col-span-1">
             {hasAffected ? (
               <>
                 <p className="text-xs font-medium text-gray-400">{d.affected}</p>

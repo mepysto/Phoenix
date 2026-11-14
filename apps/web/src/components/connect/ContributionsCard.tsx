@@ -41,7 +41,7 @@ export function ContributionsCard() {
   if (!data) return null;
   return (
     <section
-      className="rounded-xl border border-gray-800 bg-gray-900 p-5"
+      className="rounded-xl border border-gray-700/80 bg-gray-900 p-5"
       aria-labelledby="contrib-title"
     >
       <div className="flex items-baseline justify-between gap-2">
@@ -71,7 +71,7 @@ export function ContributionsCard() {
               }`}
             >
               <Icon
-                className={`h-4 w-4 shrink-0 ${badge.earned ? "text-primary-300" : "text-gray-600"}`}
+                className={`h-4 w-4 shrink-0 ${badge.earned ? "text-primary-300" : "text-gray-500"}`}
                 aria-hidden="true"
               />
               <div className="min-w-0 flex-1">

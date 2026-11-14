@@ -37,7 +37,7 @@ function EventCard({ event }: { event: DisasterEvent }) {
   return (
     <Link
       href={`/events/${event.id}`}
-      className="group flex flex-col rounded-xl border border-gray-800 bg-gray-900 p-4 transition-colors hover:border-gray-700 hover:bg-gray-800/40"
+      className="group flex flex-col rounded-xl border border-gray-700/80 bg-gray-900 p-4 transition-colors hover:border-gray-700 hover:bg-gray-800/40"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -55,7 +55,7 @@ function EventCard({ event }: { event: DisasterEvent }) {
           </div>
         </div>
         <ChevronRight
-          className="h-5 w-5 flex-shrink-0 text-gray-600 transition-transform group-hover:translate-x-0.5 group-hover:text-gray-400 rtl:rotate-180"
+          className="h-5 w-5 flex-shrink-0 text-gray-500 transition-transform group-hover:translate-x-0.5 group-hover:text-gray-400 rtl:rotate-180"
           aria-hidden="true"
         />
       </div>
@@ -238,7 +238,7 @@ function EventsPageContent() {
               {Array.from({ length: 6 }, (_, i) => (
                 <div
                   key={i}
-                  className="h-52 animate-pulse rounded-xl border border-gray-800 bg-gray-900"
+                  className="h-52 animate-pulse rounded-xl border border-gray-700/80 bg-gray-900"
                 />
               ))}
             </div>

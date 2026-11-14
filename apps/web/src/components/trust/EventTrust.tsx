@@ -85,7 +85,7 @@ export function ConfidenceRing({
           y="50%"
           dominantBaseline="central"
           textAnchor="middle"
-          className="rotate-90 fill-gray-100 text-[11px] font-semibold"
+          className="rotate-90 fill-gray-100 text-xs font-semibold"
           style={{ transformOrigin: "center" }}
         >
           {pct}
@@ -127,7 +127,7 @@ export function LifecycleTrack({
               <span
                 aria-current={now ? "step" : undefined}
                 title={t.trust.stages[s]}
-                className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] ${
+                className={`relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs ${
                   done
                     ? "border-primary-400 bg-primary-400 text-gray-950"
                     : now

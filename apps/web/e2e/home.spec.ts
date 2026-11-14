@@ -44,12 +44,14 @@ test.describe("Home Page", () => {
     await page.goto("/");
     await page.waitForSelector('[class*="maplibregl-map"]', { timeout: 15000 });
 
-    const basemapButton = page.getByRole("button", { name: /Satellite|Dark/i });
+    // The map toolbar button; sidebar layers also mention "satellite"
+    const basemapButton = page.getByRole("button", { name: "Satellite", exact: true });
     await expect(basemapButton).toBeVisible();
 
     await basemapButton.click();
 
-    await expect(basemapButton).toBeVisible();
+    // Now offers the way back
+    await expect(page.getByRole("button", { name: "Dark", exact: true })).toBeVisible();
   });
 
   test("should display event markers on the map", async ({ page }) => {
