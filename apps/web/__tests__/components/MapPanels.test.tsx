@@ -23,7 +23,7 @@ const event = (over: Partial<ApiDisasterEvent> = {}) =>
     affectedPopulation: 120000,
     location: { lat: -24, lng: 33, country: "Mozambique", countryCode: "MOZ", region: null },
     displayPoint: { lat: -24, lng: 33, source: "event" },
-    trust: { confidence: 60, band: "medium", sourceCount: 1, lifecycle: "responding", reasons: [] },
+    trust: { confidence: 0.6, band: "medium", sourceCount: 1, lifecycle: "responding", reasons: [] },
     ...over,
   }) as unknown as ApiDisasterEvent;
 

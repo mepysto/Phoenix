@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   compareTileUrl,
+  compareReady,
   defaultCompareDates,
   tileCoords,
   tileGrid,
@@ -35,20 +36,28 @@ describe("tileGrid", () => {
 });
 
 describe("defaultCompareDates", () => {
-  it("brackets the onset", () => {
+  it("compares a week before onset with two days after it", () => {
     const d = defaultCompareDates(
       new Date("2026-03-10T05:00:00Z"),
       new Date("2026-04-01T00:00:00Z"),
     );
-    expect(d).toEqual({ before: "2026-03-09", after: "2026-03-12" });
+    expect(d).toEqual({ before: "2026-03-03", after: "2026-03-12" });
   });
 
-  it("never asks for today's unfinished mosaic", () => {
+  it("never asks for mosaics that are still being assembled", () => {
     const d = defaultCompareDates(
       new Date("2026-03-10T05:00:00Z"),
-      new Date("2026-03-11T08:00:00Z"),
+      new Date("2026-03-12T08:00:00Z"),
     );
     expect(d.after).toBe("2026-03-10");
+  });
+});
+
+describe("compareReady", () => {
+  it("waits until imagery after onset can exist", () => {
+    const start = new Date("2026-03-10T05:00:00Z");
+    expect(compareReady(start, new Date("2026-03-11T05:00:00Z"))).toBe(false);
+    expect(compareReady(start, new Date("2026-03-12T06:00:00Z"))).toBe(true);
   });
 });
 

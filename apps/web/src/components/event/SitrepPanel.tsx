@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, ClipboardCopy, FileText, Printer } from "lucide-react";
-import { viewAPI, type ApiDamageSummary, type ApiDisasterEvent } from "@/lib/api/client";
+import {
+  viewAPI,
+  type ApiDamageSummary,
+  type ApiDisasterEvent,
+} from "@/lib/api/client";
 import { getEventPosition } from "@/lib/eventPosition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { buildSitrep, sitrepToText, type SitrepNearby } from "@/lib/sitrep";
@@ -13,7 +17,13 @@ const NEARBY_KM = 300;
  * Situation report for one event, compiled in the viewer's language from the
  * event and its neighbours. Copy as plain text, or print.
  */
-export function SitrepPanel({ event, damage }: { event: ApiDisasterEvent; damage?: ApiDamageSummary | null }) {
+export function SitrepPanel({
+  event,
+  damage,
+}: {
+  event: ApiDisasterEvent;
+  damage?: ApiDamageSummary | null;
+}) {
   const { t, lang } = useTranslation();
   const [nearby, setNearby] = useState<SitrepNearby[] | null>(null);
   const [copied, setCopied] = useState(false);
@@ -58,7 +68,11 @@ export function SitrepPanel({ event, damage }: { event: ApiDisasterEvent; damage
             lang,
             undefined,
             damage
-              ? { total: damage.total, destroyed: damage.byGrade.destroyed ?? 0, damaged: damage.byGrade.damaged ?? 0 }
+              ? {
+                  total: damage.total,
+                  destroyed: damage.byGrade.destroyed ?? 0,
+                  damaged: damage.byGrade.damaged ?? 0,
+                }
               : null,
           )
         : null,
@@ -130,30 +144,40 @@ export function SitrepPanel({ event, damage }: { event: ApiDisasterEvent; damage
           ))}
         </div>
       ) : (
-        <div className="grid gap-x-8 gap-y-5 p-5 md:grid-cols-2">
-          {report.sections.map((section) => (
-            <div
-              key={section.id}
-              className={section.id === "summary" ? "md:col-span-2" : undefined}
-            >
-              <h3 className="mb-1.5 text-sm font-semibold text-gray-200">
-                {section.heading}
-              </h3>
-              <ul className="space-y-1 text-sm leading-relaxed text-gray-300">
-                {section.lines.map((line, i) => (
-                  <li key={i} className="flex gap-2">
-                    <span
-                      aria-hidden="true"
-                      className={`mt-2 h-1 w-1 shrink-0 rounded-full ${
-                        section.id === "next" ? "bg-primary-400" : "bg-gray-500"
-                      }`}
-                    />
-                    <span>{line}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        <div className="space-y-5 p-5">
+          {/* One column; an impact section that only says "no estimate" is left to the summary cells (UX plan 5.3) */}
+          {report.sections
+            .filter(
+              (section) =>
+                section.lines.length > 0 &&
+                !(
+                  section.id === "impact" &&
+                  section.lines.length === 1 &&
+                  section.lines[0] === t.sitrep.lineNoPopulation
+                ),
+            )
+            .map((section) => (
+              <div key={section.id}>
+                <h3 className="mb-1.5 text-sm font-semibold text-gray-200">
+                  {section.heading}
+                </h3>
+                <ul className="space-y-1 text-sm leading-relaxed text-gray-300">
+                  {section.lines.map((line, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span
+                        aria-hidden="true"
+                        className={`mt-2 h-1 w-1 shrink-0 rounded-full ${
+                          section.id === "next"
+                            ? "bg-primary-400"
+                            : "bg-gray-500"
+                        }`}
+                      />
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
         </div>
       )}
       <p className="border-t border-gray-800 px-5 py-3 text-xs text-gray-400">
