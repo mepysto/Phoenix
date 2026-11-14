@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from src.api.v1 import (
+    places,
     admin,
     agent,
     auth,
@@ -150,6 +151,7 @@ app.include_router(plans.router, prefix="/api/v1/plans", tags=["Plans"])
 app.include_router(push.router, prefix="/api/v1/push", tags=["Push"])
 app.include_router(challenges.router, prefix="/api/v1/challenges", tags=["Challenges"])
 app.include_router(stats.router, prefix="/api/v1/stats", tags=["Stats"])
+app.include_router(places.router, prefix="/api/v1/places", tags=["Places"])
 app.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
 app.include_router(
     admin.router,

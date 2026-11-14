@@ -859,6 +859,16 @@ export interface Translations {
     timelineMenu: string;
     planChecklist: string;
     planSettings: string;
+    placeSearchLabel: string;
+    placeSearchPlaceholder: string;
+    placeNoMatch: string;
+    placeAttribution: string;
+    planStartPlace: string;
+    notifyTitle: string;
+    notifyOpenTitle: string;
+    notifyOpenBody: string;
+    notifyClosedTitle: string;
+    notifyOn: string;
     viewMode: string;
     actions: string;
     updated: string;

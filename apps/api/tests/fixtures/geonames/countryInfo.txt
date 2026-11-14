@@ -1,0 +1,6 @@
+#ISO	ISO3	ISO-Numeric	fips	Country	Capital	Area(in sq km)	Population	Continent	tld	CurrencyCode	CurrencyName	Phone	Postal Code Format	Postal Code Regex	Languages	geonameid	neighbours	EquivalentFipsCode
+ES	ESP	724	SP	Spain	Madrid	504782	49355143	EU	.es	EUR	Euro	34	#####	^(\d{5})$	es-ES,ca,gl,eu,oc	2510769	AD,PT,GI,FR,MA	
+KR	KOR	410	KS	South Korea	Seoul	98480	51684564	AS	.kr	KRW	Won	82	#####	^(\d{5})$	ko-KR,en	1835841	KP	
+MZ	MOZ	508	MZ	Mozambique	Maputo	801590	35631653	AF	.mz	MZN	Metical	258	####	^(\d{4})$	pt-MZ,vmw	1036973	ZW,TZ,SZ,ZA,ZM,MW	
+VE	VEN	862	VE	Venezuela	Caracas	912050	28516896	SA	.ve	VES	Bolivar Soberano	58	####	^(\d{4})$	es-VE	3625428	GY,BR,CO	
+CN	CHN	156	CH	China	Beijing	9596960	1406585000	AS	.cn	CNY	Yuan Renminbi	86	######	^(\d{6})$	zh-CN,yue,wuu,dta,ug,za	1814991	LA,BT,TJ,KZ,MN,AF,NP,MM,KG,PK,KP,RU,VN,IN	

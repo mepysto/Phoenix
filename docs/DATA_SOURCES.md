@@ -22,6 +22,12 @@ A unit test fails if a registry source is missing from this file.
 | **NASA EONET** | Natural events (wildfires, storms, volcanoes…) | NASA open data (no restrictions) | ✅ | Credit "NASA EONET" requested | 10 min |
 | **Copernicus EMS** Rapid Mapping | Emergency mapping activations (EMSR) | CC BY 4.0 | ✅ | "© European Union, Copernicus Emergency Management Service"; indicate changes | 5 min |
 
+## Place names (loaded into the API database)
+
+| Source | Data | Licence | Commercial | Attribution / conditions | Refresh |
+|---|---|---|---|---|---|
+| **GeoNames** cities5000 | ~70,000 towns and cities (over 5,000 people, or administrative seats) with names in many languages, region and country names; used to search for a place by name (alerts, site planner) | CC BY 4.0 (checked against download.geonames.org/export/dump/readme.txt, November 2026) | ✅ | "GeoNames (CC BY 4.0)", shown under the search results. Loaded by `scripts/import_places.py`; searches never leave the Phoenix server | On re-import |
+
 ## Basemaps
 
 | Source | Used for | Licence | Commercial | Attribution |

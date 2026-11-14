@@ -9,6 +9,8 @@ configureMaplibreWorker(maplibregl);
 
 const SOURCE = "alert-area";
 const EARTH_RADIUS_KM = 6371;
+/** Close enough to see the area's surroundings, far enough to see its radius */
+const AREA_ZOOM = 4;
 
 /** A circle of radiusKm around a point, as a polygon (64 steps) */
 export function circlePolygon(lat: number, lng: number, radiusKm: number, steps = 64): GeoJSON.Feature<GeoJSON.Polygon> {
@@ -84,6 +86,10 @@ export default function AreaPickerMap({
     // A marker must have a position before it joins the map
     if (!marker.current) marker.current = new maplibregl.Marker({ color: "#34d0ac" }).setLngLat([lng, lat]).addTo(m);
     else marker.current.setLngLat([lng, lat]);
+    // A place chosen by name or location may be off screen or a dot on the world map
+    if (!m.getBounds().contains([lng, lat]) || m.getZoom() < AREA_ZOOM) {
+      m.easeTo({ center: [lng, lat], zoom: Math.max(m.getZoom(), AREA_ZOOM) });
+    }
     const draw = () => (m.getSource(SOURCE) as maplibregl.GeoJSONSource | undefined)?.setData(circlePolygon(lat, lng, radiusKm));
     if (m.isStyleLoaded()) draw();
     else m.once("load", draw);
