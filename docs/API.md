@@ -108,6 +108,18 @@ Phoenix 프로젝트의 백엔드 API 명세서입니다. 이 API는 실시간 �
 
 ---
 
+### 2.1.1 장소 이름 검색
+
+`GET /api/v1/places/search?q=서울&limit=8`
+
+장소 이름의 앞부분으로 도시를 찾습니다. 어느 언어로 써도 됩니다(영어·현지어·음역). 데이터는 GeoNames cities5000(CC BY 4.0)이고,
+`scripts/import_places.py`로 DB에 넣습니다. 검색어는 Phoenix 서버 밖으로 나가지 않습니다.
+순서는 이름이 정확히 같은 곳 → 대표 이름이 검색어로 시작하는 곳 → 인구 순입니다. `q`는 2~100자, `limit`은 1~20입니다.
+
+```json
+{ "data": [{ "id": 1835848, "name": "Seoul", "admin1": null, "country": "South Korea", "country_code": "KR", "lat": 37.566, "lng": 126.9784, "population": 10349312 }], "attribution": "GeoNames (CC BY 4.0)" }
+```
+
 ### 2.2 이벤트 상세 조회
 
 `GET /api/v1/events/{id}`

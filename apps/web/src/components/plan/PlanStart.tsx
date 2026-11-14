@@ -5,7 +5,8 @@ import Link from "next/link";
 import { Map as MapIcon, Search } from "lucide-react";
 import { SeverityBadge } from "@/components/event/Badges";
 import { EventTypeIcon } from "@/components/event/EventTypeIcon";
-import { eventsAPI, type ApiDisasterEvent } from "@/lib/api/client";
+import { eventsAPI, type ApiDisasterEvent, type ApiPlace } from "@/lib/api/client";
+import { PlaceSearch } from "@/components/ui/PlaceSearch";
 import { placeName } from "@/lib/eventPlace";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
@@ -15,7 +16,7 @@ const SHOWN = 8;
  * Before planning: which disaster is this site for? (UX plan A-02). Picking
  * one opens the planner at its location; an empty map stays possible.
  */
-export function PlanStart({ onBlank }: { onBlank: () => void }) {
+export function PlanStart({ onBlank, onPlace }: { onBlank: () => void; onPlace: (place: ApiPlace) => void }) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [events, setEvents] = useState<ApiDisasterEvent[] | null>(null);
@@ -73,6 +74,10 @@ export function PlanStart({ onBlank }: { onBlank: () => void }) {
           ))}
           {events?.length === 0 && <li className="text-sm text-gray-400">{t.events.noEvents}</li>}
         </ul>
+
+        <div className="mt-8 max-w-md">
+          <PlaceSearch label={t.ux.planStartPlace} onPick={onPlace} />
+        </div>
 
         <button type="button" onClick={onBlank} className="btn-ghost mt-6">
           <MapIcon className="h-4 w-4" aria-hidden="true" />

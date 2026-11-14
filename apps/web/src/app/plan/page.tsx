@@ -21,6 +21,7 @@ import {
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { PlanStart } from "@/components/plan/PlanStart";
+import { placeLabel } from "@/components/ui/PlaceSearch";
 import { KIND_COLORS } from "@/components/plan/kindColors";
 import { PlanSaveBar } from "@/components/plan/PlanSaveBar";
 import { plansAPI, type PlanOut } from "@/lib/api/community";
@@ -139,6 +140,8 @@ function Planner() {
   // Without a disaster, a saved plan or a shared one, ask which disaster first (UX plan A-02)
   const [blank, setBlank] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  /** A town or city chosen on the start screen, when the plan is not for a disaster */
+  const [placeTitle, setPlaceTitle] = useState<string | null>(null);
   const [sharedInHash] = useState(
     () => typeof window !== "undefined" && /plan=/.test(window.location.hash),
   );
@@ -259,7 +262,18 @@ function Planner() {
     }
   };
 
-  if (chooseFirst) return <PlanStart onBlank={() => setBlank(true)} />;
+  if (chooseFirst)
+    return (
+      <PlanStart
+        onBlank={() => setBlank(true)}
+        onPlace={(place) => {
+          setCenter({ lat: place.lat, lng: place.lng });
+          setPlaceTitle(placeLabel(place));
+          setBlank(true);
+          setFitSignal((n) => n + 1);
+        }}
+      />
+    );
 
   return (
     // Phones: the map fills the screen and the panel is a sheet over its bottom (UX plan 5.4)
@@ -283,6 +297,12 @@ function Planner() {
             <span className="text-gray-400">{t.ux.planFor} · </span>
             <span className="font-semibold">{eventTitle}</span>
           </Link>
+        )}
+        {!eventId && placeTitle && (
+          <p className="hud-panel absolute end-16 start-3 top-3 z-10 truncate rounded-lg px-3 py-2 text-sm text-gray-100 lg:end-auto lg:start-1/2 lg:max-w-[calc(100%-6rem)] lg:-translate-x-1/2">
+            <span className="text-gray-400">{t.ux.planFor} · </span>
+            <span className="font-semibold">{placeTitle}</span>
+          </p>
         )}
         <div
           role="toolbar"
@@ -321,7 +341,7 @@ function Planner() {
           })}
         </div>
         <p
-          className={`hud-panel pointer-events-none absolute end-16 start-3 rounded-lg px-3 py-2 text-xs text-gray-300 lg:bottom-3 lg:end-auto lg:top-auto lg:max-w-sm ${eventTitle ? "top-16" : "top-3"}`}
+          className={`hud-panel pointer-events-none absolute end-16 start-3 rounded-lg px-3 py-2 text-xs text-gray-300 lg:bottom-3 lg:end-auto lg:top-auto lg:max-w-sm ${eventTitle || placeTitle ? "top-16" : "top-3"}`}
         >
           <span className="font-semibold text-white lg:hidden">
             {tool === "remove" ? t.plan.remove : t.plan.kinds[tool]}:{" "}

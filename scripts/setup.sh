@@ -214,6 +214,14 @@ database_dev() {
   (cd "$API_DIR" && .venv/bin/python -m scripts.migrate)
   ok "Schema is current"
 
+  # Place-name search (GeoNames, CC BY 4.0): ~6 MB download, once
+  info "Loading place names for search"
+  if (cd "$API_DIR" && .venv/bin/python -m scripts.import_places --if-empty); then
+    ok "Place names ready"
+  else
+    warn "Could not load place names; search by place is off until: (cd apps/api && .venv/bin/python -m scripts.import_places)"
+  fi
+
   if [[ "$SEED" == 1 ]]; then
     info "Loading sample events"
     (cd "$API_DIR" && .venv/bin/python -m scripts.seed_data)
@@ -243,6 +251,9 @@ deploy_prod() {
   wait_healthy phoenix-api 240 || die "The API did not become healthy; see: docker logs phoenix-api"
   wait_healthy phoenix-web 180 || die "The web app did not become healthy; see: docker logs phoenix-web"
   ok "Phoenix is running behind Caddy"
+  compose exec -T api python -m scripts.import_places --if-empty \
+    && ok "Place names ready" \
+    || warn "Could not load place names; run later: docker compose exec api python -m scripts.import_places"
   [[ "$SEED" == 1 ]] && compose exec -T api python -m scripts.seed_data && ok "Sample data loaded"
 
   cat <<EOF

@@ -29,6 +29,7 @@ if config.config_file_name is not None:
 from src.db.database import Base
 from src.models.admin_area import AdminArea  # noqa: F401
 from src.models.fire import FireDetection  # noqa: F401
+from src.models.place import Place, PlaceName  # noqa: F401
 from src.models.infrastructure import InfrastructureAsset  # noqa: F401
 from src.models.event import (  # noqa: F401
     DataSource,

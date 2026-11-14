@@ -1422,6 +1422,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/places/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Places
+         * @description Places whose name in any language starts with `q`.
+         *
+         *     Order: an exact name, then places whose main name starts with `q`, then
+         *     by population.
+         */
+        get: operations["search_places_api_v1_places_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/status": {
         parameters: {
             query?: never;
@@ -2822,6 +2845,35 @@ export interface components {
             offset: number;
             /** Has More */
             has_more: boolean;
+        };
+        /** PlaceOut */
+        PlaceOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Admin1 */
+            admin1: string | null;
+            /** Country */
+            country: string | null;
+            /** Country Code */
+            country_code: string;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Population */
+            population: number;
+        };
+        /** PlaceSearchResponse */
+        PlaceSearchResponse: {
+            /** Data */
+            data: components["schemas"]["PlaceOut"][];
+            /**
+             * Attribution
+             * @default GeoNames (CC BY 4.0)
+             */
+            attribution: string;
         };
         /** PlanContent */
         PlanContent: {
@@ -5938,6 +5990,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OverviewStats"];
+                };
+            };
+        };
+    };
+    search_places_api_v1_places_search_get: {
+        parameters: {
+            query: {
+                /** @description Start of a place name, any language */
+                q: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceSearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

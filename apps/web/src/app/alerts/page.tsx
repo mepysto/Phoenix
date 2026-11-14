@@ -26,6 +26,7 @@ import {
 } from "@/lib/push";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { DisasterPick } from "@/components/alerts/DisasterPick";
+import { PlaceSearch } from "@/components/ui/PlaceSearch";
 
 // Map in a dynamic import: MapLibre needs the browser
 const AreaPickerMap = dynamic(() => import("@/components/alerts/AreaPickerMap"), {
@@ -143,86 +144,87 @@ function AlertsContent() {
           <p className="mt-2 max-w-xl text-gray-300">{a.intro}</p>
           <p className="mt-1 max-w-xl text-sm text-gray-400">{a.how}</p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-gray-700/80 bg-gray-900 px-4 py-3">
-            {perm === "granted" ? (
-              <BellRing
-                className="h-5 w-5 text-primary-400"
-                aria-hidden="true"
-              />
-            ) : (
-              <BellOff className="h-5 w-5 text-gray-500" aria-hidden="true" />
-            )}
-            <span className="flex-1 text-sm text-gray-200">
-              {a.notifications}:{" "}
-              <span className="text-gray-400">
-                {perm === "granted"
-                  ? a.enabled
-                  : perm === "denied"
-                    ? a.blocked
-                    : perm === "unsupported"
-                      ? a.unsupported
-                      : ""}
-              </span>
-            </span>
-            {perm === "default" && (
-              <button
-                type="button"
-                className="btn-primary py-1.5 text-xs"
-                onClick={() => void askPermission()}
-              >
-                <Bell className="h-3.5 w-3.5" aria-hidden="true" />
-                {a.enable}
-              </button>
-            )}
-          </div>
-
+          {/* One place for both ways of being told, each saying what it does (UX plan 5.4) */}
           <section
-            className="mt-3 rounded-xl border border-gray-700/80 bg-gray-900 px-4 py-3"
-            aria-labelledby="push-title"
+            aria-labelledby="notify-title"
+            className="mt-6 divide-y divide-gray-800 rounded-xl border border-gray-700/80 bg-gray-900"
           >
-            <div className="flex flex-wrap items-center gap-3">
-              <h2
-                id="push-title"
-                className="flex-1 text-sm font-medium text-gray-100"
-              >
-                {t.push.title}
-              </h2>
-              {(push === "on" || push === "off" || push === "busy") && (
-                <button
-                  type="button"
-                  className={
-                    push === "on"
-                      ? "btn-ghost py-1.5 text-xs"
-                      : "btn-primary py-1.5 text-xs"
-                  }
-                  disabled={
-                    push === "busy" || (push === "off" && areas.length === 0)
-                  }
-                  aria-pressed={push === "on"}
-                  onClick={() => void togglePush()}
-                >
-                  {push === "on" ? t.push.off : t.push.on}
+            <h2 id="notify-title" className="px-4 pb-2 pt-3 text-sm font-semibold text-gray-100">
+              {t.ux.notifyTitle}
+            </h2>
+            <div className="flex flex-wrap items-start gap-3 px-4 py-3">
+              {perm === "granted" ? (
+                <BellRing className="mt-0.5 h-5 w-5 shrink-0 text-primary-400" aria-hidden="true" />
+              ) : (
+                <BellOff className="mt-0.5 h-5 w-5 shrink-0 text-gray-500" aria-hidden="true" />
+              )}
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-medium text-gray-100">{t.ux.notifyOpenTitle}</h3>
+                <p className="mt-0.5 text-sm text-gray-400">
+                  {perm === "denied" ? a.blocked : perm === "unsupported" ? a.unsupported : t.ux.notifyOpenBody}
+                </p>
+              </div>
+              {perm === "granted" && (
+                <span className="rounded-full bg-primary-400/15 px-2.5 py-1 text-sm font-medium text-primary-200">
+                  {t.ux.notifyOn}
+                </span>
+              )}
+              {perm === "default" && (
+                <button type="button" className="btn-primary py-1.5" onClick={() => void askPermission()}>
+                  <Bell className="h-4 w-4" aria-hidden="true" />
+                  {t.push.on}
                 </button>
               )}
             </div>
-            <p className="mt-1 text-xs text-gray-400">
-              {push === "on"
-                ? t.push.isOn.replace("{n}", String(areas.length))
-                : push === "unavailable"
-                  ? t.push.unavailable
-                  : push === "unsupported"
-                    ? t.push.unsupported
-                    : push === "blocked"
-                      ? a.blocked
-                      : areas.length === 0
-                        ? t.push.needArea
-                        : t.push.body}
-            </p>
-            {pushError && (
-              <p role="alert" className="mt-1 text-xs text-ember-300">
-                {t.push.failed}
-              </p>
-            )}
+            <div className="flex flex-wrap items-start gap-3 px-4 py-3">
+              <BellRing
+                className={`mt-0.5 h-5 w-5 shrink-0 ${push === "on" ? "text-primary-400" : "text-gray-500"}`}
+                aria-hidden="true"
+              />
+              <div className="min-w-0 flex-1">
+                <h3 id="push-title" className="text-sm font-medium text-gray-100">
+                  {t.ux.notifyClosedTitle}
+                </h3>
+                <p className="mt-0.5 text-sm text-gray-400">
+                  {push === "on"
+                    ? t.push.isOn.replace("{n}", String(areas.length))
+                    : push === "unavailable"
+                      ? t.push.unavailable
+                      : push === "unsupported"
+                        ? t.push.unsupported
+                        : push === "blocked"
+                          ? a.blocked
+                          : areas.length === 0
+                            ? `${t.push.body} ${t.push.needArea}`
+                            : t.push.body}
+                </p>
+                {pushError && (
+                  <p role="alert" className="mt-1 text-sm text-ember-300">
+                    {t.push.failed}
+                  </p>
+                )}
+              </div>
+              {(push === "on" || push === "off" || push === "busy") && (
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={push === "on"}
+                  aria-labelledby="push-title"
+                  disabled={push === "busy" || (push === "off" && areas.length === 0)}
+                  onClick={() => void togglePush()}
+                  className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                    push === "on" ? "bg-primary-500" : "bg-gray-700"
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[inset-inline-start] ${
+                      push === "on" ? "start-[1.375rem]" : "start-0.5"
+                    }`}
+                  />
+                </button>
+              )}
+            </div>
           </section>
 
           <h2 className="mt-8 text-sm font-semibold text-gray-300">
@@ -322,7 +324,14 @@ function AlertsContent() {
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            {/* Choose the place without typing numbers (UX plan A-05) */}
+            {/* Choose the place without typing numbers (UX plan A-05): by name, on the map, or nearby */}
+            <PlaceSearch
+              onPick={(place) => {
+                setLat(place.lat.toFixed(2));
+                setLng(place.lng.toFixed(2));
+                if (!name.trim()) setName(place.name);
+              }}
+            />
             <div>
               <p className="field-label">{t.ux.alertsPickOnMap}</p>
               <AreaPickerMap

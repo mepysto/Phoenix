@@ -1,0 +1,4 @@
+VE.07	Carabobo	Carabobo	3646751
+KR.11	Seoul	Seoul	1835847
+ES.60	Valencia	Valencia	2593113
+MZ.11	Maputo City	Maputo City	1105845

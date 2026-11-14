@@ -445,7 +445,9 @@ PRD 4장의 페르소나를 과업으로 바꾼 것이다. 각 흐름은 3번 �
 > 세 하위 메뉴를 펼친다). Plan은 재난도 저장된 계획도 공유 링크도 없으면 `PlanStart`(재난 고르기 또는 빈 지도)를 먼저 보여 주고,
 > 재난이 정해지면 지도 위에 "부지 계획 대상 · 재난 이름"을 띄운다. 점검표는 아무것도 놓기 전 "시작 전", 이후 "충족"(초록)·"부족"(주황)이다.
 > Alerts는 작은 지도를 눌러 중심을 고르거나(`components/alerts/AreaPickerMap.tsx`) 재난 위치를 쓸 수 있고, 좌표 입력은 접혀 있다.
-> 장소 이름 검색(지오코딩)은 외부 서비스가 필요해 넣지 않았다. 알림 켜기 두 단계를 하나로 합치는 일은 남아 있다.
+> 후속 (2026-11-14, `feat/alerts-places`): 장소 이름 검색을 추가했다. GeoNames cities5000(CC BY 4.0)을 API DB에 넣고
+> (`scripts/import_places.py`, `GET /api/v1/places/search`) Alerts와 Plan 시작 화면에서 쓴다(`components/ui/PlaceSearch.tsx`). 검색어는 서버 밖으로
+> 나가지 않는다. 알림 켜기 두 단계는 "알림 받는 방식" 한 묶음으로 합쳤다.
 
 - `/act` 신설, Connect 빈 상태, Plan 시작 화면과 점검표 상태, Alerts 지역 선택, Challenges 빈 상태.
 - 완료 조건: 재난 상세 → `부지 설계`를 누르면 그 재난 위치에서 Plan이 열리고 화면에 재난 이름이 보인다.

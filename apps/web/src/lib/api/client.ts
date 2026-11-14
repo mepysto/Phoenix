@@ -488,3 +488,17 @@ export const healthAPI = {
 };
 
 export { client, APIError };
+
+export type ApiPlace = CamelCaseKeys<components["schemas"]["PlaceOut"]>;
+
+/** Town and city names (GeoNames, CC BY 4.0), searched on the Phoenix server */
+export const placesAPI = {
+  search: async (q: string, signal?: AbortSignal): Promise<ApiPlace[]> => {
+    const { data, response } = await client.GET("/api/v1/places/search", {
+      params: { query: { q, limit: 8 } },
+      signal,
+    });
+    if (!response.ok) throw new APIError(response.status, "Failed to search places");
+    return (data as unknown as { data: ApiPlace[] }).data;
+  },
+};
