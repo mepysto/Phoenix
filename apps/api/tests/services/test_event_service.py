@@ -116,7 +116,7 @@ class TestEventServiceListEvents:
         await event_service.list_events(filters, limit=50, offset=0)
 
         event_service.event_repo.list_events.assert_called_once_with(
-            filters, 50, 0, with_sources=True
+            filters, 50, 0, with_sources=True, sort="recent"
         )
 
     @pytest.mark.asyncio

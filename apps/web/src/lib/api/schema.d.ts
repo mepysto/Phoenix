@@ -44,6 +44,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/events/facets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Event Facets
+         * @description Counts by type and by severity for the list's filter chips.
+         *
+         *     Declared before /{event_id} so "facets" is not parsed as a UUID.
+         */
+        get: operations["event_facets_api_v1_events_facets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/events/timeline": {
         parameters: {
             query?: never;
@@ -2084,6 +2106,21 @@ export interface components {
              */
             metrics: components["schemas"]["EventMetricResponse"][];
         };
+        /**
+         * EventFacets
+         * @description How many events each filter choice gives, under the other filters.
+         *
+         *     Lists rather than maps: clients rewrite JSON keys (snake_case to
+         *     camelCase), which would mangle values such as complex_emergency.
+         */
+        EventFacets: {
+            /** Total */
+            total: number;
+            /** By Type */
+            by_type: components["schemas"]["FacetCount"][];
+            /** By Severity */
+            by_severity: components["schemas"]["FacetCount"][];
+        };
         /** EventListResponse */
         EventListResponse: {
             /** Data */
@@ -2173,6 +2210,13 @@ export interface components {
          * @enum {string}
          */
         EventType: "earthquake" | "flood" | "wildfire" | "hurricane" | "tsunami" | "volcano" | "war" | "pollution" | "drought" | "other" | "landslide" | "industrial" | "epidemic" | "storm" | "coldwave" | "heatwave" | "complex_emergency";
+        /** FacetCount */
+        FacetCount: {
+            /** Value */
+            value: string;
+            /** Count */
+            count: number;
+        };
         /** FlyTo */
         FlyTo: {
             /**
@@ -3384,6 +3428,8 @@ export interface operations {
                 at?: string | null;
                 limit?: number;
                 offset?: number;
+                /** @description recent: newest first; importance: severity, then people affected, then newest; affected: most people affected first */
+                sort?: "recent" | "importance" | "affected";
             };
             header?: never;
             path?: never;
@@ -3398,6 +3444,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    event_facets_api_v1_events_facets_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                types?: components["schemas"]["EventType"][] | null;
+                severities?: components["schemas"]["SeverityLevel"][] | null;
+                start_date?: string | null;
+                is_active?: boolean | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventFacets"];
                 };
             };
             /** @description Validation Error */
@@ -3665,6 +3746,9 @@ export interface operations {
                 severities?: components["schemas"]["SeverityLevel"][] | null;
                 /** @description Events ongoing at this time */
                 at?: string | null;
+                q?: string | null;
+                /** @description Events that began at or after this time */
+                start_date?: string | null;
             };
             header?: never;
             path?: never;
@@ -3703,6 +3787,9 @@ export interface operations {
                 severities?: components["schemas"]["SeverityLevel"][] | null;
                 /** @description Events ongoing at this time */
                 at?: string | null;
+                q?: string | null;
+                /** @description Events that began at or after this time */
+                start_date?: string | null;
             };
             header?: never;
             path?: never;

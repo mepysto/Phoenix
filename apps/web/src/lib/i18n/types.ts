@@ -121,6 +121,23 @@ export interface Translations {
     active: string;
     location: string;
     severity: string;
+    sort: string;
+    sortImportance: string;
+    sortRecent: string;
+    sortAffected: string;
+    period: string;
+    period1: string;
+    period7: string;
+    period30: string;
+    periodAll: string;
+    showing: string;
+    loadMore: string;
+    moreTypes: string;
+    fewerTypes: string;
+    searchLabel: string;
+    mapFilters: string;
+    searchChip: string;
+    removeFilter: string;
   };
   map: {
     globe3d: string;

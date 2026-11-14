@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
-import { isActiveItem, isGroup, primaryNav, type NavGroup } from "./nav";
+import { followWithFilters, isActiveItem, isGroup, primaryNav, type NavGroup } from "./nav";
 
 const TAB =
   "flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium transition-colors";
@@ -58,6 +58,7 @@ function TakePartSheet({ group, onClose }: { group: NavGroup; onClose: () => voi
 export function BottomNav() {
   const { t } = useTranslation();
   const pathname = usePathname();
+  const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
   useEffect(() => setSheetOpen(false), [pathname]);
 
@@ -97,6 +98,7 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={(e) => followWithFilters(e, item.href, pathname, router.push)}
               aria-current={active ? "page" : undefined}
               className={`${TAB} ${tone}`}
             >

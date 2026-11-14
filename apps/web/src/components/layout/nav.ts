@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Translations } from "@/lib/i18n/types";
+import { sharedFilterQuery } from "@/lib/eventQuery";
 
 /**
  * Site navigation (docs/UX_REDESIGN_PLAN.md 4.1): four top-level items,
@@ -57,4 +58,28 @@ export function isActiveItem(pathname: string | null, item: NavItem): boolean {
   return isGroup(item)
     ? item.items.some((link) => isActivePath(pathname, link.href))
     : isActivePath(pathname, item.href);
+}
+
+/** Pages that share event filters in the URL (UX plan 4.2) */
+const FILTER_PAGES = ["/", "/events"];
+
+/** Where a nav link should go: between the map and the list, the filters come along */
+export function withSharedFilters(href: string, pathname: string | null, search: string): string {
+  if (!FILTER_PAGES.includes(href) || !FILTER_PAGES.includes(pathname ?? "")) return href;
+  const qs = sharedFilterQuery(search);
+  return qs ? `${href}?${qs}` : href;
+}
+
+/** onClick for a nav <Link>: follow with the current filters when they apply */
+export function followWithFilters(
+  e: React.MouseEvent<HTMLAnchorElement>,
+  href: string,
+  pathname: string | null,
+  push: (url: string) => void,
+): void {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; // new tab etc.
+  const to = withSharedFilters(href, pathname, window.location.search);
+  if (to === href) return;
+  e.preventDefault();
+  push(to);
 }

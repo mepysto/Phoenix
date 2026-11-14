@@ -1,9 +1,9 @@
 "use client";
 
 import { severityColor } from "@/lib/severity";
-import { EVENT_TYPE_COLORS } from "@phoenix/shared/constants";
 import type { EventType, SeverityLevel } from "@phoenix/shared/types";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { EventTypeIcon } from "./EventTypeIcon";
 
 /*
  * Event badges share one shape: neutral surface, readable text, and the
@@ -13,15 +13,12 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 const badge =
   "inline-flex items-center gap-1.5 rounded-full border border-gray-700/70 bg-gray-800/60 px-2 py-0.5 text-xs font-medium text-gray-200";
 
+/** Type: its icon (the one on the map marker) and name; colour is kept for severity */
 export function TypeBadge({ type }: { type: string }) {
   const { t } = useTranslation();
   return (
     <span className={badge}>
-      <span
-        aria-hidden="true"
-        className="h-1.5 w-1.5 rounded-full"
-        style={{ backgroundColor: EVENT_TYPE_COLORS[type as EventType] ?? "#8B9BB5" }}
-      />
+      <EventTypeIcon type={type} className="h-3.5 w-3.5 text-gray-300" />
       {t.sidebar[type as EventType] ?? type}
     </span>
   );

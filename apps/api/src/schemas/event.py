@@ -179,6 +179,23 @@ class TimelineBucket(BaseModel):
     by_type: dict[str, int]
 
 
+class FacetCount(BaseModel):
+    value: str
+    count: int
+
+
+class EventFacets(BaseModel):
+    """How many events each filter choice gives, under the other filters.
+
+    Lists rather than maps: clients rewrite JSON keys (snake_case to
+    camelCase), which would mangle values such as complex_emergency.
+    """
+
+    total: int
+    by_type: list[FacetCount]
+    by_severity: list[FacetCount]
+
+
 class TimelineResponse(BaseModel):
     bucket: Literal["hour", "day", "week"]
     start: datetime

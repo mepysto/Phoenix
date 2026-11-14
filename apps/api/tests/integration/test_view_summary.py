@@ -92,3 +92,11 @@ def test_nearby_validates_input(client):
     assert client.get(NEARBY, params={"lat": 91, "lng": 0}).status_code == 422
     assert client.get(NEARBY, params={"lat": 0, "lng": 0, "radius_km": 0}).status_code == 422
     assert client.get(NEARBY, params={"lat": 0, "lng": 0, "limit": 51}).status_code == 422
+
+
+def test_summary_and_nearby_follow_search_and_period(client):
+    # The map's "in view" card must agree with a search or period from the list (UX plan 4.2)
+    assert client.get(SUMMARY, params={"q": "quake"}).json()["total"] == 2
+    assert client.get(SUMMARY, params={"start_date": "2026-09-02T00:00:00Z"}).json()["total"] == 0
+    near = client.get(NEARBY, params={"lat": 35.68, "lng": 139.76, "radius_km": 200, "q": "flood"}).json()
+    assert [item["event"]["title"] for item in near["data"]] == ["yokohama flood"]

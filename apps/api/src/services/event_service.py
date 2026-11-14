@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.utils.trust import compute_trust
 from src.models.event import Event
-from src.repositories.event_repository import EventRepository
+from src.repositories.event_repository import EventRepository, EventSort
 from src.repositories.event_view_repository import EventViewRepository
 from src.schemas.event import (
     DataSourceRef,
@@ -39,7 +39,7 @@ class EventService:
         self.event_repo = EventRepository(session)
 
     async def list_events(
-        self, filters: EventFilter, limit: int, offset: int
+        self, filters: EventFilter, limit: int, offset: int, sort: EventSort = "recent"
     ) -> EventListResponse:
         """List events from DB with filtering and pagination.
 
@@ -53,7 +53,7 @@ class EventService:
         """
         # Use with_sources=True to eagerly load sources and avoid N+1
         events, total = await self.event_repo.list_events(
-            filters, limit, offset, with_sources=True
+            filters, limit, offset, with_sources=True, sort=sort
         )
 
         data = [self._to_response(event) for event in events]

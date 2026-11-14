@@ -21,6 +21,7 @@ import { RoutePlanner } from "@/components/map/RoutePlanner";
 import { Timeline } from "@/components/map/Timeline";
 import { ViewSummary } from "@/components/map/ViewSummary";
 import { IntroGlobe } from "@/components/brand/IntroGlobe";
+import { MapFilterChips } from "@/components/map/MapFilterChips";
 import { PhoenixMark } from "@/components/brand/PhoenixMark";
 
 const MapEngineWrapper = dynamic(
@@ -121,6 +122,7 @@ function MapPageContent() {
           }}
         />
         </div>
+        <MapFilterChips />
         {/* A fresh object so picking the same event again flies there again */}
         <ViewSummary onSelect={(event) => setFocusEvent({ ...event })} />
       </div>

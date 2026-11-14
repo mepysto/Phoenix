@@ -62,7 +62,8 @@ def create_mock_event_service(events: list[EventResponse] | None = None) -> Magi
 
     service = MagicMock(spec=EventService)
 
-    async def mock_list_events(filters, limit, offset):
+    async def mock_list_events(filters, limit, offset, sort="recent"):
+        service.last_sort = sort
         filtered = events
         if filters.types:
             filtered = [e for e in filtered if e.type in filters.types]
@@ -372,3 +373,19 @@ class TestInputValidation:
             params={"start_date": "2026-09-01T00:00:00Z", "end_date": "2026-09-24"},
         )
         assert response.status_code == 200
+
+
+class TestListEventsSort:
+    """The list order is chosen by the caller (UX plan 5.2)"""
+
+    def test_sort_defaults_to_recent_and_is_passed_through(
+        self, client_with_mock_service: TestClient, mock_service: MagicMock
+    ) -> None:
+        assert client_with_mock_service.get("/api/v1/events").status_code == 200
+        assert mock_service.last_sort == "recent"
+
+        assert client_with_mock_service.get("/api/v1/events?sort=importance").status_code == 200
+        assert mock_service.last_sort == "importance"
+
+    def test_unknown_sort_is_rejected(self, client_with_mock_service: TestClient) -> None:
+        assert client_with_mock_service.get("/api/v1/events?sort=loudest").status_code == 422

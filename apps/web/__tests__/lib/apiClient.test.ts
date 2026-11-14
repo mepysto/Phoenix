@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { defaultApiUrl } from "@/lib/api/client";
+import { defaultApiUrl, facetsFromApi, transformKeys } from "@/lib/api/client";
 
 describe("defaultApiUrl", () => {
   afterEach(() => {
@@ -27,5 +27,19 @@ describe("defaultApiUrl", () => {
     vi.stubGlobal("window", undefined);
 
     expect(defaultApiUrl()).toBe("http://localhost:23180");
+  });
+});
+
+describe("facetsFromApi", () => {
+  it("keeps snake_case type names intact through the camel-casing middleware", () => {
+    const raw = {
+      total: 3,
+      by_type: [{ value: "complex_emergency", count: 2 }, { value: "flood", count: 1 }],
+      by_severity: [{ value: "high", count: 3 }],
+    };
+    const facets = facetsFromApi(transformKeys(raw));
+    expect(facets.byType).toEqual({ complex_emergency: 2, flood: 1 });
+    expect(facets.bySeverity).toEqual({ high: 3 });
+    expect(facets.total).toBe(3);
   });
 });

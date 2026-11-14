@@ -8,6 +8,7 @@ import {
   type MapUrlState,
   type MapView,
 } from "@/lib/map/urlState";
+import { parseEventQuery, periodStart } from "@/lib/eventQuery";
 import { useEventStore } from "@/store/eventStore";
 import { useMapStore } from "@/store/mapStore";
 import { useSettingsStore } from "@/store/settingsStore";
@@ -69,8 +70,9 @@ export function useMapUrlState(): {
     const events = useEventStore.getState();
     events.setVisibility(initial.types, initial.severities);
     useTimelineStore.getState().setAt(initial.at ?? null);
-    // Also clears a text search carried over from /events (and fetches)
-    events.setFilter({ q: undefined, at: initial.at });
+    // Search and period travel with the link from the disaster list (UX plan 4.2)
+    const shared = parseEventQuery(new URLSearchParams(window.location.search));
+    events.setFilter({ q: shared.q, startDate: periodStart(shared.period), at: initial.at });
   }, [initial]);
 
   useEffect(() => {

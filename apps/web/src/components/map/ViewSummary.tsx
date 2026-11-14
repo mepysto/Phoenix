@@ -29,6 +29,9 @@ export function ViewSummary({ onSelect }: ViewSummaryProps) {
   const visibleTypes = useEventStore((s) => s.visibleTypes);
   const visibleSeverities = useEventStore((s) => s.visibleSeverities);
   const at = useEventStore((s) => s.filter.at);
+  // A search or period from the disaster list filters the map; count the same events
+  const q = useEventStore((s) => s.filter.q);
+  const startDate = useEventStore((s) => s.filter.startDate);
   // Live changes arrive through the event list; its size is a cheap refresh trigger
   const eventCount = useEventStore((s) => s.events.length);
   const [summary, setSummary] = useState<ApiViewSummary | null>(null);
@@ -41,8 +44,10 @@ export function ViewSummary({ onSelect }: ViewSummaryProps) {
       severities:
         visibleSeverities.size < ALL_SEVERITIES.length ? [...visibleSeverities] : undefined,
       at,
+      q,
+      startDate,
     }),
-    [visibleTypes, visibleSeverities, at],
+    [visibleTypes, visibleSeverities, at, q, startDate],
   );
 
   useEffect(() => {

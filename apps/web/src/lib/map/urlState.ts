@@ -50,7 +50,7 @@ export function parseView(raw: string | null): MapView | undefined {
   return { lng, lat, zoom, bearing: ((bearing % 360) + 360) % 360, pitch };
 }
 
-function parseList<T extends string>(raw: string | null, allowed: readonly T[]): T[] | undefined {
+export function parseList<T extends string>(raw: string | null, allowed: readonly T[]): T[] | undefined {
   if (raw === null) return undefined;
   const values = raw.split(",").filter((v): v is T => (allowed as readonly string[]).includes(v));
   // Nothing valid (typo, removed type): show everything rather than an empty map

@@ -42,6 +42,22 @@ Phoenix 프로젝트의 백엔드 API 명세서입니다. 이 API는 실시간 �
 | `max_lat`    | `float`         | -      | Bounding Box 최대 위도                                |
 | `limit`      | `integer`       | 50     | 조회 제한 (최대 200)                                  |
 | `offset`     | `integer`       | 0      | 오프셋                                                |
+| `q`          | `string`        | -      | 제목·지역 검색어                                      |
+| `sort`       | `string`        | recent | `recent`(최신순), `importance`(심각도 → 영향 인구 → 최신), `affected`(영향 인구순) |
+
+#### 필터별 건수
+
+`GET /api/v1/events/facets`
+
+목록의 필터 칸에 쓰는 건수입니다. `q`, `types`, `severities`, `start_date`, `is_active`를 받습니다.
+유형별 건수는 유형 필터만 빼고, 심각도별 건수는 심각도 필터만 빼고 셉니다. 그래서 각 칸의 숫자는 "이걸 고르면 몇 건이 나오는지"입니다.
+값은 맵이 아니라 목록으로 옵니다. 클라이언트가 키를 camelCase로 바꿔도 `complex_emergency` 같은 값이 깨지지 않게 하기 위해서입니다.
+
+```json
+{ "total": 280, "by_type": [{ "value": "earthquake", "count": 132 }], "by_severity": [{ "value": "medium", "count": 218 }] }
+```
+
+`GET /api/v1/geodata/summary`와 `/geodata/nearby`도 `q`와 `start_date`를 받아, 지도의 "화면 안" 숫자가 목록과 같은 조건으로 계산됩니다.
 
 #### Response Example (200 OK)
 

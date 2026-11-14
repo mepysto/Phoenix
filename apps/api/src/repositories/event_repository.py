@@ -1,10 +1,10 @@
 """Repository for Event operations."""
 
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, and_, func, or_, select, update
+from sqlalchemy import ColumnElement, and_, case, func, or_, select, update
 from sqlalchemy.orm import selectinload
 
 from src.models.event import Event, EventSource, EventType, GeoPrecision, SeverityLevel
@@ -105,6 +105,33 @@ def event_filter_conditions(filters: EventFilter) -> list[ColumnElement[bool]]:
         )
 
     return conditions
+
+
+EventSort = Literal["recent", "importance", "affected"]
+
+# Explicit ranks: ordering must not depend on how the database enum was declared
+_SEVERITY_RANK = case(
+    (Event.severity == SeverityLevel.critical, 3),
+    (Event.severity == SeverityLevel.high, 2),
+    (Event.severity == SeverityLevel.medium, 1),
+    else_=0,
+)
+
+
+def event_order(sort: EventSort) -> list[Any]:
+    """ORDER BY for the event list (UX plan 5.2).
+
+    importance: most severe first, then most people affected (events without
+    an estimate after those with one), then newest. Ties end on id so pages
+    never overlap.
+    """
+    newest = Event.start_date.desc()
+    people = Event.affected_population.desc().nulls_last()
+    if sort == "importance":
+        return [_SEVERITY_RANK.desc(), people, newest, Event.id]
+    if sort == "affected":
+        return [people, newest, Event.id]
+    return [newest, Event.id]
 
 
 class EventRepository(BaseRepository):
@@ -274,6 +301,7 @@ class EventRepository(BaseRepository):
         limit: int,
         offset: int,
         with_sources: bool = False,
+        sort: EventSort = "recent",
     ) -> tuple[list[Event], int]:
         """List events with filtering and pagination.
 
@@ -304,7 +332,7 @@ class EventRepository(BaseRepository):
             count_stmt = count_stmt.where(condition)
 
         # Order and pagination
-        stmt = stmt.order_by(Event.start_date.desc())
+        stmt = stmt.order_by(*event_order(sort))
         stmt = stmt.limit(limit).offset(offset)
 
         # Execute queries
@@ -315,6 +343,34 @@ class EventRepository(BaseRepository):
         total = count_result.scalar_one()
 
         return events, total
+
+    async def facets(self, filters: EventFilter) -> dict[str, Any]:
+        """Counts behind the list's filter chips.
+
+        Each dimension is counted under every other filter but its own, so a
+        chip shows how many events choosing it would give.
+        """
+        by_type_filters = filters.model_copy(update={"types": None})
+        by_severity_filters = filters.model_copy(update={"severities": None})
+
+        async def grouped(column: Any, f: EventFilter) -> list[dict[str, Any]]:
+            stmt = (
+                select(column, func.count())
+                .where(*event_filter_conditions(f))
+                .group_by(column)
+                .order_by(func.count().desc(), column)
+            )
+            rows = (await self.session.execute(stmt)).all()
+            return [{"value": key.value, "count": count} for key, count in rows]
+
+        total = await self.session.scalar(
+            select(func.count(Event.id)).where(*event_filter_conditions(filters))
+        )
+        return {
+            "total": total or 0,
+            "by_type": await grouped(Event.type, by_type_filters),
+            "by_severity": await grouped(Event.severity, by_severity_filters),
+        }
 
     async def get_by_id(self, event_id: UUID) -> Event | None:
         """Get an event by its ID.

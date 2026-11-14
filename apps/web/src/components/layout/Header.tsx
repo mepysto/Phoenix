@@ -10,7 +10,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { AccountMenu } from "./AccountMenu";
 import { BottomNav } from "./BottomNav";
 import { Dropdown } from "./Dropdown";
-import { isActiveItem, isActivePath, isGroup, primaryNav, type NavGroup } from "./nav";
+import { followWithFilters, isActiveItem, isActivePath, isGroup, primaryNav, type NavGroup } from "./nav";
 
 const NAV_LINK =
   "relative whitespace-nowrap py-1 text-sm font-medium transition-colors after:absolute after:inset-x-0 after:-bottom-[17px] after:h-0.5 after:rounded-full";
@@ -121,6 +121,7 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={(e) => followWithFilters(e, item.href, pathname, router.push)}
                 aria-current={active ? "page" : undefined}
                 className={`${NAV_LINK} ${navTone(active)}`}
               >
