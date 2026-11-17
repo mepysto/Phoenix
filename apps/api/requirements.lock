@@ -125,7 +125,7 @@ redis==8.1.0
     # via phoenix-api (pyproject.toml)
 sgp4==2.27
     # via skyfield
-shapely==2.1.2
+shapely==2.2.0
     # via
     #   phoenix-api (pyproject.toml)
     #   geopandas

@@ -28,7 +28,7 @@ dependencies = [
     "cryptography>=46.0.0",  # Web Push: RFC 8291 encryption and RFC 8292 VAPID (src/services/push)
     # PostGIS + Geo dependencies
     "geoalchemy2>=0.15.0",
-    "shapely>=2.0.0",
+    "shapely>=2.2.0",
     "geopandas>=1.2.0",
     "pyproj>=3.6.0",
 ]
