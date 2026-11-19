@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@phoenix/shared": "workspace:*",
-    "cesium": "^1.145.0",
+    "cesium": "^1.147.0",
     "hls.js": "^1.7.3",
     "lucide-react": "^0.468.0",
     "maplibre-gl": "^6.16.0",
