@@ -65,8 +65,8 @@ importers:
         specifier: ^19.3.1
         version: 19.3.1(react@19.3.1)
       resium:
-        specifier: ^1.26.0
-        version: 1.26.0(cesium@1.147.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: ^1.28.0
+        version: 1.28.0(cesium@1.147.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       zustand:
         specifier: ^5.1.0
         version: 5.1.0(@types/react@19.3.0)(react@19.3.1)
@@ -2732,8 +2732,8 @@ packages:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
     engines: {node: '>=0.10.0'}
 
-  resium@1.26.0:
-    resolution: {integrity: sha512-1XxitSnMJnawLN7yR7fF5PPQe/Mf7p8GbIdi1ehNgZfmkyCpDDtw8xdgFbj1k/wyvvubt44+0KRUPndCsRS2QQ==}
+  resium@1.28.0:
+    resolution: {integrity: sha512-iGeQsLmq/m8r+HFLrrdLivilpiB3FdoPbr4F+2a2OiM/N7crJ8bk6htBbnxKH84B/qol+ogYB5tiVSg7PjKprA==}
     engines: {node: '>=20.19.0'}
     peerDependencies:
       cesium: 1.x
@@ -5891,7 +5891,7 @@ snapshots:
 
   require-from-string@2.0.2: {}
 
-  resium@1.26.0(cesium@1.147.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  resium@1.28.0(cesium@1.147.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
       cesium: 1.147.0
       react: 19.3.1
